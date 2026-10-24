@@ -52,6 +52,21 @@ Este projeto nasceu como um trabalho de **melhoria contínua** dentro de um labo
 
 ## Telas
 
+<table>
+  <tr>
+    <td width="50%"><img src="docs/telas/bancada.png" alt="Bancada de montagem"><br><sub><b>Bancada de montagem</b> — próxima ação de cada OS e as cinco etapas</sub></td>
+    <td width="50%"><img src="docs/telas/dashboard.png" alt="Dashboard"><br><sub><b>Dashboard</b> — fila (WIP), produção × meta, radar de prazos e qualidade</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/telas/ranking.png" alt="Ranking"><br><sub><b>Ranking</b> — gestão à vista com pódio, metas e modo TV</sub></td>
+    <td><img src="docs/telas/kanban.png" alt="Kanban"><br><sub><b>Kanban</b> — fluxo da OS puxado pelo prazo</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/telas/ordem-servico.png" alt="Ordem de serviço"><br><sub><b>Ordem de serviço</b> — progresso, previsão e comunicação com o vendedor</sub></td>
+    <td><img src="docs/telas/lancamento-rapido.png" alt="Lançamento rápido"><br><sub><b>Lançamento rápido</b> — entrada, chegada de lentes e saída em lote</sub></td>
+  </tr>
+</table>
+
 <p align="center">
   <img src="docs/telas/portal-vendedor.png" alt="Portal do vendedor" width="280">
   &nbsp;&nbsp;

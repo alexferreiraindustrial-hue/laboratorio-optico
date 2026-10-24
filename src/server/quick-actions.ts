@@ -7,7 +7,16 @@ import { systemNumberCandidates } from "@/lib/domain/quick-entry";
 import { actionError, requireProfile } from "./session";
 
 export type QuickCreateInput = {
-  entries: { orderRef: string | null; clientName: string | null }[];
+  entries: {
+    orderRef: string | null;
+    clientName: string | null;
+    /** Quando informados por linha, têm prioridade sobre os padrões abaixo. */
+    sellerId?: string | null;
+    storeId?: string | null;
+    dueAt?: string | null;
+    lensExpectedAt?: string | null;
+    lensSupplierRef?: string | null;
+  }[];
   laboratoryId: string;
   sellerId?: string | null;
   storeId?: string | null;
@@ -42,13 +51,14 @@ export async function quickCreateOrders(input: QuickCreateInput): Promise<{ ok: 
       results.push({ index, ok: false, message: "Informe a OS ou o nome." });
       continue;
     }
+    const hasOwnTarget = entry.sellerId !== undefined || entry.storeId !== undefined;
     const { data, error } = await supabase.rpc("create_service_order", {
       p_client_name: name,
-      p_seller_id: input.sellerId || null,
-      p_store_id: input.storeId || null,
+      p_seller_id: (hasOwnTarget ? entry.sellerId : input.sellerId) || null,
+      p_store_id: (hasOwnTarget ? entry.storeId : input.storeId) || null,
       p_laboratory_id: input.laboratoryId,
       p_entered_at: now.toISOString(),
-      p_due_at: due,
+      p_due_at: entry.dueAt !== undefined ? entry.dueAt : due,
       p_notes: entry.clientName ? "Lançamento rápido." : "Lançamento rápido só com o número da OS — completar o nome do cliente.",
       p_service_description: "Lançamento rápido",
       p_external_order_id: ref,
@@ -59,6 +69,12 @@ export async function quickCreateOrders(input: QuickCreateInput): Promise<{ ok: 
     if (error) {
       results.push({ index, ok: false, message: actionError(error, "Não foi possível lançar.") ?? "Erro ao lançar." });
     } else {
+      if (entry.lensExpectedAt || entry.lensSupplierRef) {
+        await supabase
+          .from("service_orders")
+          .update({ lens_expected_at: entry.lensExpectedAt || null, lens_supplier_ref: entry.lensSupplierRef?.trim() || null })
+          .eq("id", data.id as string);
+      }
       results.push({ index, ok: true, id: data.id as string, number: data.number as string, message: `${data.number} aberta` });
     }
   }

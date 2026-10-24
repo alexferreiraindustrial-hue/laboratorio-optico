@@ -4,16 +4,20 @@ import {
   Activity,
   ClipboardCheck,
   ClipboardList,
-  Lightbulb,
-  Loader2,
-  RefreshCcw,
   FileText,
   LayoutDashboard,
+  LifeBuoy,
+  Lightbulb,
+  ListChecks,
+  Loader2,
   LogOut,
   Menu,
   MessageSquare,
   Package,
+  PackageCheck,
+  PackageSearch,
   QrCode,
+  RefreshCcw,
   Search,
   Settings,
   Store,
@@ -33,17 +37,43 @@ import { cn } from "@/lib/utils";
 
 type NavItem = { href: string; label: string; icon: typeof LayoutDashboard };
 
-const groups: { title: string; items: NavItem[] }[] = [
+// Menu na ordem do fluxo da produção: a OS entra, espera a lente, é montada, sai.
+const groups: { title: string; step?: string; items: NavItem[] }[] = [
   {
-    title: "Operação",
+    title: "Hoje",
     items: [
-      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/laboratorio", label: "Laboratório", icon: ClipboardList },
-      { href: "/laboratorio/rapido", label: "Lançamento rápido", icon: Zap },
-      { href: "/montagem", label: "Bancada de montagem", icon: Wrench },
-      { href: "/ranking", label: "Ranking", icon: Trophy },
+      { href: "/dashboard", label: "Painel", icon: LayoutDashboard },
+      { href: "/rotina", label: "Rotina do dia", icon: ListChecks },
+    ],
+  },
+  {
+    title: "Entrada",
+    step: "1",
+    items: [
+      { href: "/laboratorio/rapido", label: "Lançar OS", icon: Zap },
+      { href: "/laboratorio", label: "Todas as OS", icon: ClipboardList },
+    ],
+  },
+  {
+    title: "Lentes",
+    step: "2",
+    items: [
+      { href: "/lentes", label: "Lentes a chegar", icon: PackageSearch },
       { href: "/estoque", label: "Estoque de lentes", icon: Package },
     ],
+  },
+  {
+    title: "Montagem",
+    step: "3",
+    items: [
+      { href: "/montagem", label: "Bancada", icon: Wrench },
+      { href: "/assistencia", label: "Assistência · BO", icon: LifeBuoy },
+    ],
+  },
+  {
+    title: "Saída",
+    step: "4",
+    items: [{ href: "/entrega", label: "Entrega ao vendedor", icon: PackageCheck }],
   },
   {
     title: "Melhoria contínua",
@@ -55,16 +85,17 @@ const groups: { title: string; items: NavItem[] }[] = [
     ],
   },
   {
-    title: "Cadastros",
+    title: "Equipe e clientes",
     items: [
-      { href: "/lojas", label: "Lojas", icon: Store },
       { href: "/vendedores", label: "Vendedores", icon: Users },
+      { href: "/lojas", label: "Lojas", icon: Store },
+      { href: "/recados", label: "Recados", icon: MessageSquare },
+      { href: "/ranking", label: "Ranking", icon: Trophy },
     ],
   },
   {
     title: "Gestão",
     items: [
-      { href: "/recados", label: "Recados", icon: MessageSquare },
       { href: "/relatorios", label: "Relatórios", icon: FileText },
       { href: "/configuracoes", label: "Configurações", icon: Settings },
     ],
@@ -75,21 +106,35 @@ const groups: { title: string; items: NavItem[] }[] = [
 const ACCESS: Record<AppRole, string[] | null> = {
   admin: null,
   gestor: null,
-  montador: ["/laboratorio/rapido", "/montagem", "/ranking", "/recados", "/melhoria", "/melhoria/kaizen", "/melhoria/5s"],
-  estoquista: ["/laboratorio", "/estoque", "/ranking", "/recados", "/melhoria", "/melhoria/kaizen", "/melhoria/5s"],
+  montador: [
+    "/rotina",
+    "/laboratorio/rapido",
+    "/lentes",
+    "/montagem",
+    "/assistencia",
+    "/ranking",
+    "/recados",
+    "/melhoria",
+    "/melhoria/kaizen",
+    "/melhoria/5s",
+  ],
+  estoquista: ["/rotina", "/laboratorio", "/lentes", "/estoque", "/ranking", "/recados", "/melhoria", "/melhoria/kaizen", "/melhoria/5s"],
   consulta: [
     "/dashboard",
+    "/rotina",
     "/laboratorio",
-    "/montagem",
-    "/ranking",
+    "/lentes",
     "/estoque",
-    "/lojas",
-    "/vendedores",
-    "/relatorios",
+    "/montagem",
+    "/assistencia",
     "/melhoria",
     "/melhoria/indicadores",
     "/melhoria/kaizen",
     "/melhoria/5s",
+    "/vendedores",
+    "/lojas",
+    "/ranking",
+    "/relatorios",
   ],
 };
 
@@ -116,6 +161,8 @@ export function Shell({
   orgName,
   unread = 0,
   openOrders = 0,
+  boOpen = 0,
+  lensLate = 0,
 }: {
   children: React.ReactNode;
   name: string;
@@ -123,6 +170,8 @@ export function Shell({
   orgName: string;
   unread?: number;
   openOrders?: number;
+  boOpen?: number;
+  lensLate?: number;
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -139,11 +188,26 @@ export function Shell({
     <nav className="flex flex-col gap-[18px]">
       {visibleGroups.map((group) => (
         <div key={group.title} className="flex flex-col gap-0.5">
-          <p className="px-2.5 pb-1 text-xs font-medium text-[#8a9694]">{group.title}</p>
+          <p className="flex items-center gap-1.5 px-2.5 pb-1 text-xs font-medium text-[#8a9694]">
+            {group.step ? (
+              <span className="grid h-4 w-4 place-items-center rounded bg-[#e4f1ef] font-mono text-[10px] font-bold text-[#0a4f48]">{group.step}</span>
+            ) : null}
+            {group.title}
+          </p>
           {group.items.map((item) => {
             const active = current?.href === item.href;
             const Icon = item.icon;
-            const count = item.href === "/recados" ? unread : item.href === "/laboratorio" ? openOrders : 0;
+            const count =
+              item.href === "/recados"
+                ? unread
+                : item.href === "/laboratorio"
+                  ? openOrders
+                  : item.href === "/assistencia"
+                    ? boOpen
+                    : item.href === "/lentes"
+                      ? lensLate
+                      : 0;
+            const alert = (item.href === "/assistencia" || item.href === "/lentes") && count > 0;
             return (
               <Link
                 key={item.href}
@@ -158,7 +222,7 @@ export function Shell({
                 <span className="flex-1">{item.label}</span>
                 <PendingDot />
                 {count > 0 ? (
-                  <span className="rounded-md bg-[#e4f1ef] px-[7px] py-px text-xs font-semibold text-[#0a4f48]">{count}</span>
+                  <span className={cn("rounded-md px-[7px] py-px text-xs font-semibold", alert ? "bg-[#fdecea] text-[#a3261b]" : "bg-[#e4f1ef] text-[#0a4f48]")}>{count}</span>
                 ) : null}
               </Link>
             );

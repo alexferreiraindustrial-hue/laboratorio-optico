@@ -103,6 +103,14 @@ export default async function IndicadoresPage({ searchParams }: { searchParams: 
           </p>
         </Card>
 
+        <Card
+          title="Pareto por etapa da bancada"
+          subtitle="Em que etapa os defeitos nascem: conferência inicial, lensometria, blocagem, facetadora ou conferência final"
+          action={m.paretoByStep[0] ? <Pill tone="warn">Mais crítica: {m.paretoByStep[0].name}</Pill> : undefined}
+        >
+          {m.paretoByStep.length ? <ParetoChart data={m.paretoByStep} /> : <p className="py-16 text-center text-sm text-[#6e7c7a]">Nenhuma ocorrência no período.</p>}
+        </Card>
+
         <Card title="Produção × ocorrências por dia" subtitle="Vazão diária comparada aos defeitos registrados">
           <FlowTrend data={m.trend} />
         </Card>

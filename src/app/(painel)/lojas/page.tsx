@@ -7,7 +7,7 @@ export default async function StoresPage({ searchParams }: { searchParams: Promi
   const { q = "" } = await searchParams;
   const { supabase } = await requireProfile();
   const term = q.trim();
-  let query = supabase.from("stores").select("id, public_code, trade_name, contact_name, phone, active").order("trade_name");
+  let query = supabase.from("stores").select("id, public_code, trade_name, contact_name, phone, active, quick_code").order("trade_name");
   if (term) {
     query = query.or(`trade_name.ilike.%${term.replace(/[%_,]/g, " ")}%,public_code.ilike.%${term.replace(/[%_,]/g, " ")}%,contact_name.ilike.%${term.replace(/[%_,]/g, " ")}%,phone.ilike.%${term.replace(/[%_,]/g, " ")}%`);
   }
@@ -55,7 +55,7 @@ export default async function StoresPage({ searchParams }: { searchParams: Promi
               const item = stats.get(store.id) ?? { open: 0, ready: 0, late: 0 };
               return (
                 <tr key={store.id} className="border-t border-[#e2e7e9]">
-                  <td className="px-3 py-2"><Link className="font-medium text-[#0e6b62]" href={`/lojas/${store.id}`}>{store.trade_name}</Link><div className="font-mono text-xs text-[#6e7c7a]">{store.public_code}</div></td>
+                  <td className="px-3 py-2"><Link className="font-medium text-[#0e6b62]" href={`/lojas/${store.id}`}>{store.quick_code ? <span className="mr-1.5 rounded bg-[#e4f1ef] px-1.5 py-px font-mono text-xs text-[#0a4f48]">l{store.quick_code}</span> : null}{store.trade_name}</Link><div className="font-mono text-xs text-[#6e7c7a]">{store.public_code}</div></td>
                   <td className="px-3 py-2">{store.contact_name || "—"}</td>
                   <td className="px-3 py-2">{store.phone || "—"}</td>
                   <td className="px-3 py-2">{item.open}</td>

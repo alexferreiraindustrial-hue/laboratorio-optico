@@ -34,6 +34,9 @@ export function StoreForm({ store }: { store?: Store }) {
     >
       {store ? <input type="hidden" name="id" value={store.id} /> : null}
       <Field label="Nome fantasia"><Input name="tradeName" required defaultValue={store?.trade_name} /></Field>
+      <Field label="Código rápido" hint="Número usado no lançamento: digite l1, l2… para trocar de loja">
+        <Input name="quickCode" inputMode="numeric" defaultValue={store?.quick_code ?? ""} placeholder="automático" />
+      </Field>
       <Field label="Razão social"><Input name="legalName" defaultValue={store?.legal_name ?? ""} /></Field>
       <Field label="CNPJ"><Input name="cnpj" defaultValue={store?.cnpj ?? ""} placeholder="Somente números" /></Field>
       <Field label="Responsável"><Input name="contactName" defaultValue={store?.contact_name ?? ""} /></Field>
@@ -61,7 +64,7 @@ export function SellerForm({
   stores,
   selected,
 }: {
-  seller?: { id: string; name: string; phone: string | null; whatsapp: string | null; email: string | null; notes: string | null; active: boolean };
+  seller?: { id: string; name: string; phone: string | null; whatsapp: string | null; email: string | null; notes: string | null; active: boolean; quick_code?: number | null };
   stores: { id: string; trade_name: string }[];
   selected: string[];
 }) {
@@ -91,6 +94,9 @@ export function SellerForm({
     >
       {seller ? <input type="hidden" name="id" value={seller.id} /> : null}
       <Field label="Nome completo"><Input name="name" required defaultValue={seller?.name} /></Field>
+      <Field label="Código rápido" hint="Número usado no lançamento: digite v1, v2… para trocar de vendedor">
+        <Input name="quickCode" inputMode="numeric" defaultValue={seller?.quick_code ?? ""} placeholder="automático" />
+      </Field>
       <Field label="Telefone"><Input name="phone" defaultValue={seller?.phone ?? ""} /></Field>
       <Field label="WhatsApp"><Input name="whatsapp" defaultValue={seller?.whatsapp ?? ""} /></Field>
       <Field label="E-mail"><Input name="email" type="email" defaultValue={seller?.email ?? ""} /></Field>

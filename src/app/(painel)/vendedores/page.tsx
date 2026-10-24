@@ -7,7 +7,7 @@ export default async function SellersPage({ searchParams }: { searchParams: Prom
   const { q = "" } = await searchParams;
   const { supabase } = await requireProfile();
   const term = q.replace(/[%_,]/g, " ").trim();
-  let query = supabase.from("sellers").select("id, public_code, name, phone, active").order("name");
+  let query = supabase.from("sellers").select("id, public_code, name, phone, active, quick_code").order("name");
   if (term) query = query.or(`name.ilike.%${term}%,public_code.ilike.%${term}%,phone.ilike.%${term}%`);
   const { data: sellers } = await query;
   const { data: links } = await supabase.from("seller_stores").select("seller_id, stores(trade_name)");
@@ -41,7 +41,7 @@ export default async function SellersPage({ searchParams }: { searchParams: Prom
                 .filter(Boolean);
               return (
                 <tr key={seller.id} className="border-t border-[#e2e7e9]">
-                  <td className="px-3 py-2"><Link className="font-medium text-[#0e6b62]" href={`/vendedores/${seller.id}`}>{seller.name}</Link><div className="font-mono text-xs text-[#6e7c7a]">{seller.public_code}</div></td>
+                  <td className="px-3 py-2"><Link className="font-medium text-[#0e6b62]" href={`/vendedores/${seller.id}`}>{seller.quick_code ? <span className="mr-1.5 rounded bg-[#e4f1ef] px-1.5 py-px font-mono text-xs text-[#0a4f48]">v{seller.quick_code}</span> : null}{seller.name}</Link><div className="font-mono text-xs text-[#6e7c7a]">{seller.public_code}</div></td>
                   <td className="px-3 py-2">{names.join(", ") || "—"}</td>
                   <td className="px-3 py-2">{seller.phone || "—"}</td>
                   <td className="px-3 py-2">{seller.active ? "Ativo" : "Inativo"}</td>

@@ -24,8 +24,9 @@ export default async function EstoquePage() {
     <div>
       <PageHeading
         title="Estoque de lentes"
-        description="Cada combinação de características tem saldo próprio. A grade inicial vai de -4,00 a +4,00 e de 0,00 a -3,00, em passos de 0,25."
+        description="Clique em um grau da grade para ver o saldo ou use “Cadastrar lente” para incluir uma nova combinação. Cada combinação tem saldo e QR Code próprios."
       >
+        <Button asChild><Link href="/estoque/nova">+ Cadastrar lente</Link></Button>
         <Button variant="secondary" asChild><Link href="/estoque/especiais">Graus especiais</Link></Button>
         <Button variant="secondary" asChild><Link href="/estoque/leitura">Ler QR Code</Link></Button>
       </PageHeading>

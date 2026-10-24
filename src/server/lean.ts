@@ -1,5 +1,5 @@
 import { addDays, zonedStart, zonedYmd } from "@/lib/domain/calendar";
-import { QUEUE_STATUSES } from "@/lib/domain/constants";
+import { QUEUE_STATUSES, STEP_LABEL, type StepKey } from "@/lib/domain/constants";
 import {
   FIVE_S_KEYS,
   firstPassYield,
@@ -199,6 +199,7 @@ export async function loadLeanMetrics(days = 30) {
     takt: taktMinutes(available, demandPerDay),
     availableMinutes: available,
     pareto: pareto(occurrences.map((item) => categoryName.get(item.category_id) ?? "Sem categoria")),
+    paretoByStep: pareto(occurrences.map((item) => (item.step_key ? STEP_LABEL[item.step_key as StepKey] ?? item.step_key : "Sem etapa"))),
     chart,
     cycle: stepCycleTimes(steps),
     settings,

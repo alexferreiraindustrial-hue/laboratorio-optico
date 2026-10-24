@@ -10,6 +10,17 @@ function clean(value: FormDataEntryValue | null) {
   return text.length ? text : null;
 }
 
+function quickCode(value: FormDataEntryValue | null) {
+  const text = String(value ?? "").trim();
+  if (!text) return undefined;
+  const code = Number(text);
+  return Number.isInteger(code) && code >= 1 && code <= 999 ? code : NaN;
+}
+
+function friendly(message: string) {
+  return /quick_code/.test(message) ? "Este código rápido já está em uso. Escolha outro número." : message;
+}
+
 function digits(value: string | null) {
   if (!value) return null;
   const only = value.replace(/\D/g, "");
@@ -34,13 +45,15 @@ export async function saveStore(formData: FormData): Promise<ActionResult> {
     address: clean(formData.get("address")),
     notes: clean(formData.get("notes")),
     active: formData.get("active") !== "false",
+    ...(quickCode(formData.get("quickCode")) !== undefined ? { quick_code: quickCode(formData.get("quickCode")) } : {}),
   };
+  if (Number.isNaN(payload.quick_code)) return { ok: false, message: "O código rápido deve ser um número de 1 a 999." };
   const id = clean(formData.get("id"));
   const query = id
     ? supabase.from("stores").update(payload).eq("id", id).select("id").single()
     : supabase.from("stores").insert(payload).select("id").single();
   const { data, error } = await query;
-  if (error) return { ok: false, message: error.message };
+  if (error) return { ok: false, message: friendly(error.message) };
   revalidatePath("/lojas");
   revalidatePath("/laboratorio");
   return { ok: true, id: data.id, message: id ? "Loja atualizada." : "Loja cadastrada." };
@@ -59,13 +72,15 @@ export async function saveSeller(formData: FormData): Promise<ActionResult> {
     email: clean(formData.get("email")),
     notes: clean(formData.get("notes")),
     active: formData.get("active") !== "false",
+    ...(quickCode(formData.get("quickCode")) !== undefined ? { quick_code: quickCode(formData.get("quickCode")) } : {}),
   };
+  if (Number.isNaN(payload.quick_code)) return { ok: false, message: "O código rápido deve ser um número de 1 a 999." };
   const id = clean(formData.get("id"));
   const query = id
     ? supabase.from("sellers").update(payload).eq("id", id).select("id, name, public_code").single()
     : supabase.from("sellers").insert(payload).select("id, name, public_code").single();
   const { data, error } = await query;
-  if (error || !data) return { ok: false, message: error?.message ?? "Não foi possível salvar o vendedor." };
+  if (error || !data) return { ok: false, message: error ? friendly(error.message) : "Não foi possível salvar o vendedor." };
 
   if (formData.has("storeId")) {
     const { error: clearError } = await supabase.from("seller_stores").delete().eq("seller_id", data.id);

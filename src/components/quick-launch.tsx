@@ -1,20 +1,17 @@
 "use client";
 
-import { ArrowRight, Check, Keyboard, PackageCheck, PackageOpen, Printer, ScanLine, Trash2, X, Zap } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { ArrowRight, Check, PackageCheck, PackageOpen, ScanLine, X, Zap } from "lucide-react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { STATUS_LABEL, type AppRole, type OrderStatus } from "@/lib/domain/constants";
 import { can } from "@/lib/domain/permissions";
-import { parseQuickBatch, parseQuickEntry, type QuickEntry } from "@/lib/domain/quick-entry";
 import type { Laboratory, Seller, SellerStoreLink, Store } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
   findOrdersForQuick,
-  quickCreateOrders,
   quickMoveOrders,
   type FoundOrder,
-  type QuickCreateResult,
 } from "@/server/quick-actions";
+import { EntryLaunch } from "./entry-launch";
 import { StatusBadge } from "./status-badge";
 import { Button, Panel } from "./ui";
 
@@ -25,16 +22,6 @@ const MODES: { key: Mode; label: string; hint: string; icon: typeof Zap }[] = [
   { key: "lentes", label: "Chegada de lentes", hint: "Libera para a montagem as OS cujas lentes chegaram.", icon: PackageOpen },
   { key: "saida", label: "Saída / entrega", hint: "Registra a retirada das OS prontas.", icon: PackageCheck },
 ];
-
-const DUE_OPTIONS: { label: string; hours: number | null }[] = [
-  { label: "24 h", hours: 24 },
-  { label: "48 h", hours: 48 },
-  { label: "72 h", hours: 72 },
-  { label: "5 dias", hours: 120 },
-  { label: "Sem prazo", hours: null },
-];
-
-type Draft = QuickEntry & { key: string; result?: QuickCreateResult };
 
 function beep(ok: boolean) {
   try {
@@ -50,22 +37,6 @@ function beep(ok: boolean) {
     osc.stop(ctx.currentTime + (ok ? 0.08 : 0.25));
   } catch {
     /* sem áudio, sem problema */
-  }
-}
-
-function readPrefs() {
-  try {
-    return JSON.parse(window.localStorage.getItem("quick-launch-prefs") ?? "{}") as Record<string, string>;
-  } catch {
-    return {};
-  }
-}
-
-function savePrefs(value: Record<string, string>) {
-  try {
-    window.localStorage.setItem("quick-launch-prefs", JSON.stringify(value));
-  } catch {
-    /* navegador sem armazenamento */
   }
 }
 
@@ -126,305 +97,11 @@ export function QuickLaunch({
             : "Seu perfil não tem permissão para esta operação."}
         </Panel>
       ) : mode === "entrada" ? (
-        <EntryMode laboratories={laboratories} sellers={sellers} stores={stores} sellerLinks={sellerLinks} />
+        <EntryLaunch laboratories={laboratories} sellers={sellers} stores={stores} sellerLinks={sellerLinks} />
       ) : (
         <MoveMode key={mode} mode={mode} />
       )}
     </div>
-  );
-}
-
-function EntryMode({
-  laboratories,
-  sellers,
-  stores,
-  sellerLinks,
-}: {
-  laboratories: Laboratory[];
-  sellers: Seller[];
-  stores: Store[];
-  sellerLinks: SellerStoreLink[];
-}) {
-  const activeLabs = laboratories.filter((lab) => lab.active);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [text, setText] = useState("");
-  const [drafts, setDrafts] = useState<Draft[]>([]);
-  const [labId, setLabId] = useState(activeLabs[0]?.id ?? "");
-  const [sellerId, setSellerId] = useState("");
-  const [storeId, setStoreId] = useState("");
-  const [dueHours, setDueHours] = useState<number | null>(48);
-  const [status, setStatus] = useState<"aguardando_lentes" | "aguardando_montagem">("aguardando_lentes");
-  const [urgent, setUrgent] = useState(false);
-  const [instant, setInstant] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-
-  useEffect(() => {
-    const prefs = readPrefs();
-    /* eslint-disable react-hooks/set-state-in-effect -- restaura preferências salvas no navegador */
-    if (prefs.labId && activeLabs.some((lab) => lab.id === prefs.labId)) setLabId(prefs.labId);
-    if (prefs.sellerId && sellers.some((seller) => seller.id === prefs.sellerId)) setSellerId(prefs.sellerId);
-    if (prefs.storeId && stores.some((store) => store.id === prefs.storeId)) setStoreId(prefs.storeId);
-    if (prefs.dueHours) setDueHours(prefs.dueHours === "none" ? null : Number(prefs.dueHours));
-    if (prefs.status === "aguardando_montagem") setStatus("aguardando_montagem");
-    if (prefs.instant === "1") setInstant(true);
-    /* eslint-enable react-hooks/set-state-in-effect */
-    inputRef.current?.focus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    savePrefs({ labId, sellerId, storeId, dueHours: dueHours == null ? "none" : String(dueHours), status, instant: instant ? "1" : "0" });
-  }, [labId, sellerId, storeId, dueHours, status, instant]);
-
-  const visibleSellers = useMemo(() => {
-    const active = sellers.filter((seller) => seller.active);
-    if (!storeId) return active;
-    const allowedIds = new Set(sellerLinks.filter((link) => link.store_id === storeId).map((link) => link.seller_id));
-    return active.filter((seller) => allowedIds.has(seller.id));
-  }, [sellers, sellerLinks, storeId]);
-
-  const pendingDrafts = drafts.filter((item) => !item.result?.ok);
-  const createdIds = drafts.filter((item) => item.result?.ok && item.result.id).map((item) => item.result!.id!);
-
-  function launch(list: Draft[]) {
-    const targets = list.filter((item) => !item.result?.ok);
-    if (targets.length === 0 || !labId) return;
-    startTransition(async () => {
-      const response = await quickCreateOrders({
-        entries: targets.map((item) => ({ orderRef: item.orderRef, clientName: item.clientName })),
-        laboratoryId: labId,
-        sellerId: sellerId || null,
-        storeId: storeId || null,
-        dueHours,
-        status,
-        priority: urgent ? "critica" : "normal",
-      });
-      if (response.results.length === 0) {
-        setMessage(response.message ?? "Não foi possível lançar.");
-        beep(false);
-        return;
-      }
-      const byKey = new Map(targets.map((item, index) => [item.key, response.results.find((result) => result.index === index)]));
-      setDrafts((current) => current.map((item) => (byKey.has(item.key) ? { ...item, result: byKey.get(item.key) } : item)));
-      setMessage(response.message ?? null);
-      beep(response.results.every((item) => item.ok));
-      inputRef.current?.focus();
-    });
-  }
-
-  function addFromText(value: string) {
-    const entries = value.includes("\n") || value.includes(";") ? parseQuickBatch(value) : [parseQuickEntry(value)].filter(Boolean) as QuickEntry[];
-    const fresh: Draft[] = entries
-      .filter((entry) => entry.orderRef || entry.clientName)
-      .map((entry) => ({ ...entry, key: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}` }));
-    if (fresh.length === 0) return;
-    setText("");
-    setMessage(null);
-    if (instant) {
-      setDrafts((current) => [...fresh, ...current]);
-      launch(fresh);
-    } else {
-      setDrafts((current) => [...fresh, ...current]);
-      beep(true);
-    }
-  }
-
-  if (activeLabs.length === 0) {
-    return <Panel className="px-5 py-8 text-center text-sm text-[#6e7c7a]">Cadastre um laboratório em Configurações antes de lançar OS.</Panel>;
-  }
-
-  return (
-    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-      <div className="flex flex-col gap-5">
-        <Panel className="p-5">
-          <label className="text-[13px] font-semibold text-[#44524f]" htmlFor="quick-input">
-            Digite ou bipe: <span className="font-normal text-[#6e7c7a]">“4521 Maria Souza”, só “4521” ou só “Maria Souza”</span>
-          </label>
-          <div className="mt-2.5 flex items-stretch gap-2.5">
-            <div className="flex flex-1 items-start gap-2.5 rounded-xl border-2 border-[#0e6b62] bg-white px-3.5 py-3 shadow-[0_0_0_4px_rgba(14,107,98,0.10)]">
-              <ScanLine size={22} className="mt-0.5 shrink-0 text-[#0e6b62]" />
-              <textarea
-                id="quick-input"
-                ref={inputRef}
-                rows={1}
-                value={text}
-                onChange={(event) => setText(event.target.value)}
-                onPaste={(event) => {
-                  const pasted = event.clipboardData.getData("text");
-                  if (pasted.includes("\n")) {
-                    event.preventDefault();
-                    addFromText(pasted);
-                  }
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
-                    event.preventDefault();
-                    if (text.trim()) addFromText(text);
-                    launch(drafts);
-                    return;
-                  }
-                  if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault();
-                    addFromText(text);
-                  }
-                  if (event.key === "Escape") setText("");
-                }}
-                placeholder="Número da OS e/ou nome do cliente"
-                className="min-h-7 flex-1 resize-none border-0 bg-transparent text-lg font-medium text-[#13201f] shadow-none outline-none placeholder:font-normal placeholder:text-[#8a9694] focus:shadow-none"
-              />
-            </div>
-            <Button type="button" className="h-auto px-5" disabled={!text.trim()} onClick={() => addFromText(text)}>
-              Adicionar
-            </Button>
-          </div>
-          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#6e7c7a]">
-            <span className="flex items-center gap-1.5"><Keyboard size={14} /> Enter adiciona · Ctrl+Enter lança tudo · cole uma lista para lançar em lote</span>
-            <label className="flex cursor-pointer items-center gap-1.5 font-medium text-[#44524f]">
-              <input type="checkbox" checked={instant} onChange={(event) => setInstant(event.target.checked)} className="accent-[#0e6b62]" />
-              Lançar direto ao apertar Enter (modo leitor)
-            </label>
-          </div>
-        </Panel>
-
-        <Panel className="overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-[#e2e7e9] px-5 py-3.5">
-            <h2 className="text-[15px] font-semibold">
-              Fila de lançamento <span className="ml-1 rounded-md bg-[#eef1f3] px-1.5 text-xs text-[#6e7c7a]">{drafts.length}</span>
-            </h2>
-            <div className="flex items-center gap-2">
-              {drafts.length > 0 ? (
-                <Button type="button" variant="ghost" size="sm" onClick={() => { setDrafts([]); setMessage(null); inputRef.current?.focus(); }}>
-                  Limpar
-                </Button>
-              ) : null}
-              <Button type="button" disabled={pending || pendingDrafts.length === 0} onClick={() => launch(drafts)}>
-                <Zap size={16} />
-                {pending ? "Lançando..." : `Lançar ${pendingDrafts.length || ""} OS`}
-              </Button>
-            </div>
-          </div>
-          {drafts.length === 0 ? (
-            <p className="px-5 py-10 text-center text-sm text-[#8a9694]">As OS digitadas aparecem aqui antes de serem abertas.</p>
-          ) : (
-            <ul>
-              {drafts.map((item) => (
-                <li key={item.key} className="grid grid-cols-[110px_minmax(0,1fr)_auto] items-center gap-3 border-b border-[#eef1f3] px-5 py-2.5 last:border-b-0">
-                  <input
-                    value={item.orderRef ?? ""}
-                    disabled={item.result?.ok}
-                    placeholder="Sem nº"
-                    onChange={(event) => setDrafts((current) => current.map((d) => (d.key === item.key ? { ...d, orderRef: event.target.value || null, result: undefined } : d)))}
-                    className="h-8 rounded-md border border-transparent bg-[#f7f9f9] px-2 font-mono text-[13px] outline-none focus:border-[#0e6b62] disabled:bg-transparent"
-                  />
-                  <input
-                    value={item.clientName ?? ""}
-                    disabled={item.result?.ok}
-                    placeholder={item.orderRef ? `OS ${item.orderRef} (completar nome depois)` : "Nome do cliente"}
-                    onChange={(event) => setDrafts((current) => current.map((d) => (d.key === item.key ? { ...d, clientName: event.target.value || null, result: undefined } : d)))}
-                    className="h-8 min-w-0 rounded-md border border-transparent bg-[#f7f9f9] px-2 text-sm font-medium outline-none focus:border-[#0e6b62] disabled:bg-transparent"
-                  />
-                  <div className="flex items-center justify-end gap-2">
-                    {item.result ? (
-                      item.result.ok ? (
-                        <Link href={`/laboratorio/${item.result.id}`} className="flex items-center gap-1.5 whitespace-nowrap rounded-md bg-[#e3f4ea] px-2 py-1 font-mono text-xs font-semibold text-[#1c6b43]">
-                          <Check size={13} /> {item.result.number}
-                        </Link>
-                      ) : (
-                        <span className="max-w-[220px] truncate rounded-md bg-[#fdecea] px-2 py-1 text-xs font-semibold text-[#a3261b]" title={item.result.message}>
-                          {item.result.message}
-                        </span>
-                      )
-                    ) : (
-                      <span className="text-xs text-[#8a9694]">pronta p/ lançar</span>
-                    )}
-                    {!item.result?.ok ? (
-                      <button type="button" aria-label="Remover" className="rounded-md p-1.5 text-[#8a9694] hover:bg-[#f2f4f5] hover:text-[#b42318]" onClick={() => setDrafts((current) => current.filter((d) => d.key !== item.key))}>
-                        <Trash2 size={15} />
-                      </button>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-          {message || createdIds.length > 0 ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e2e7e9] bg-[#f7f9f9] px-5 py-3 text-[13px]">
-              <span className="font-medium text-[#44524f]">{message}</span>
-              {createdIds.length > 0 ? (
-                <Button variant="secondary" size="sm" asChild>
-                  <Link href={`/laboratorio/etiquetas?ids=${createdIds.join(",")}`}>
-                    <Printer size={14} /> Imprimir etiquetas ({createdIds.length})
-                  </Link>
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
-        </Panel>
-      </div>
-
-      <Panel className="flex flex-col gap-4 p-5">
-        <h2 className="text-[15px] font-semibold">Padrões do lançamento</h2>
-        <p className="-mt-2 text-xs text-[#6e7c7a]">Aplicados a todas as OS da fila. Ficam salvos neste computador.</p>
-        <label className="grid gap-1.5 text-[13px] font-medium text-[#44524f]">
-          Laboratório
-          <select value={labId} onChange={(event) => setLabId(event.target.value)} className="h-9 rounded-lg border border-[#cdd5d8] bg-white px-2.5 text-sm text-[#13201f] outline-none focus:border-[#0e6b62]">
-            {activeLabs.map((lab) => <option key={lab.id} value={lab.id}>{lab.name}</option>)}
-          </select>
-        </label>
-        <label className="grid gap-1.5 text-[13px] font-medium text-[#44524f]">
-          Loja
-          <select value={storeId} onChange={(event) => { setStoreId(event.target.value); setSellerId(""); }} className="h-9 rounded-lg border border-[#cdd5d8] bg-white px-2.5 text-sm text-[#13201f] outline-none focus:border-[#0e6b62]">
-            <option value="">Não informada</option>
-            {stores.filter((store) => store.active).map((store) => <option key={store.id} value={store.id}>{store.trade_name}</option>)}
-          </select>
-        </label>
-        <label className="grid gap-1.5 text-[13px] font-medium text-[#44524f]">
-          Vendedor <span className="-mt-1 text-[11px] font-normal text-[#8a9694]">Ele acompanha estas OS pelo link dele</span>
-          <select value={sellerId} onChange={(event) => setSellerId(event.target.value)} className="h-9 rounded-lg border border-[#cdd5d8] bg-white px-2.5 text-sm text-[#13201f] outline-none focus:border-[#0e6b62]">
-            <option value="">Não informado</option>
-            {visibleSellers.map((seller) => <option key={seller.id} value={seller.id}>{seller.name}</option>)}
-          </select>
-        </label>
-        <div className="grid gap-1.5">
-          <span className="text-[13px] font-medium text-[#44524f]">Prazo a partir de agora</span>
-          <div className="flex flex-wrap gap-1.5">
-            {DUE_OPTIONS.map((option) => (
-              <Chip key={option.label} on={dueHours === option.hours} onClick={() => setDueHours(option.hours)}>{option.label}</Chip>
-            ))}
-          </div>
-        </div>
-        <div className="grid gap-1.5">
-          <span className="text-[13px] font-medium text-[#44524f]">Situação inicial</span>
-          <div className="flex flex-wrap gap-1.5">
-            <Chip on={status === "aguardando_lentes"} onClick={() => setStatus("aguardando_lentes")}>Aguardando lentes</Chip>
-            <Chip on={status === "aguardando_montagem"} onClick={() => setStatus("aguardando_montagem")}>Lentes já na bancada</Chip>
-          </div>
-        </div>
-        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#e2e7e9] px-3 py-2.5 text-[13px] font-medium">
-          <input type="checkbox" checked={urgent} onChange={(event) => setUrgent(event.target.checked)} className="accent-[#b42318]" />
-          Marcar como urgente
-        </label>
-        <p className="rounded-lg bg-[#f7f9f9] px-3 py-2.5 text-xs text-[#6e7c7a]">
-          OS lançadas aqui entram com a descrição “Lançamento rápido”. Complete grau e armação quando quiser, em Editar dados.
-        </p>
-      </Panel>
-    </div>
-  );
-}
-
-function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "h-8 rounded-lg border px-3 text-[13px] font-semibold transition-colors",
-        on ? "border-[#0e6b62] bg-[#0e6b62] text-white" : "border-[#cdd5d8] bg-white text-[#44524f] hover:bg-[#f7f9f9]",
-      )}
-    >
-      {children}
-    </button>
   );
 }
 

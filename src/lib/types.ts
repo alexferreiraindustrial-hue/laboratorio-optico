@@ -27,6 +27,7 @@ export type Seller = {
   phone?: string | null;
   whatsapp?: string | null;
   email?: string | null;
+  quick_code?: number | null;
 };
 
 export type Store = {
@@ -42,6 +43,7 @@ export type Store = {
   address: string | null;
   notes: string | null;
   active: boolean;
+  quick_code?: number | null;
 };
 
 export type SellerStoreLink = {
@@ -86,6 +88,9 @@ export type OrderRow = {
   delivered_at: string | null;
   urgency: Urgency;
   created_at: string;
+  lens_expected_at?: string | null;
+  lens_supplier_ref?: string | null;
+  lens_arrived_at?: string | null;
   /** Etapas de montagem concluídas (0 a 5), preenchido nas listagens. */
   steps_done?: number;
 };

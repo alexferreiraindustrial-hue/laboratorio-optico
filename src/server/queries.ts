@@ -95,9 +95,9 @@ export const loadCatalogs = cache(async function loadCatalogs() {
   const { supabase } = await requireProfile();
   const [labs, sellers, settings, stores, links] = await Promise.all([
     supabase.from("laboratories").select("id, name, code, color, active, notes").order("name"),
-    supabase.from("sellers").select("id, name, active, notes, public_code, phone, whatsapp, email").order("name"),
+    supabase.from("sellers").select("id, name, active, notes, public_code, phone, whatsapp, email, quick_code").order("name"),
     supabase.from("system_settings").select("key, value"),
-    supabase.from("stores").select("id, public_code, trade_name, legal_name, cnpj, contact_name, phone, whatsapp, email, address, notes, active").order("trade_name"),
+    supabase.from("stores").select("id, public_code, trade_name, legal_name, cnpj, contact_name, phone, whatsapp, email, address, notes, active, quick_code").order("trade_name"),
     supabase.from("seller_stores").select("seller_id, store_id"),
   ]);
   return {

@@ -40,13 +40,15 @@ Este projeto nasceu como um trabalho de **melhoria contínua** dentro de um labo
 
 | Ferramenta | No sistema |
 | --- | --- |
-| **Kanban** | Fluxo da OS em colunas, puxado pelo prazo |
+| **Kanban puxado** | Fluxo da OS em colunas, puxado pelo prazo, com **limite WIP** por coluna que fica vermelho quando o fluxo trava |
 | **Gestão visual / Andon** | Radar de prazos, alerta de risco e ranking em modo TV |
 | **Trabalho padronizado** | Cinco etapas fixas na bancada, com a próxima ação em um toque |
 | **Poka-yoke** | A OS não fica pronta sem as 5 etapas concluídas e sem ocorrência aberta |
 | **Jidoka / qualidade na fonte** | Ocorrência registrada na etapa onde aconteceu, bloqueando o avanço |
-| **5S** | Cadastros padronizados, etiquetas QR Code e estoque de lentes organizado por grau |
-| **PDCA / Kaizen** | Melhorias tratadas como Issues, verificadas pela esteira de testes e entregues em versões |
+| **5S** | **Auditoria 5S** com checklist de 20 itens por área, nota de 0 a 5 por senso, radar e evolução semanal |
+| **Kaizen / PDCA** | Quadro de ideias da equipe em Planejar → Executar → Verificar → Padronizar, com **5 Porquês** e matriz impacto × esforço |
+| **Lean Six Sigma** | Nível sigma (DPMO), FPY, OTD, lead time, Lei de Little, takt time, **Pareto 80/20** e **carta de controle u**, organizados no ciclo DMAIC |
+| **Teoria das Restrições** | Tempo de ciclo por etapa da bancada e identificação automática do gargalo |
 
 📄 O caso completo, no roteiro **DMAIC** (Definir, Medir, Analisar, Melhorar e Controlar), está em **[docs/estudo-de-caso.md](docs/estudo-de-caso.md)**.
 

@@ -2,6 +2,20 @@
 
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e as versões seguem o [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.2.0] – 2026-10-24
+
+### Melhoria contínua (novo módulo)
+- Visão Lean com recomendações automáticas de onde atacar (Pareto, gargalo, WIP, 5S e prazo).
+- Lean Six Sigma: nível sigma, DPMO, FPY, OTD, lead time, throughput, Lei de Little e takt time, Pareto 80/20, carta de controle u e tempo de ciclo por etapa com gargalo.
+- Kaizen: quadro PDCA com arrastar e soltar, 5 Porquês, causa raiz, matriz impacto × esforço e ganho em minutos por dia.
+- Auditoria 5S: checklist de 20 itens por área, nota por senso, radar, evolução e histórico.
+- Kanban com limite WIP por coluna.
+
+### Fluidez
+- Movimentação otimista no Kanban: o cartão muda de coluna na hora.
+- Indicador de carregamento no item do menu clicado e transição suave entre telas.
+- Avisos (toasts) de sucesso e erro.
+
 ## [0.1.0] – 2026-10-24
 
 Primeira versão funcional, em uso em laboratório de montagem óptica.

@@ -175,4 +175,4 @@ Não sou programador de formação: uso a **Inteligência Artificial como ferram
 
 ---
 
-<sub>© 2026 Alex Ferreira. Código publicado para consulta e portfólio — veja [LICENSE](LICENSE).</sub>
+<sub>© 2026 Antonio Alex Silva Ferreira LTDA. Código publicado para consulta e portfólio — veja [LICENSE](LICENSE).</sub>

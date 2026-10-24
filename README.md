@@ -154,7 +154,9 @@ O desenvolvimento segue em ciclos curtos. As próximas entregas estão nas [Issu
 
 **Alex Ferreira** — estudante de **Engenharia de Produção** e Técnico em Óptica.
 
-Não sou programador de formação: uso a **Inteligência Artificial como ferramenta de engenharia** para transformar problemas reais de gestão em soluções que funcionam no dia a dia. Eu defino o processo, as regras e os indicadores com base em Lean, Kanban, 5S e Six Sigma; a IA me ajuda a construir; e a validação acontece no chão do laboratório. O sistema segue em melhoria contínua com uso real.
+Não sou programador de formação: uso a **Inteligência Artificial como ferramenta de engenharia** para transformar problemas reais de gestão em soluções que funcionam no dia a dia. Eu defino o processo, as regras e os indicadores com base em Lean, Kanban, 5S e Six Sigma; a IA me ajuda a construir, conectando as ferramentas da operação por API e MCP, com automações em n8n e integração com CRM e WhatsApp; e a validação acontece no chão do laboratório. O sistema segue em melhoria contínua com uso real.
+
+[LinkedIn](https://www.linkedin.com/in/antonio-alex-silva-ferreira-65434a298/) · [antonio.oticahub.com](https://antonio.oticahub.com)
 
 ---
 

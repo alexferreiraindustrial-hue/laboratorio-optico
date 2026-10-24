@@ -8,6 +8,7 @@ Da entrada da ordem de serviço até a entrega na loja, com bancada por etapas, 
 [![CI](https://github.com/alexferreiraindustrial-hue/laboratorio-optico/actions/workflows/ci.yml/badge.svg)](https://github.com/alexferreiraindustrial-hue/laboratorio-optico/actions/workflows/ci.yml)
 ![Status](https://img.shields.io/badge/status-em%20produ%C3%A7%C3%A3o%20%C2%B7%20desenvolvimento%20ativo-0e6b62)
 ![Versão](https://img.shields.io/badge/vers%C3%A3o-0.1.0-0e6b62)
+![Engenharia de Produção](https://img.shields.io/badge/Lean%20%C2%B7%20Kanban%20%C2%B7%205S%20%C2%B7%20Six%20Sigma-engenharia%20de%20produ%C3%A7%C3%A3o-8b7fd6)
 ![Next.js](https://img.shields.io/badge/Next.js-16-13201f?logo=nextdotjs)
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%2B%20RLS-3fb58f?logo=supabase&logoColor=white)
 
@@ -32,6 +33,22 @@ Um painel único, pensado para a rotina da bancada:
 - **Qualidade** — ocorrências por etapa (lente riscada, erro de blocagem, grau divergente…) que bloqueiam a OS de ficar pronta até serem tratadas.
 - **Ranking da produção** — pódio de montadores, vendedores e lojas com metas, prêmios e **modo TV** para a parede do laboratório.
 - **Gestão** — dashboard de fila e produção, metas diária/semanal/mensal, estoque de lentes por grau com QR Code e relatórios em CSV.
+
+## Engenharia de Produção aplicada
+
+Este projeto nasceu como um trabalho de **melhoria contínua** dentro de um laboratório real. Cada funcionalidade é uma ferramenta de gestão da produção transformada em software:
+
+| Ferramenta | No sistema |
+| --- | --- |
+| **Kanban** | Fluxo da OS em colunas, puxado pelo prazo |
+| **Gestão visual / Andon** | Radar de prazos, alerta de risco e ranking em modo TV |
+| **Trabalho padronizado** | Cinco etapas fixas na bancada, com a próxima ação em um toque |
+| **Poka-yoke** | A OS não fica pronta sem as 5 etapas concluídas e sem ocorrência aberta |
+| **Jidoka / qualidade na fonte** | Ocorrência registrada na etapa onde aconteceu, bloqueando o avanço |
+| **5S** | Cadastros padronizados, etiquetas QR Code e estoque de lentes organizado por grau |
+| **PDCA / Kaizen** | Melhorias tratadas como Issues, verificadas pela esteira de testes e entregues em versões |
+
+📄 O caso completo, no roteiro **DMAIC** (Definir, Medir, Analisar, Melhorar e Controlar), está em **[docs/estudo-de-caso.md](docs/estudo-de-caso.md)**.
 
 ## Telas
 
@@ -135,7 +152,9 @@ O desenvolvimento segue em ciclos curtos. As próximas entregas estão nas [Issu
 
 ## Autor
 
-**Alex Ferreira** — Técnico em Óptica e desenvolvedor. Este projeto nasceu da vivência dentro de laboratório de montagem e segue em evolução contínua com uso real.
+**Alex Ferreira** — estudante de **Engenharia de Produção** e Técnico em Óptica.
+
+Não sou programador de formação: uso a **Inteligência Artificial como ferramenta de engenharia** para transformar problemas reais de gestão em soluções que funcionam no dia a dia. Eu defino o processo, as regras e os indicadores com base em Lean, Kanban, 5S e Six Sigma; a IA me ajuda a construir; e a validação acontece no chão do laboratório. O sistema segue em melhoria contínua com uso real.
 
 ---
 

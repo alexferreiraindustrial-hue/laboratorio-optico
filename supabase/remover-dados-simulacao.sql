@@ -1,5 +1,6 @@
 -- Remove os DADOS DE SIMULAÇÃO criados em 24/10/2026.
--- Apaga só o que foi marcado: OS com número "SIM-…" e lojas/vendedores com observação "[SIMULAÇÃO]".
+-- Apaga só o que foi marcado: OS com número "SIM-…", lojas/vendedores com observação "[SIMULAÇÃO]"
+-- e registros de Kaizen e auditoria 5S com is_demo = true.
 -- Como usar: Supabase → SQL Editor → cole este arquivo inteiro → Run.
 
 begin;
@@ -33,5 +34,8 @@ delete from public.stores where notes like '[SIMULAÇÃO]%';
 
 alter table public.stores enable trigger stores_no_delete;
 alter table public.sellers enable trigger sellers_no_delete;
+
+delete from public.kaizen_ideas where is_demo;
+delete from public.five_s_audits where is_demo;
 
 commit;

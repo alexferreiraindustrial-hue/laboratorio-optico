@@ -53,6 +53,7 @@ export function OrderScreen({
   error,
   statuses,
   tabCounts,
+  wipLimits,
 }: {
   title: string;
   description: string;
@@ -68,6 +69,7 @@ export function OrderScreen({
   error: string | null;
   statuses?: OrderStatus[];
   tabCounts?: Record<OrderTab, number>;
+  wipLimits?: Record<string, number>;
 }) {
   const view = filters.view === "kanban" ? "kanban" : "lista";
   const pages = Math.max(1, Math.ceil(count / pageSize));
@@ -205,7 +207,7 @@ export function OrderScreen({
           text="Ajuste os filtros ou abra uma nova ordem. Os dois modos, lista e Kanban, leem os mesmos registros."
         />
       ) : view === "kanban" ? (
-        <OrderKanban orders={orders} role={role} hrefBase={detailPath} />
+        <OrderKanban orders={orders} role={role} hrefBase={detailPath} wipLimits={wipLimits} />
       ) : (
         <Panel className="overflow-x-auto">
           <table className="w-full min-w-[1040px] border-collapse text-left text-sm">

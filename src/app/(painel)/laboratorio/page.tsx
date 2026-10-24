@@ -31,6 +31,7 @@ export default async function LaboratorioPage({
       role={session.role}
       error={error ?? catalogs.errors[0] ?? null}
       tabCounts={tabCounts}
+      wipLimits={((catalogs.settings.lean ?? {}) as { wip?: Record<string, number> }).wip}
     />
   );
 }

@@ -1,4 +1,4 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 
 :root {
   --background: #eef3f3;
@@ -88,4 +88,38 @@ textarea:focus {
 @keyframes glowpulse {
   0%, 100% { opacity: 0.55; transform: scale(0.96); }
   50% { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes pagein {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slidein {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+/* Entrada suave de cada tela do painel */
+main > * {
+  animation: pagein 0.28s ease-out;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

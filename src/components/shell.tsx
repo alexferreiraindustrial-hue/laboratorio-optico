@@ -1,7 +1,12 @@
 "use client";
 
 import {
+  Activity,
+  ClipboardCheck,
   ClipboardList,
+  Lightbulb,
+  Loader2,
+  RefreshCcw,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -18,7 +23,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { signOut } from "@/server/actions";
@@ -38,6 +43,15 @@ const groups: { title: string; items: NavItem[] }[] = [
       { href: "/montagem", label: "Bancada de montagem", icon: Wrench },
       { href: "/ranking", label: "Ranking", icon: Trophy },
       { href: "/estoque", label: "Estoque de lentes", icon: Package },
+    ],
+  },
+  {
+    title: "Melhoria contínua",
+    items: [
+      { href: "/melhoria", label: "Visão Lean", icon: RefreshCcw },
+      { href: "/melhoria/indicadores", label: "Lean Six Sigma", icon: Activity },
+      { href: "/melhoria/kaizen", label: "Kaizen", icon: Lightbulb },
+      { href: "/melhoria/5s", label: "Auditoria 5S", icon: ClipboardCheck },
     ],
   },
   {
@@ -61,12 +75,31 @@ const groups: { title: string; items: NavItem[] }[] = [
 const ACCESS: Record<AppRole, string[] | null> = {
   admin: null,
   gestor: null,
-  montador: ["/laboratorio/rapido", "/montagem", "/ranking", "/recados"],
-  estoquista: ["/laboratorio", "/estoque", "/ranking", "/recados"],
-  consulta: ["/dashboard", "/laboratorio", "/montagem", "/ranking", "/estoque", "/lojas", "/vendedores", "/relatorios"],
+  montador: ["/laboratorio/rapido", "/montagem", "/ranking", "/recados", "/melhoria", "/melhoria/kaizen", "/melhoria/5s"],
+  estoquista: ["/laboratorio", "/estoque", "/ranking", "/recados", "/melhoria", "/melhoria/kaizen", "/melhoria/5s"],
+  consulta: [
+    "/dashboard",
+    "/laboratorio",
+    "/montagem",
+    "/ranking",
+    "/estoque",
+    "/lojas",
+    "/vendedores",
+    "/relatorios",
+    "/melhoria",
+    "/melhoria/indicadores",
+    "/melhoria/kaizen",
+    "/melhoria/5s",
+  ],
 };
 
 const allItems = groups.flatMap((group) => group.items);
+
+/** Indicador instantâneo de navegação: aparece no item clicado enquanto a próxima tela carrega. */
+function PendingDot() {
+  const { pending } = useLinkStatus();
+  return pending ? <Loader2 size={14} className="animate-spin text-[#0e6b62]" aria-label="Carregando" /> : null;
+}
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -123,6 +156,7 @@ export function Shell({
               >
                 <Icon size={17} strokeWidth={2} />
                 <span className="flex-1">{item.label}</span>
+                <PendingDot />
                 {count > 0 ? (
                   <span className="rounded-md bg-[#e4f1ef] px-[7px] py-px text-xs font-semibold text-[#0a4f48]">{count}</span>
                 ) : null}

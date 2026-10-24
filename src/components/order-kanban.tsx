@@ -1,10 +1,12 @@
 "use client";
 
 import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
-import { Clock } from "lucide-react";
+import { Clock, Gauge } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useOptimistic, useState, useTransition } from "react";
+import { toast } from "sonner";
+import { wipState } from "@/lib/domain/lean";
 import { QUEUE_STATUSES, STATUS_LABEL, type AppRole, type OrderStatus } from "@/lib/domain/constants";
 import { canTransition } from "@/lib/domain/status";
 import { dueDeltaLabel, type Urgency } from "@/lib/domain/urgency";
@@ -79,18 +81,40 @@ function Card({ order, href }: { order: OrderRow; href: string }) {
   );
 }
 
-function Column({ status, orders, hrefBase }: { status: OrderStatus; orders: OrderRow[]; hrefBase: string }) {
+function Column({ status, orders, hrefBase, limit }: { status: OrderStatus; orders: OrderRow[]; hrefBase: string; limit?: number }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
+  const wip = wipState(orders.length, limit);
+  const tone =
+    wip === "estourado"
+      ? "bg-[#fbe4e1] ring-2 ring-[#d2382b]/50"
+      : wip === "no_limite"
+        ? "bg-[#fbf1dc]"
+        : "bg-[#e9edef]";
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-h-60 w-[264px] shrink-0 flex-col gap-2 rounded-xl bg-[#e9edef] p-2.5 transition-shadow ${isOver ? "ring-2 ring-[#0e6b62]" : ""}`}
+      className={`flex min-h-60 w-[264px] shrink-0 flex-col gap-2 rounded-xl p-2.5 transition-[box-shadow,background-color] duration-300 ${tone} ${isOver ? "ring-2 ring-[#0e6b62]" : ""}`}
     >
       <div className="flex items-center gap-2 px-1 pb-1.5 pt-1">
         <span className="h-2 w-2 rounded-[2px]" style={{ background: STATUS_TONE[status].dot }} />
         <h2 className="flex-1 text-[13px] font-semibold">{status === "em_conferencia" ? "Em conferência" : STATUS_LABEL[status]}</h2>
-        <span className="font-mono text-xs text-[#6e7c7a]">{orders.length}</span>
+        {limit ? (
+          <span
+            title="Limite WIP (trabalho em processo) desta coluna"
+            className={`flex items-center gap-1 rounded-md px-1.5 py-px font-mono text-xs font-semibold ${
+              wip === "estourado" ? "bg-[#d2382b] text-white" : wip === "no_limite" ? "bg-[#d99a0b] text-white" : "bg-white text-[#44524f]"
+            }`}
+          >
+            <Gauge size={12} />
+            {orders.length}/{limit}
+          </span>
+        ) : (
+          <span className="font-mono text-xs text-[#6e7c7a]">{orders.length}</span>
+        )}
       </div>
+      {wip === "estourado" ? (
+        <div className="rounded-md bg-[#d2382b] px-2 py-1 text-[11px] font-semibold text-white">Acima do limite WIP: termine antes de puxar mais</div>
+      ) : null}
       {orders.map((order) => (
         <Card key={order.id} order={order} href={`${hrefBase}/${order.id}`} />
       ))}
@@ -105,30 +129,40 @@ export function OrderKanban({
   orders,
   role,
   hrefBase,
+  wipLimits,
 }: {
   orders: OrderRow[];
   role: AppRole;
   hrefBase: string;
+  wipLimits?: Record<string, number>;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [, startMove] = useTransition();
+  // Movimento otimista: o cartão muda de coluna na hora; o servidor confirma em segundo plano.
+  const [board, moveCard] = useOptimistic(orders, (state, move: { id: string; status: OrderStatus }) =>
+    state.map((order) => (order.id === move.id ? { ...order, status: move.status } : order)),
+  );
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
-  async function onDragEnd(event: DragEndEvent) {
-    const order = orders.find((item) => item.id === event.active.id);
+  function onDragEnd(event: DragEndEvent) {
+    const order = board.find((item) => item.id === event.active.id);
     const status = event.over?.id as OrderStatus | undefined;
     if (!order || !status || order.status === status) return;
     if (!canTransition(order.status, status, role)) {
       setError("Esta mudança de status não faz parte do fluxo ou do seu perfil.");
       return;
     }
-    const result = await changeOrderStatus(order.id, status, "Movimentação pelo quadro");
-    if (!result.ok) {
-      setError(result.message);
-      return;
-    }
+    const limit = wipLimits?.[status];
+    const target = board.filter((item) => item.status === status).length;
+    if (limit && target >= limit) toast.warning(`${STATUS_LABEL[status]} passou do limite WIP (${target + 1}/${limit}).`);
     setError(null);
-    router.refresh();
+    startMove(async () => {
+      moveCard({ id: order.id, status });
+      const result = await changeOrderStatus(order.id, status, "Movimentação pelo quadro");
+      if (!result.ok) setError(result.message);
+      router.refresh();
+    });
   }
 
   return (
@@ -137,7 +171,7 @@ export function OrderKanban({
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
         <div className="flex items-start gap-3.5 overflow-x-auto pb-2">
           {QUEUE_STATUSES.map((status) => (
-            <Column key={status} status={status} hrefBase={hrefBase} orders={orders.filter((order) => order.status === status)} />
+            <Column key={status} status={status} hrefBase={hrefBase} limit={wipLimits?.[status]} orders={board.filter((order) => order.status === status)} />
           ))}
         </div>
       </DndContext>

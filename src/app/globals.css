@@ -1,0 +1,91 @@
+﻿@import "tailwindcss";
+
+:root {
+  --background: #eef3f3;
+  --surface: #ffffff;
+  --ink: #13201f;
+  --muted: #6e7c7a;
+  --line: #e2e7e9;
+  --accent: #0e6b62;
+  --accent-strong: #0b5850;
+  --accent-soft: #e4f1ef;
+  --danger: #b42318;
+  --warning: #8a5a00;
+  --ok: #1c6b43;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-ui-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--ink);
+  font-family: var(--font-ui), system-ui, "Segoe UI", sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  box-shadow: 0 0 0 3px rgba(14, 107, 98, 0.18);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: #d5ebe8;
+}
+
+@media print {
+  aside,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  .label-ticket {
+    break-inside: avoid;
+  }
+}
+
+@keyframes loadbar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+@keyframes glowpulse {
+  0%, 100% { opacity: 0.55; transform: scale(0.96); }
+  50% { opacity: 1; transform: scale(1.04); }
+}

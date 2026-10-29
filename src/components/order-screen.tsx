@@ -1,15 +1,12 @@
-import { CalendarDays, ChevronDown, PackageCheck, Plus, Search, Zap } from "lucide-react";
+import { ChevronDown, PackageCheck, Plus, Search, Zap } from "lucide-react";
 import Link from "next/link";
 import { OrderKanban } from "@/components/order-kanban";
-import { ProgressBar, RiskChip } from "@/components/forecast-ui";
 import { StatusBadge, UrgencyMark } from "@/components/status-badge";
-import { forecastOrder } from "@/lib/domain/forecast";
 import { Button, EmptyState, Panel } from "@/components/ui";
 import { PageHeading } from "@/components/shell";
 import { ORDER_STATUSES, STATUS_LABEL, type AppRole, type OrderStatus } from "@/lib/domain/constants";
 import { can } from "@/lib/domain/permissions";
 import { dueDeltaLabel } from "@/lib/domain/urgency";
-import { formatDateTime } from "@/lib/format";
 import type { Laboratory, OrderRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ORDER_TABS, ORDER_TAB_LABEL, type OrderTab } from "@/server/queries";
@@ -36,6 +33,13 @@ function FilterSelect({ name, defaultValue, children, label }: { name: string; d
       <ChevronDown size={16} className="pointer-events-none absolute right-2.5 top-2.5" />
     </label>
   );
+}
+
+/** Formata só a data dd/mm para a coluna de prazo compacta */
+function fmtDate(iso: string | null | undefined) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
 
 export function OrderScreen({
@@ -82,7 +86,7 @@ export function OrderScreen({
     const text = params.toString();
     return text ? `${basePath}?${text}` : basePath;
   };
-  const hasFilters = Boolean(filters.q || filters.status || filters.urgency || filters.laboratory || filters.from || filters.to);
+  const hasFilters = Boolean(filters.q || filters.status || filters.urgency || filters.laboratory);
   const segment = (on: boolean) =>
     cn(
       "flex h-7 items-center rounded-[7px] px-3 text-[13px] font-semibold",
@@ -90,7 +94,8 @@ export function OrderScreen({
     );
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
+      {/* Cabeçalho */}
       <PageHeading title={title} description={description}>
         {basePath === "/laboratorio" && can(role, "orders.deliver") ? (
           <Button variant="secondary" asChild>
@@ -104,7 +109,7 @@ export function OrderScreen({
           <Button variant="secondary" asChild>
             <Link href="/laboratorio/rapido">
               <Zap size={16} />
-              Lançamento rápido
+              Lançar
             </Link>
           </Button>
         ) : null}
@@ -118,60 +123,50 @@ export function OrderScreen({
         ) : null}
       </PageHeading>
 
-      <form className="flex flex-wrap items-center gap-2.5" method="get">
-        <label className="flex h-9 max-w-[380px] flex-[1_1_280px] items-center gap-2 rounded-lg border border-[#cdd5d8] bg-white px-2.5 text-[#6e7c7a] focus-within:border-[#0e6b62]">
+      {/* Busca e filtros */}
+      <form className="flex flex-wrap items-center gap-2" method="get">
+        <label className="flex h-9 flex-[1_1_220px] items-center gap-2 rounded-lg border border-[#cdd5d8] bg-white px-2.5 text-[#6e7c7a] focus-within:border-[#0e6b62]">
           <Search size={16} className="shrink-0" />
           <input
             name="q"
             defaultValue={filters.q}
-            placeholder="OS, cliente, vendedor ou loja"
+            placeholder="OS, cliente ou vendedor"
             className="min-w-0 flex-1 border-0 bg-transparent text-sm text-[#13201f] shadow-none outline-none placeholder:text-[#8a9694] focus:shadow-none"
           />
         </label>
         <FilterSelect name="status" defaultValue={filters.status} label="Status">
-          <option value="">Status: todos</option>
+          <option value="">Todos os status</option>
           {(statuses ?? ORDER_STATUSES).map((status) => (
             <option key={status} value={status}>{STATUS_LABEL[status]}</option>
           ))}
         </FilterSelect>
         <FilterSelect name="urgency" defaultValue={filters.urgency} label="Urgência">
-          <option value="">Urgência: qualquer</option>
-          <option value="vermelho">Urgente</option>
-          <option value="amarelo">Atenção</option>
-          <option value="verde">No prazo</option>
-          <option value="cinza">Sem prazo</option>
+          <option value="">Qualquer urgência</option>
+          <option value="vermelho">⚠ Atrasado</option>
+          <option value="amarelo">⏳ Atenção</option>
+          <option value="verde">✓ No prazo</option>
         </FilterSelect>
         {laboratories.length > 1 ? (
           <FilterSelect name="laboratory" defaultValue={filters.laboratory} label="Laboratório">
-            <option value="">Laboratório: todos</option>
+            <option value="">Todos os labs</option>
             {laboratories.map((lab) => (
               <option key={lab.id} value={lab.id}>{lab.name}</option>
             ))}
           </FilterSelect>
         ) : null}
-        <label className="flex h-9 items-center gap-2 rounded-lg border border-[#cdd5d8] bg-white px-2.5 text-sm text-[#6e7c7a]">
-          <CalendarDays size={16} />
-          <span className="hidden xl:inline">Entrada</span>
-          <input type="date" name="from" defaultValue={filters.from} aria-label="Entrada a partir de" className="border-0 bg-transparent text-[13px] text-[#13201f] shadow-none outline-none focus:shadow-none" />
-          <span>–</span>
-          <input type="date" name="to" defaultValue={filters.to} aria-label="Entrada até" className="border-0 bg-transparent text-[13px] text-[#13201f] shadow-none outline-none focus:shadow-none" />
-        </label>
-        <FilterSelect name="sort" defaultValue={filters.sort ?? "prazo"} label="Ordenação">
-          <option value="prazo">Ordenar: prazo</option>
-          <option value="entrada">Ordenar: entrada</option>
-        </FilterSelect>
         <input type="hidden" name="view" value={view} />
         {filters.tab ? <input type="hidden" name="tab" value={filters.tab} /> : null}
         <Button type="submit" variant="secondary">Filtrar</Button>
         {hasFilters ? (
-          <Link href={query({ q: undefined, status: undefined, urgency: undefined, laboratory: undefined, from: undefined, to: undefined, page: undefined })} className="px-1.5 text-[13px] font-semibold text-[#0e6b62] hover:underline">
-            Limpar filtros
+          <Link href={query({ q: undefined, status: undefined, urgency: undefined, laboratory: undefined, page: undefined })} className="px-1.5 text-[13px] font-semibold text-[#0e6b62] hover:underline">
+            Limpar
           </Link>
         ) : null}
       </form>
 
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#e2e7e9]">
-        <div className="flex flex-wrap gap-1">
+      {/* Abas de situação + toggle lista/kanban */}
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#e2e7e9]">
+        <div className="flex flex-wrap gap-0.5">
           {tabCounts
             ? ORDER_TABS.map((tab) => {
                 const on = !filters.status && filters.tab === tab;
@@ -204,21 +199,22 @@ export function OrderScreen({
       {orders.length === 0 ? (
         <EmptyState
           title="Nenhuma OS encontrada"
-          text="Ajuste os filtros ou abra uma nova ordem. Os dois modos, lista e Kanban, leem os mesmos registros."
+          text="Ajuste os filtros ou abra uma nova ordem de serviço."
         />
       ) : view === "kanban" ? (
         <OrderKanban orders={orders} role={role} hrefBase={detailPath} wipLimits={wipLimits} />
       ) : (
         <Panel className="overflow-x-auto">
-          <table className="w-full min-w-[1040px] border-collapse text-left text-sm">
+          {/* Tabela compacta: apenas o essencial */}
+          <table className="w-full min-w-[560px] border-collapse text-left text-sm">
             <thead>
               <tr className="bg-[#f7f9f9]">
-                {["OS", "Cliente", "Loja · vendedor", "Entrada", "Previsão", "Status", "Urgência"].map((head, index) => (
+                {["OS", "Cliente · Vendedor", "Prazo", "Status"].map((head, index) => (
                   <th
                     key={head}
                     className={cn(
-                      "border-b border-[#e2e7e9] py-[11px] text-xs font-semibold text-[#6e7c7a]",
-                      index === 0 ? "pl-5 pr-4" : index === 6 ? "pl-4 pr-5" : "px-4",
+                      "border-b border-[#e2e7e9] py-2.5 text-xs font-semibold text-[#6e7c7a]",
+                      index === 0 ? "pl-4 pr-3 w-[110px]" : index === 3 ? "pl-3 pr-4 w-[160px]" : index === 2 ? "px-3 w-[90px]" : "px-3",
                     )}
                   >
                     {head}
@@ -228,55 +224,54 @@ export function OrderScreen({
             </thead>
             <tbody>
               {orders.map((order) => {
-                const forecast = forecastOrder({ status: order.status, dueAt: order.due_at, stepsDone: order.steps_done });
+                const deltaLabel = dueDeltaLabel(order.due_at, new Date(), order.status);
                 return (
                   <tr key={order.id} className="group border-b border-[#eef1f3] last:border-b-0 hover:bg-[#f7f9f9]">
-                    <td className="py-[13px] pl-5 pr-4">
-                      <Link href={`${detailPath}/${order.id}`} className="flex flex-col gap-1">
-                        <span className="font-mono text-[13px] font-medium text-[#0e6b62] group-hover:underline">{order.number}</span>
-                        <span className="flex items-center gap-1.5 text-xs text-[#6e7c7a]">
-                          <span className="h-[7px] w-[7px] rounded-[2px]" style={{ background: order.laboratory_color }} />
+                    {/* OS + Lab */}
+                    <td className="py-2.5 pl-4 pr-3">
+                      <Link href={`${detailPath}/${order.id}`} className="flex flex-col gap-0.5">
+                        <span className="font-mono text-[13px] font-semibold text-[#0e6b62] group-hover:underline">{order.number}</span>
+                        <span className="flex items-center gap-1 text-[11px] text-[#6e7c7a]">
+                          <span className="h-[6px] w-[6px] shrink-0 rounded-[2px]" style={{ background: order.laboratory_color }} />
                           {order.laboratory_name}
                         </span>
                       </Link>
                     </td>
-                    <td className="px-4 py-[13px] font-semibold">
-                      <Link href={`${detailPath}/${order.id}`}>{order.client_name}</Link>
+                    {/* Cliente + Vendedor */}
+                    <td className="px-3 py-2.5">
+                      <Link href={`${detailPath}/${order.id}`} className="flex flex-col gap-0.5">
+                        <span className="font-semibold leading-tight">{order.client_name}</span>
+                        <span className="text-xs text-[#6e7c7a]">{order.seller_name || order.store_name || "—"}</span>
+                      </Link>
                     </td>
-                    <td className="px-4 py-[13px]">
+                    {/* Prazo */}
+                    <td className="px-3 py-2.5">
                       <div className="flex flex-col gap-0.5">
-                        <span>{order.store_name || "—"}</span>
-                        <span className="text-xs text-[#6e7c7a]">{order.seller_name || "Sem vendedor"}</span>
-                      </div>
-                    </td>
-                    <td className="tabular px-4 py-[13px] text-[#44524f]">{formatDateTime(order.entered_at)}</td>
-                    <td className="px-4 py-[13px]">
-                      <div className="flex flex-col items-start gap-1">
-                        <span className="tabular">{formatDateTime(order.due_at)}</span>
-                        <span className={cn("text-xs", deadlineTone(order))}>{dueDeltaLabel(order.due_at, new Date(), order.status)}</span>
-                        {forecast.risk === "risco" || forecast.risk === "atencao" ? (
-                          <span title={forecast.reason}><RiskChip risk={forecast.risk} /></span>
+                        <span className="tabular-nums text-[13px]">{fmtDate(order.due_at)}</span>
+                        {deltaLabel ? (
+                          <span className={cn("text-[11px]", deadlineTone(order))}>{deltaLabel}</span>
+                        ) : null}
+                        {(order.urgency === "vermelho" || order.urgency === "amarelo") ? (
+                          <UrgencyMark urgency={order.urgency} />
                         ) : null}
                       </div>
                     </td>
-                    <td className="px-4 py-[13px]">
-                      <div className="flex w-[170px] flex-col items-start gap-[7px]">
-                        <StatusBadge status={order.status} />
-                        <ProgressBar value={forecast.progress} risk={forecast.risk} className="w-full" />
-                      </div>
+                    {/* Status */}
+                    <td className="py-2.5 pl-3 pr-4">
+                      <StatusBadge status={order.status} />
                     </td>
-                    <td className="py-[13px] pl-4 pr-5"><UrgencyMark urgency={order.urgency} /></td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
-          <div className="flex items-center justify-between border-t border-[#eef1f3] px-5 py-3 text-[13px] text-[#6e7c7a]">
-            <span>{count} registro(s)</span>
+          {/* Paginação */}
+          <div className="flex items-center justify-between border-t border-[#eef1f3] px-4 py-2.5 text-[13px] text-[#6e7c7a]">
+            <span>{count} OS</span>
             <div className="flex items-center gap-3">
-              {page > 1 ? <Link className="font-medium text-[#0e6b62] hover:underline" href={query({ page: String(page - 1) })}>Anterior</Link> : <span className="text-[#b4bec2]">Anterior</span>}
+              {page > 1 ? <Link className="font-medium text-[#0e6b62] hover:underline" href={query({ page: String(page - 1) })}>← Anterior</Link> : <span className="text-[#b4bec2]">← Anterior</span>}
               <span className="font-mono">{page} / {pages}</span>
-              {page < pages ? <Link className="font-medium text-[#0e6b62] hover:underline" href={query({ page: String(page + 1) })}>Próxima</Link> : <span className="text-[#b4bec2]">Próxima</span>}
+              {page < pages ? <Link className="font-medium text-[#0e6b62] hover:underline" href={query({ page: String(page + 1) })}>Próxima →</Link> : <span className="text-[#b4bec2]">Próxima →</span>}
             </div>
           </div>
         </Panel>

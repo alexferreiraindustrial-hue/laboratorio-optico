@@ -37,8 +37,9 @@ import { cn } from "@/lib/utils";
 
 type NavItem = { href: string; label: string; icon: typeof LayoutDashboard };
 
-// Menu na ordem do fluxo da produção: a OS entra, espera a lente, é montada, sai.
-const groups: { title: string; step?: string; items: NavItem[] }[] = [
+// Menu na ordem do fluxo da produção.
+// Grupos com adminOnly=true ficam ocultos para montador/estoquista — o fluxo fica limpo.
+const groups: { title: string; step?: string; adminOnly?: boolean; items: NavItem[] }[] = [
   {
     title: "Hoje",
     items: [
@@ -76,16 +77,8 @@ const groups: { title: string; step?: string; items: NavItem[] }[] = [
     items: [{ href: "/entrega", label: "Entrega ao vendedor", icon: PackageCheck }],
   },
   {
-    title: "Melhoria contínua",
-    items: [
-      { href: "/melhoria", label: "Visão Lean", icon: RefreshCcw },
-      { href: "/melhoria/indicadores", label: "Lean Six Sigma", icon: Activity },
-      { href: "/melhoria/kaizen", label: "Kaizen", icon: Lightbulb },
-      { href: "/melhoria/5s", label: "Auditoria 5S", icon: ClipboardCheck },
-    ],
-  },
-  {
-    title: "Equipe e clientes",
+    title: "Equipe",
+    adminOnly: true,
     items: [
       { href: "/vendedores", label: "Vendedores", icon: Users },
       { href: "/lojas", label: "Lojas", icon: Store },
@@ -95,12 +88,20 @@ const groups: { title: string; step?: string; items: NavItem[] }[] = [
   },
   {
     title: "Gestão",
+    adminOnly: true,
     items: [
+      { href: "/melhoria", label: "Visão Lean", icon: RefreshCcw },
+      { href: "/melhoria/indicadores", label: "Lean Six Sigma", icon: Activity },
+      { href: "/melhoria/kaizen", label: "Kaizen", icon: Lightbulb },
+      { href: "/melhoria/5s", label: "Auditoria 5S", icon: ClipboardCheck },
       { href: "/relatorios", label: "Relatórios", icon: FileText },
       { href: "/configuracoes", label: "Configurações", icon: Settings },
     ],
   },
 ];
+
+// Perfis que veem o menu completo
+const ADMIN_ROLES: AppRole[] = ["admin", "gestor", "consulta"];
 
 // Telas visíveis no menu por perfil (null = todas). As rotas continuam protegidas no servidor.
 const ACCESS: Record<AppRole, string[] | null> = {
@@ -176,16 +177,20 @@ export function Shell({
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const allowed = ACCESS[role];
+  const isAdmin = ADMIN_ROLES.includes(role);
+
   const visibleGroups = groups
+    .filter((group) => isAdmin || !group.adminOnly)
     .map((group) => ({ ...group, items: group.items.filter((item) => !allowed || allowed.includes(item.href)) }))
     .filter((group) => group.items.length > 0);
+
   const current = allItems
     .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
     .sort((a, b) => b.href.length - a.href.length)[0];
   const readOnly = role === "consulta";
 
   const nav = (
-    <nav className="flex flex-col gap-[18px]">
+    <nav className="flex flex-col gap-[14px]">
       {visibleGroups.map((group) => (
         <div key={group.title} className="flex flex-col gap-0.5">
           <p className="flex items-center gap-1.5 px-2.5 pb-1 text-xs font-medium text-[#8a9694]">
@@ -214,11 +219,11 @@ export function Shell({
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors",
+                  "flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors",
                   active ? "bg-[#e4f1ef] font-semibold text-[#0a4f48]" : "font-medium text-[#44524f] hover:bg-[#f2f5f5]",
                 )}
               >
-                <Icon size={17} strokeWidth={2} />
+                <Icon size={16} strokeWidth={2} />
                 <span className="flex-1">{item.label}</span>
                 <PendingDot />
                 {count > 0 ? (
@@ -233,51 +238,56 @@ export function Shell({
   );
 
   const brand = (
-    <div className="flex h-[60px] items-center gap-2.5 border-b border-[#e2e7e9] px-[18px]">
-      <LensMark size={32} />
+    <div className="flex h-[56px] items-center gap-2.5 border-b border-[#e2e7e9] px-[18px]">
+      <LensMark size={28} />
       <div className="flex flex-col leading-tight">
         <span className="text-sm font-bold tracking-tight">{orgName}</span>
-        <span className="text-xs text-[#6e7c7a]">Gestão operacional</span>
+        <span className="text-[11px] text-[#6e7c7a]">Lab · Gestão operacional</span>
       </div>
     </div>
   );
 
   const footer = (
-    <div className="flex items-center gap-2.5 border-t border-[#e2e7e9] px-[18px] py-3">
-      <span className="h-2.5 w-2.5 shrink-0 rounded-[3px] bg-[#0e6b62]" />
-      <div className="flex flex-col leading-tight">
-        <span className="text-xs text-[#6e7c7a]">Laboratório ativo</span>
-        <span className="text-[13px] font-semibold">{orgName}</span>
+    <div className="flex items-center gap-2 border-t border-[#e2e7e9] px-[18px] py-2.5">
+      <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e4f1ef] text-xs font-bold text-[#0a4f48]">{initials(name)}</div>
+      <div className="flex min-w-0 flex-col leading-tight">
+        <span className="truncate text-[13px] font-semibold">{name}</span>
+        <span className="text-[11px] text-[#6e7c7a]">{ROLE_LABEL[role]}</span>
       </div>
+      <form action={signOut} className="ml-auto">
+        <button type="submit" title="Sair" className="flex h-7 w-7 items-center justify-center rounded-lg text-[#6e7c7a] hover:bg-[#f2f4f5]">
+          <LogOut size={14} />
+        </button>
+      </form>
     </div>
   );
 
   return (
     <div className="min-h-screen">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-[#e2e7e9] bg-white lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[232px] flex-col border-r border-[#e2e7e9] bg-white lg:flex">
         {brand}
-        <div className="flex-1 overflow-auto px-3 py-3.5">{nav}</div>
+        <div className="flex-1 overflow-auto px-3 py-3">{nav}</div>
         {footer}
       </aside>
 
       {mobileOpen ? (
         <div className="fixed inset-0 z-40 lg:hidden">
           <button aria-label="Fechar menu" className="absolute inset-0 bg-[#13201f]/30" onClick={() => setMobileOpen(false)} type="button" />
-          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col bg-white shadow-xl">
+          <aside className="absolute inset-y-0 left-0 flex w-64 flex-col bg-white shadow-xl">
             <div className="relative">
               {brand}
-              <button aria-label="Fechar menu" className="absolute right-3 top-4 rounded-md p-1 text-[#44524f] hover:bg-[#f2f4f5]" onClick={() => setMobileOpen(false)} type="button">
+              <button aria-label="Fechar menu" className="absolute right-3 top-3.5 rounded-md p-1 text-[#44524f] hover:bg-[#f2f4f5]" onClick={() => setMobileOpen(false)} type="button">
                 <X size={18} />
               </button>
             </div>
-            <div className="flex-1 overflow-auto px-3 py-3.5">{nav}</div>
+            <div className="flex-1 overflow-auto px-3 py-3">{nav}</div>
             {footer}
           </aside>
         </div>
       ) : null}
 
-      <div className="flex min-h-screen min-w-0 flex-col lg:pl-[248px]">
-        <header className="no-print sticky top-0 z-20 flex h-[60px] items-center gap-4 border-b border-[#e2e7e9] bg-white px-3 md:px-5">
+      <div className="flex min-h-screen min-w-0 flex-col lg:pl-[232px]">
+        <header className="no-print sticky top-0 z-20 flex h-[56px] items-center gap-4 border-b border-[#e2e7e9] bg-white px-3 md:px-5">
           <button aria-label="Abrir menu" className="rounded-md p-2 text-[#44524f] lg:hidden" onClick={() => setMobileOpen(true)} type="button">
             <Menu size={18} />
           </button>
@@ -286,9 +296,9 @@ export function Shell({
             <span className="text-[#cdd5d8]">/</span>
             <span className="font-semibold text-[#13201f]">{current?.label ?? "Início"}</span>
           </div>
-          <form action="/laboratorio" method="get" className="hidden min-w-0 max-w-[420px] flex-1 md:ml-3 md:flex">
-            <label className="flex h-9 w-full items-center gap-2 rounded-lg border border-[#e2e7e9] bg-[#f7f9f9] px-2.5 text-[#6e7c7a] focus-within:border-[#0e6b62] focus-within:ring-[3px] focus-within:ring-[#0e6b62]/20">
-              <Search size={16} className="shrink-0" />
+          <form action="/laboratorio" method="get" className="hidden min-w-0 max-w-[360px] flex-1 md:ml-3 md:flex">
+            <label className="flex h-8 w-full items-center gap-2 rounded-lg border border-[#e2e7e9] bg-[#f7f9f9] px-2.5 text-[#6e7c7a] focus-within:border-[#0e6b62]">
+              <Search size={15} className="shrink-0" />
               <input
                 name="q"
                 placeholder="Buscar OS, cliente ou vendedor"
@@ -304,27 +314,27 @@ export function Shell({
           ) : null}
           <Link
             href="/estoque/leitura"
-            className="hidden h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-[#cdd5d8] bg-white px-3 text-sm font-medium text-[#13201f] hover:bg-[#f7f9f9] sm:flex"
+            className="hidden h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#cdd5d8] bg-white px-2.5 text-sm font-medium text-[#13201f] hover:bg-[#f7f9f9] sm:flex"
           >
-            <QrCode size={16} />
-            Ler QR Code
+            <QrCode size={15} />
+            QR Code
           </Link>
-          <div className="hidden h-7 w-px bg-[#e2e7e9] sm:block" />
-          <div className="flex shrink-0 items-center gap-2.5 whitespace-nowrap">
-            <div className="grid h-8 w-8 place-items-center rounded-full bg-[#e4f1ef] text-xs font-bold text-[#0a4f48]">{initials(name)}</div>
+          <div className="hidden h-6 w-px bg-[#e2e7e9] sm:block" />
+          <div className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+            <div className="grid h-7 w-7 place-items-center rounded-full bg-[#e4f1ef] text-xs font-bold text-[#0a4f48]">{initials(name)}</div>
             <div className="hidden flex-col leading-tight sm:flex">
               <span className="text-[13px] font-semibold">{name}</span>
-              <span className="text-xs text-[#6e7c7a]">{ROLE_LABEL[role]}</span>
+              <span className="text-[11px] text-[#6e7c7a]">{ROLE_LABEL[role]}</span>
             </div>
             <form action={signOut}>
-              <button type="submit" className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-[#44524f] hover:bg-[#f2f4f5]">
-                <LogOut size={15} />
+              <button type="submit" className="flex h-7 items-center gap-1 rounded-lg px-2 text-[13px] font-medium text-[#44524f] hover:bg-[#f2f4f5]">
+                <LogOut size={14} />
                 Sair
               </button>
             </form>
           </div>
         </header>
-        <main className="flex min-w-0 flex-col px-4 pb-12 pt-6 md:px-8 md:pt-7">{children}</main>
+        <main className="flex min-w-0 flex-col px-4 pb-12 pt-5 md:px-7 md:pt-6">{children}</main>
       </div>
     </div>
   );
@@ -340,12 +350,12 @@ export function PageHeading({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
       <div>
-        <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.02em]">{title}</h1>
-        {description ? <p className="mt-1.5 max-w-3xl text-sm text-[#6e7c7a]">{description}</p> : null}
+        <h1 className="text-[24px] font-semibold leading-tight tracking-[-0.02em]">{title}</h1>
+        {description ? <p className="mt-1 max-w-3xl text-sm text-[#6e7c7a]">{description}</p> : null}
       </div>
-      {children ? <div className="flex flex-wrap items-center gap-2.5">{children}</div> : null}
+      {children ? <div className="flex flex-wrap items-center gap-2">{children}</div> : null}
     </div>
   );
 }

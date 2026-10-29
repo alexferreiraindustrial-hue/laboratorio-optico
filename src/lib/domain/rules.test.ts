@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { canCompleteStep, canStartStep, prontoBlockers, stepsAfterReopen } from "./assembly";
 import { monthRange, weekRange } from "./calendar";
-import { duplicateOrderMessage, validateOrderDraft } from "./orders";
+import { duplicateOrderMessage, validateOrderDraft, visibleOrderNumber } from "./orders";
 import { can } from "./permissions";
 import { powerSeries, isSpecialPower, parseDiopterToCents, DEFAULT_GRID } from "./powers";
 import { averageLeadHours, countCompleted, goalPercent, isOpenLate, projectProduction } from "./production";
@@ -35,6 +35,13 @@ describe("ordens de serviço", () => {
     expect(duplicateOrderMessage(existing, { number: "OS-2026-000001" })).toMatch(/número/);
     expect(duplicateOrderMessage(existing, { externalOrderId: "PED-9" })).toMatch(/pedido externo/);
     expect(duplicateOrderMessage(existing, { externalOrderId: "PED-10" })).toBeNull();
+  });
+
+  it("mostra o número informado e só usa o gerado quando a OS não tinha número", () => {
+    expect(visibleOrderNumber({ number: "OS-2026-000010", external_order_id: "4521" })).toBe("4521");
+    expect(visibleOrderNumber({ number: "4521", external_order_id: null })).toBe("4521");
+    expect(visibleOrderNumber({ number: "OS-2026-000010", external_order_id: null })).toBe("OS-2026-000010");
+    expect(visibleOrderNumber({ number: "4521", externalOrderId: "4521" })).toBe("4521");
   });
 });
 

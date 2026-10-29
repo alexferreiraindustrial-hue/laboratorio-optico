@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { LabelSheet, type LabelCard } from "@/components/label-sheet";
+import { visibleOrderNumber } from "@/lib/domain/orders";
 import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import type { LensSpec } from "@/lib/types";
@@ -51,13 +52,13 @@ function OrderLabels() {
         setCards(((data ?? []) as OrderLabel[]).map((order) => ({
           id: order.id,
           href: `/laboratorio/${order.id}`,
-          code: order.number,
+          code: visibleOrderNumber(order),
           title: order.client_name,
           lines: [
             order.store_name || "Sem loja",
             order.seller_name ? `Vendedor ${order.seller_name}` : "Sem vendedor",
             order.laboratory_name || "",
-            order.external_order_id ? `Pedido ${order.external_order_id}` : "",
+            order.external_order_id && order.external_order_id !== visibleOrderNumber(order) ? `Pedido ${order.external_order_id}` : "",
             `Entrada ${formatDateTime(order.entered_at)}`,
             `Previsão ${formatDateTime(order.due_at)}`,
             order.service_description || "",

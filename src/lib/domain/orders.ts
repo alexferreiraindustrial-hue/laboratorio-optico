@@ -33,6 +33,26 @@ export function validateOrderDraft(draft: OrderDraft): string[] {
   return errors;
 }
 
+/** Número gerado pelo laboratório quando a OS entra só com o nome. */
+export function generatedOrderNumber(number: string) {
+  return /^OS-\d{4}-\d{6}$/.test(number);
+}
+
+/**
+ * Número que a pessoa reconhece. Se a ótica já informou a OS, esse é o número
+ * — inclusive em registros antigos, em que ele ficou em external_order_id e o
+ * sistema gravou outro OS-ANO-SEQ por cima.
+ */
+export function visibleOrderNumber(order: {
+  number: string;
+  external_order_id?: string | null;
+  externalOrderId?: string | null;
+}) {
+  const external = (order.external_order_id ?? order.externalOrderId)?.trim();
+  if (external && external !== order.number) return external;
+  return order.number;
+}
+
 export function duplicateOrderMessage(
   existing: { number: string; externalOrderId: string | null }[],
   candidate: { number?: string | null; externalOrderId?: string | null },

@@ -61,6 +61,7 @@ export async function quickCreateOrders(input: QuickCreateInput): Promise<{ ok: 
       p_due_at: entry.dueAt !== undefined ? entry.dueAt : due,
       p_notes: entry.clientName ? "Lançamento rápido." : "Lançamento rápido só com o número da OS — completar o nome do cliente.",
       p_service_description: "Lançamento rápido",
+      // Com número, a função grava esse número como a OS. Sem número, ela gera OS-ANO-SEQ.
       p_external_order_id: ref,
       p_priority: input.priority,
       p_status: input.status,
@@ -105,11 +106,13 @@ export async function findOrdersForQuick(query: string): Promise<{ ok: boolean; 
   const safe = text.replace(/[%_,()"\\]/g, " ").replace(/\s+/g, " ").trim();
   const year = Number(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric" }).format(new Date()));
 
-  const numbers = /^OS-/i.test(safe) ? [safe.toUpperCase()] : /^\d+$/.test(safe) ? systemNumberCandidates(safe, year) : [];
+  const numbers = new Set<string>([safe]);
+  if (/^OS-/i.test(safe)) numbers.add(safe.toUpperCase());
+  if (/^\d+$/.test(safe)) for (const candidate of systemNumberCandidates(safe, year)) numbers.add(candidate);
   const exact = await supabase
     .from("orders_enriched")
     .select(fields)
-    .or([...numbers.map((n) => `number.eq."${n}"`), `external_order_id.eq."${safe}"`].join(","))
+    .or([...numbers].map((n) => `number.eq."${n}"`).concat(`external_order_id.eq."${safe}"`).join(","))
     .limit(5);
   if (exact.error) return { ok: false, message: exact.error.message, orders: [] };
   if ((exact.data ?? []).length > 0) return { ok: true, orders: exact.data as FoundOrder[] };

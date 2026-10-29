@@ -5,6 +5,7 @@ import { PageHeading } from "@/components/shell";
 import { Button, Input, Panel, Select } from "@/components/ui";
 import { addDays, zonedStart, zonedYmd } from "@/lib/domain/calendar";
 import { STEP_LABEL, type StepKey } from "@/lib/domain/constants";
+import { visibleOrderNumber } from "@/lib/domain/orders";
 import { averageLeadHours, countCompleted, goalPercent, isOpenLate, type ProductionOrder } from "@/lib/domain/production";
 import { countByKey, qualityRate } from "@/lib/domain/quality";
 import { stockTone } from "@/lib/domain/stock";
@@ -135,7 +136,7 @@ export default async function ReportsPage({
           <ul className="mt-2 grid gap-1 text-sm">
             {late.slice(0, 40).map((order) => {
               const source = orders.find((item) => item.id === order.id);
-              return <li key={order.id}><Link className="text-[#0e6b62] underline" href={`/laboratorio/${order.id}`}>{source?.number} · {source?.client_name}</Link></li>;
+              return <li key={order.id}><Link className="text-[#0e6b62] underline" href={`/laboratorio/${order.id}`}>{source ? visibleOrderNumber(source) : "OS"} · {source?.client_name}</Link></li>;
             })}
             {late.length === 0 ? <li className="text-[#6e7c7a]">Nenhuma OS atrasada.</li> : null}
           </ul>

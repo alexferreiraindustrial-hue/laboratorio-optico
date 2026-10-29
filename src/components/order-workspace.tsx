@@ -9,6 +9,7 @@ import { Button, Feedback, Field, Input, Panel, Select, TextArea } from "@/compo
 import { STATUS_LABEL, STEP_KEYS, STEP_LABEL, STEP_STATUS_LABEL, type AppRole, type OrderStatus, type StepKey } from "@/lib/domain/constants";
 import { can } from "@/lib/domain/permissions";
 import { canCompleteStep, canStartStep, prontoBlockers } from "@/lib/domain/assembly";
+import { visibleOrderNumber } from "@/lib/domain/orders";
 import { dueDeltaLabel } from "@/lib/domain/urgency";
 import { safeStoragePath, validateAttachment } from "@/lib/domain/files";
 import { formatDateTime, formatDiopter } from "@/lib/format";
@@ -53,6 +54,7 @@ export function OrderWorkspace({
   mode: "laboratorio" | "montagem";
 }) {
   const spec = (order.lens_spec ?? {}) as LensSpec;
+  const osNumber = visibleOrderNumber(order);
   const openOccurrences = occurrences.filter((item) => item.status === "aberta" || item.status === "em_tratamento").length;
   const blockers = prontoBlockers({
     steps: steps.map((step) => ({ key: step.step_key, status: step.status })),
@@ -66,7 +68,7 @@ export function OrderWorkspace({
         <Panel className="p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="font-mono text-sm text-[#0e6b62]">{order.number}</p>
+              <p className="font-mono text-sm text-[#0e6b62]">{osNumber}</p>
               <h1 className="text-xl font-semibold">{order.client_name}</h1>
               <p className="mt-1 text-sm text-[#6e7c7a]">{order.service_description}</p>
             </div>
@@ -81,7 +83,9 @@ export function OrderWorkspace({
             <div><dt className="text-[#6e7c7a]">Vendedor</dt><dd>{order.seller_name || "—"}</dd></div>
             <div><dt className="text-[#6e7c7a]">Entrada</dt><dd>{formatDateTime(order.entered_at)}</dd></div>
             <div><dt className="text-[#6e7c7a]">Previsão</dt><dd>{formatDateTime(order.due_at)} · {dueDeltaLabel(order.due_at, new Date(), order.status)}</dd></div>
-            <div><dt className="text-[#6e7c7a]">Pedido externo</dt><dd>{order.external_order_id || "—"}</dd></div>
+            {order.external_order_id && order.external_order_id !== osNumber ? (
+              <div><dt className="text-[#6e7c7a]">Pedido externo</dt><dd>{order.external_order_id}</dd></div>
+            ) : null}
             <div><dt className="text-[#6e7c7a]">Conclusão da montagem</dt><dd>{formatDateTime(order.completed_at)}</dd></div>
             <div><dt className="text-[#6e7c7a]">Entrega</dt><dd>{formatDateTime(order.delivered_at)}</dd></div>
             <div><dt className="text-[#6e7c7a]">Prioridade</dt><dd>{order.priority === "critica" ? "Crítica" : "Normal"}</dd></div>

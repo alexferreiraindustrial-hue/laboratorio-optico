@@ -14,6 +14,7 @@ import { formatDate, formatNumber, formatPercent } from "@/lib/format";
 import type { StockRow } from "@/lib/types";
 import { NotifySeller, ProgressBar, RiskChip } from "@/components/forecast-ui";
 import { forecastOrder, formatForecastDate, sellerUpdateMessage, whatsappLink } from "@/lib/domain/forecast";
+import { visibleOrderNumber } from "@/lib/domain/orders";
 import { loadCatalogs, stepsDoneByOrder } from "@/server/queries";
 import { requireProfile } from "@/server/session";
 
@@ -146,7 +147,7 @@ export default async function DashboardPage({
     const seller = order.seller_id ? sellerById.get(order.seller_id) : undefined;
     const message = sellerUpdateMessage({
       sellerName: seller?.name ?? order.seller_name,
-      number: order.number,
+      number: visibleOrderNumber(order),
       clientName: order.client_name,
       status: order.status,
       dueAt: order.due_at,
@@ -375,7 +376,7 @@ export default async function DashboardPage({
               <div key={order.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[#eef1f3] px-5 py-3.5 last:border-b-0 hover:bg-[#f7f9f9]">
                 <Link href={`/laboratorio/${order.id}`} className="flex min-w-0 flex-col gap-1.5">
                   <span className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-[13px] font-medium text-[#0e6b62]">{order.number}</span>
+                    <span className="font-mono text-[13px] font-medium text-[#0e6b62]">{visibleOrderNumber(order)}</span>
                     <span className="truncate text-[13px] font-semibold">{order.client_name}</span>
                     <RiskChip risk={order.forecast.risk} />
                   </span>

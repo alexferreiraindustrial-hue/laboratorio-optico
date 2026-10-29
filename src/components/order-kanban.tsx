@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { wipState } from "@/lib/domain/lean";
 import { QUEUE_STATUSES, STATUS_LABEL, type AppRole, type OrderStatus } from "@/lib/domain/constants";
 import { canTransition } from "@/lib/domain/status";
+import { visibleOrderNumber } from "@/lib/domain/orders";
 import { dueDeltaLabel, type Urgency } from "@/lib/domain/urgency";
 import type { OrderRow } from "@/lib/types";
 import { changeOrderStatus } from "@/server/actions";
@@ -44,7 +45,7 @@ function Card({ order, href }: { order: OrderRow; href: string }) {
     >
       <div className="flex cursor-grab flex-col gap-2 active:cursor-grabbing" {...listeners} {...attributes}>
         <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-xs font-medium text-[#0e6b62]">{order.number}</span>
+          <span className="font-mono text-xs font-medium text-[#0e6b62]">{visibleOrderNumber(order)}</span>
           <span className="flex items-center gap-[5px] text-[11px] font-semibold" style={{ color: urgency.fg }}>
             <span className="h-1.5 w-1.5 rounded-full" style={{ background: urgency.dot }} />
             {urgency.label}

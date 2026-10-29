@@ -213,10 +213,13 @@ export function EntryLaunch({
       }
       const byKey = new Map(all.map((item) => [item.key, item.result]));
       setDrafts((current) => current.map((item) => (byKey.has(item.key) ? { ...item, result: byKey.get(item.key) } : item)));
-      const ok = all.filter((item) => item.result?.ok).length;
-      if (ok === all.length) toast.success(ok === 1 ? `${all[0].result?.number} aberta.` : `${ok} OS lançadas.`);
-      else toast.warning(`${ok} de ${all.length} OS lançadas. Veja as linhas em vermelho.`);
-      beep(ok === all.length);
+      const opened = all.filter((item) => item.result?.ok);
+      if (opened.length === all.length) {
+        const typed = targets.find((item) => item.key === opened[0]?.key)?.orderRef?.trim();
+        toast.success(opened.length === 1 ? `${typed || opened[0]?.result?.number} aberta.` : `${opened.length} OS lançadas.`);
+      }
+      else toast.warning(`${opened.length} de ${all.length} OS lançadas. Veja as linhas em vermelho.`);
+      beep(opened.length === all.length);
       inputRef.current?.focus();
     });
   }
@@ -511,7 +514,7 @@ export function EntryLaunch({
                           {item.result ? (
                             item.result.ok ? (
                               <Link href={`/laboratorio/${item.result.id}`} className="flex items-center gap-1.5 whitespace-nowrap rounded-md bg-[#e3f4ea] px-2 py-1 font-mono text-xs font-semibold text-[#1c6b43]">
-                                <Check size={13} /> {item.result.number}
+                                <Check size={13} /> {item.orderRef?.trim() ? "Aberta" : item.result.number}
                               </Link>
                             ) : (
                               <span className="max-w-[200px] truncate rounded-md bg-[#fdecea] px-2 py-1 text-xs font-semibold text-[#a3261b]" title={item.result.message}>

@@ -6,6 +6,7 @@ import { Button, EmptyState, Panel } from "@/components/ui";
 import { PageHeading } from "@/components/shell";
 import { ORDER_STATUSES, STATUS_LABEL, type AppRole, type OrderStatus } from "@/lib/domain/constants";
 import { can } from "@/lib/domain/permissions";
+import { visibleOrderNumber } from "@/lib/domain/orders";
 import { dueDeltaLabel } from "@/lib/domain/urgency";
 import type { Laboratory, OrderRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -230,7 +231,7 @@ export function OrderScreen({
                     {/* OS + Lab */}
                     <td className="py-2.5 pl-4 pr-3">
                       <Link href={`${detailPath}/${order.id}`} className="flex flex-col gap-0.5">
-                        <span className="font-mono text-[13px] font-semibold text-[#0e6b62] group-hover:underline">{order.number}</span>
+                        <span className="font-mono text-[13px] font-semibold text-[#0e6b62] group-hover:underline">{visibleOrderNumber(order)}</span>
                         <span className="flex items-center gap-1 text-[11px] text-[#6e7c7a]">
                           <span className="h-[6px] w-[6px] shrink-0 rounded-[2px]" style={{ background: order.laboratory_color }} />
                           {order.laboratory_name}

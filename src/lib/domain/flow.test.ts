@@ -52,6 +52,7 @@ describe("BO", () => {
     const text = boMessage({ sellerName: "Ana Paula", number: "OS-2026-000010", externalOrderId: "4521", clientName: "Maria", step: "Blocagem", category: "Erro de blocagem", description: "Centro óptico deslocado" });
     expect(text).toContain("Olá, Ana!");
     expect(text).toContain("OS 4521");
+    expect(text).not.toContain("OS-2026-000010");
     expect(text).toContain("etapa de blocagem");
   });
 });

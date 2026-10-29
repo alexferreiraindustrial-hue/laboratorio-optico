@@ -10,6 +10,7 @@ import { Feedback } from "@/components/ui";
 import { canCompleteStep, canStartStep } from "@/lib/domain/assembly";
 import { STEP_KEYS, STEP_LABEL, type AppRole, type OrderStatus, type StepKey, type StepStatus } from "@/lib/domain/constants";
 import { forecastOrder, formatHoursShort } from "@/lib/domain/forecast";
+import { visibleOrderNumber } from "@/lib/domain/orders";
 import { can } from "@/lib/domain/permissions";
 import { canTransition } from "@/lib/domain/status";
 import { cn } from "@/lib/utils";
@@ -209,9 +210,8 @@ function BenchCard({ order, role, now }: { order: BenchOrder; role: AppRole; now
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <Link href={`/montagem/${order.id}`} className="font-mono text-[13px] font-semibold text-[#0e6b62] hover:underline">
-              {order.number}
+              {visibleOrderNumber(order)}
             </Link>
-            {order.externalOrderId ? <span className="text-xs text-[#6e7c7a]">ótica {order.externalOrderId}</span> : null}
             {order.urgent ? <span className="rounded-md bg-[#fdecea] px-1.5 py-px text-[11px] font-bold text-[#a3261b]">Urgente</span> : null}
             {order.status === "em_correcao" ? (
               <span className="rounded-md bg-[#fdecea] px-1.5 py-px text-[11px] font-bold text-[#a3261b]">Em correção</span>

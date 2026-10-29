@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { LinkManager } from "@/components/party-forms";
 import { PageHeading } from "@/components/shell";
 import { Button, Panel } from "@/components/ui";
+import { visibleOrderNumber } from "@/lib/domain/orders";
 import { can } from "@/lib/domain/permissions";
 import { STATUS_LABEL, type OrderStatus } from "@/lib/domain/constants";
 import { requireProfile } from "@/server/session";
@@ -14,7 +15,7 @@ export default async function SellerDetailPage({ params }: { params: Promise<{ i
   if (!seller) notFound();
   const [{ data: links }, { data: orders }, { data: credentials }] = await Promise.all([
     supabase.from("seller_stores").select("store_id, stores(trade_name)").eq("seller_id", id),
-    supabase.from("orders_enriched").select("id, number, client_name, store_name, status").eq("seller_id", id).order("entered_at", { ascending: false }).limit(50),
+    supabase.from("orders_enriched").select("id, number, external_order_id, client_name, store_name, status").eq("seller_id", id).order("entered_at", { ascending: false }).limit(50),
     supabase.from("portal_credentials").select("id, token_prefix, revoked_at, created_at").eq("seller_id", id).order("created_at", { ascending: false }),
   ]);
   return (
@@ -44,7 +45,7 @@ export default async function SellerDetailPage({ params }: { params: Promise<{ i
         <h2 className="font-medium">Ordens</h2>
         <ul className="mt-2 grid gap-1 text-sm">
           {(orders ?? []).map((order) => (
-            <li key={order.id}><Link className="font-mono text-[#0e6b62]" href={`/laboratorio/${order.id}`}>{order.number}</Link> · {order.client_name} · {order.store_name || "sem loja"} · {STATUS_LABEL[order.status as OrderStatus]}</li>
+            <li key={order.id}><Link className="font-mono text-[#0e6b62]" href={`/laboratorio/${order.id}`}>{visibleOrderNumber(order)}</Link> · {order.client_name} · {order.store_name || "sem loja"} · {STATUS_LABEL[order.status as OrderStatus]}</li>
           ))}
         </ul>
       </Panel>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { STATUS_LABEL, type OrderStatus } from "@/lib/domain/constants";
 import { JOURNEY, forecastOrder, formatForecastDate, journeyIndex, type Forecast, type Risk } from "@/lib/domain/forecast";
+import { visibleOrderNumber } from "@/lib/domain/orders";
 import { dueDeltaLabel } from "@/lib/domain/urgency";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -241,8 +242,7 @@ function OrderCard({ order, forecast, href, muted }: { order: PortalOrderRow; fo
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="font-mono text-xs font-medium text-[#0e6b62]">
-            {order.number}
-            {order.external_order_id ? <span className="text-[#6e7c7a]"> · pedido {order.external_order_id}</span> : null}
+            {visibleOrderNumber(order)}
           </span>
           <span className="truncate text-base font-semibold">{order.client_name}</span>
         </div>
@@ -304,8 +304,7 @@ export function PortalOrder({
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
             <span className="font-mono text-sm font-medium text-[#0e6b62]">
-              {detail.number}
-              {detail.external_order_id ? <span className="text-[#6e7c7a]"> · pedido {detail.external_order_id}</span> : null}
+              {visibleOrderNumber(detail)}
             </span>
             <h1 className="text-[22px] font-semibold leading-tight tracking-tight">{detail.client_name}</h1>
             <p className="text-sm text-[#6e7c7a]">{detail.service_description}</p>

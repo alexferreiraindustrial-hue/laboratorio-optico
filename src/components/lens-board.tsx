@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { LENS_RISK, lensRisk, type LensRisk } from "@/lib/domain/flow";
+import { visibleOrderNumber } from "@/lib/domain/orders";
 import { cn } from "@/lib/utils";
 import { updateLensForecast } from "@/server/flow-actions";
 import type { LensQueueRow } from "@/server/flow";
@@ -48,7 +49,7 @@ function Row({ row, now, selected, onToggle, canEdit }: { row: LensQueueRow; now
       </td>
       <td className="px-3 py-2.5">
         <Link href={`/laboratorio/${row.id}`} className="font-mono text-xs font-semibold text-[#0e6b62] hover:underline">
-          {row.external_order_id ? `OS ${row.external_order_id}` : row.number}
+          {visibleOrderNumber(row)}
         </Link>
         <p className="max-w-[220px] truncate text-sm font-semibold">{row.client_name}</p>
         <p className="max-w-[220px] truncate text-xs text-[#6e7c7a]">{[row.seller_name, row.store_name].filter(Boolean).join(" · ") || "Sem vendedor"}</p>

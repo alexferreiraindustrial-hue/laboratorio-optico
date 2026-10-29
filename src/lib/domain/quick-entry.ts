@@ -4,8 +4,8 @@
  *
  *   "4521 Maria Souza"   -> OS 4521 + nome
  *   "Maria Souza 4521"   -> OS 4521 + nome
- *   "4521"               -> só OS
- *   "Maria Souza"        -> só nome
+ *   "4521"               -> só OS (esse número É a OS; o sistema não gera outro)
+ *   "Maria Souza"        -> só nome (aí sim o sistema gera OS-ANO-SEQ)
  *   "OS-2026-000004"     -> referência a uma OS do sistema (usada na saída)
  */
 export type QuickEntry = {

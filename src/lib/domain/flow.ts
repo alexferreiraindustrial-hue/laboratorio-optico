@@ -1,3 +1,5 @@
+import { visibleOrderNumber } from "./orders";
+
 /**
  * Fluxo da lente: o vendedor promete uma data ao cliente e o laboratório externo
  * informa quando a lente chega. A lente precisa chegar ANTES do prazo, com folga
@@ -94,7 +96,8 @@ export function boMessage(input: {
   description: string;
 }) {
   const first = input.sellerName?.trim().split(/\s+/)[0];
-  const ref = input.externalOrderId ? `OS ${input.externalOrderId} (${input.number})` : input.number;
+  const shown = visibleOrderNumber({ number: input.number, externalOrderId: input.externalOrderId });
+  const ref = /^os\b/i.test(shown) ? shown : `OS ${shown}`;
   return [
     `Olá${first ? `, ${first}` : ""}! Aviso do laboratório sobre o óculos de ${input.clientName}.`,
     `${ref}: ${input.category}${input.step ? ` na etapa de ${input.step.toLowerCase()}` : ""}.`,

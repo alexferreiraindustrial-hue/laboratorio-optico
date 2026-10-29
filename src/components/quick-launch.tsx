@@ -3,6 +3,7 @@
 import { ArrowRight, Check, PackageCheck, PackageOpen, ScanLine, X, Zap } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { STATUS_LABEL, type AppRole, type OrderStatus } from "@/lib/domain/constants";
+import { visibleOrderNumber } from "@/lib/domain/orders";
 import { can } from "@/lib/domain/permissions";
 import type { Laboratory, Seller, SellerStoreLink, Store } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -215,7 +216,7 @@ function MoveMode({ mode }: { mode: "lentes" | "saida" }) {
                   className="flex items-center justify-between gap-3 rounded-lg border border-[#e2e7e9] px-3 py-2 text-left hover:border-[#0e6b62] hover:bg-[#f7f9f9]"
                 >
                   <span className="flex flex-col">
-                    <span className="font-mono text-[13px] font-medium text-[#0e6b62]">{order.number}{order.external_order_id ? ` · ótica ${order.external_order_id}` : ""}</span>
+                    <span className="font-mono text-[13px] font-medium text-[#0e6b62]">{visibleOrderNumber(order)}</span>
                     <span className="text-sm font-semibold">{order.client_name}</span>
                   </span>
                   <StatusBadge status={order.status} />
@@ -245,8 +246,7 @@ function MoveMode({ mode }: { mode: "lentes" | "saida" }) {
                   <li key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[#eef1f3] px-5 py-3 last:border-b-0">
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <span className="font-mono text-[13px] font-medium text-[#0e6b62]">
-                        {item.number}
-                        {item.external_order_id ? <span className="text-[#6e7c7a]"> · ótica {item.external_order_id}</span> : null}
+                        {visibleOrderNumber(item)}
                       </span>
                       <span className="truncate text-sm font-semibold">{item.client_name}</span>
                       <span className="truncate text-xs text-[#6e7c7a]">{item.store_name || "—"} · {item.seller_name || "Sem vendedor"}</span>

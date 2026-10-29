@@ -8,6 +8,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { STEP_LABEL, type StepKey } from "@/lib/domain/constants";
 import { BO_DECISIONS, boMessage, boStage, type BoDecision, type BoStage } from "@/lib/domain/flow";
+import { visibleOrderNumber } from "@/lib/domain/orders";
 import { whatsappLink } from "@/lib/domain/forecast";
 import { cn } from "@/lib/utils";
 import { decideOccurrence, notifyOccurrence, resolveOccurrence } from "@/server/flow-actions";
@@ -60,7 +61,7 @@ function Card({ row, now, canManage, onDecide, onResolve }: { row: BoRow; now: n
     <article className={cn("flex flex-col gap-2 rounded-[10px] border bg-white p-3 shadow-[0_1px_2px_rgba(19,32,31,0.04)]", waitingLong ? "border-[#e7a39b]" : "border-[#e2e7e9]", pending && "opacity-60")}>
       <div className="flex items-center justify-between gap-2">
         <Link href={`/laboratorio/${row.order_id}`} className="font-mono text-xs font-semibold text-[#0e6b62] hover:underline">
-          {order?.external_order_id ? `OS ${order.external_order_id}` : order?.number}
+          {order ? visibleOrderNumber(order) : "OS"}
         </Link>
         <span className={cn("flex items-center gap-1 text-[11px]", waitingLong ? "font-semibold text-[#a3261b]" : "text-[#6e7c7a]")}>
           <Clock size={12} /> {since(row.notified_at && stage === "aguardando_decisao" ? row.notified_at : row.occurred_at, now)}

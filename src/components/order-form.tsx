@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toDateTimeLocalValue } from "@/lib/format";
+import { generatedOrderNumber, visibleOrderNumber } from "@/lib/domain/orders";
 import { sellersForStore } from "@/lib/domain/portal";
 import type { Laboratory, OrderRow, Seller, SellerStoreLink, Store } from "@/lib/types";
 import { saveOrder } from "@/server/actions";
@@ -176,6 +177,22 @@ export function OrderForm({
               <option value="critica">⚠ Crítica</option>
             </Select>
           </Field>
+          {order ? (
+            <Field label="Número da OS">
+              <Input readOnly value={visibleOrderNumber(order)} className="font-mono" />
+            </Field>
+          ) : (
+            <Field label="Número da OS" hint="Em branco, o sistema gera um número. Se a ótica já tem OS, use esse número — não nasce outra.">
+              <Input name="externalOrderId" placeholder="Ex.: 4521" />
+            </Field>
+          )}
+          {order && generatedOrderNumber(order.number) && !order.external_order_id ? (
+            <Field label="Número da OS da ótica" hint="Esta OS foi aberta só com o nome. Informe o número quando ele existir.">
+              <Input name="externalOrderId" placeholder="Ex.: 4521" />
+            </Field>
+          ) : order ? (
+            <input type="hidden" name="externalOrderId" value={order.external_order_id ?? ""} />
+          ) : null}
         </div>
 
         {/* Bloco 3: Descrição do serviço */}
@@ -227,7 +244,6 @@ export function OrderForm({
           <Feedback error={error} message={message} />
         </div>
       </form>
-
       {draftOpen ? (
         <QuickParty
           kind={draftOpen}

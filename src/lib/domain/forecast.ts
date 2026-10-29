@@ -1,4 +1,5 @@
 import { STATUS_LABEL, type OrderStatus } from "./constants";
+import { visibleOrderNumber } from "./orders";
 
 /**
  * Previsão operacional de cada OS.
@@ -193,10 +194,12 @@ export function sellerUpdateMessage(input: {
   externalOrderId?: string | null;
 }) {
   const first = input.sellerName?.trim().split(/\s+/)[0];
-  const ref = input.externalOrderId ? ` (pedido ${input.externalOrderId})` : "";
+  const shown = visibleOrderNumber({ number: input.number, externalOrderId: input.externalOrderId });
+  const extra =
+    input.externalOrderId && input.externalOrderId.trim() !== shown ? ` (pedido ${input.externalOrderId.trim()})` : "";
   const lines = [
     `Olá${first ? `, ${first}` : ""}! Atualização do laboratório:`,
-    `${/^os\b/i.test(input.number) ? "" : "OS "}${input.number}${ref} · ${input.clientName}`,
+    `${/^os\b/i.test(shown) ? "" : "OS "}${shown}${extra} · ${input.clientName}`,
     `Situação: ${STATUS_LABEL[input.status]} — ${input.forecast.progress}% concluído.`,
   ];
   switch (input.forecast.risk) {

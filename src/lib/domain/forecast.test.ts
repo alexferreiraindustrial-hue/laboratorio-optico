@@ -81,5 +81,16 @@ describe("lançamento rápido", () => {
     const text = sellerUpdateMessage({ number: "OS-2026-000003", clientName: "Ana", sellerName: "Bia", status: "em_montagem", dueAt: null, forecast });
     expect(text).toContain("\nOS-2026-000003 ·");
     expect(text).not.toContain("OS OS-");
+    const withStoreOs = sellerUpdateMessage({
+      number: "OS-2026-000010",
+      externalOrderId: "4521",
+      clientName: "Maria",
+      sellerName: "Ana",
+      status: "em_montagem",
+      dueAt: null,
+      forecast,
+    });
+    expect(withStoreOs).toContain("OS 4521 · Maria");
+    expect(withStoreOs).not.toContain("OS-2026-000010");
   });
 });

@@ -2,6 +2,13 @@
 
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e as versões seguem o [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.3.0] – 2026-11-03
+
+### Aplicativo
+- App Flutter do chão de fábrica em `mobile/`, com o mesmo banco e os mesmos perfis do site.
+- Painel, lançamento, bancada, pedido de lentes (Zeiss, Essilor, Hoya e outros) e conversa da ordem de serviço, com texto e áudio.
+- A chave de serviço do banco não entra no aplicativo.
+
 ## [0.2.0] – 2026-10-24
 
 ### Melhoria contínua (novo módulo)

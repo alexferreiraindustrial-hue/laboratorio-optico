@@ -7,12 +7,15 @@ Da entrada da ordem de serviço até a entrega na loja, com bancada por etapas, 
 
 [![CI](https://github.com/alexferreiraindustrial-hue/laboratorio-optico/actions/workflows/ci.yml/badge.svg)](https://github.com/alexferreiraindustrial-hue/laboratorio-optico/actions/workflows/ci.yml)
 ![Status](https://img.shields.io/badge/status-em%20produ%C3%A7%C3%A3o%20%C2%B7%20desenvolvimento%20ativo-0e6b62)
-![Versão](https://img.shields.io/badge/vers%C3%A3o-0.1.0-0e6b62)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-0.3.0-0e6b62)
 ![Engenharia de Produção](https://img.shields.io/badge/Lean%20%C2%B7%20Kanban%20%C2%B7%205S%20%C2%B7%20Six%20Sigma-engenharia%20de%20produ%C3%A7%C3%A3o-8b7fd6)
 ![Next.js](https://img.shields.io/badge/Next.js-16-13201f?logo=nextdotjs)
+![Flutter](https://img.shields.io/badge/Flutter-app%20de%20ch%C3%A3o-02569B?logo=flutter&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%2B%20RLS-3fb58f?logo=supabase&logoColor=white)
 
-**[lab.oticahub.com](https://lab.oticahub.com)**
+**[lab.oticahub.com](https://lab.oticahub.com)** · aplicativo em [`mobile/`](mobile/)
+
+Sistema web e aplicativo usam o mesmo banco. A operação da ótica (venda, receita, estoque, financeiro e CRM) está no **[ERP Ótica](https://github.com/alexferreiraindustrial-hue/erp-otica)**.
 
 </div>
 
@@ -95,6 +98,30 @@ flowchart LR
 
 A cada passo o sistema recalcula o progresso e a previsão de conclusão. Se a previsão passa do prazo combinado, a OS entra no radar como **risco de atraso** e o vendedor pode ser avisado na hora.
 
+## Aplicativo
+
+O chão de fábrica também tem aplicativo, na pasta [`mobile/`](mobile/). O nome na tela é **Laboratório ALEX**. Ele entra no mesmo projeto Supabase do site: os mesmos perfis, as mesmas funções do banco e a mesma fila. A chave de serviço não vai para o celular. Só a chave anônima, com a segurança feita no PostgreSQL.
+
+| Área | O que a pessoa faz |
+| --- | --- |
+| **Painel** | Vê a fila do dia e os avisos de prazo e recado |
+| **Lançar** | Entra a ordem de serviço |
+| **Bancada** | Avança a próxima etapa da montagem |
+| **Lentes** | Separa o que ainda não foi pedido do que já tem número e data do laboratório externo (Zeiss, Essilor, Hoya e outros) e confere se chega antes do prazo do cliente |
+| **Conversa** | Lê o recado do vendedor e responde na própria OS, em texto ou áudio |
+
+O código de tela, API e prazo está em `mobile/lib`. Os testes do prazo da lente estão em `mobile/test`.
+
+```bash
+cd mobile
+cp .env.example .env   # SUPABASE_URL e SUPABASE_ANON_KEY, as mesmas NEXT_PUBLIC do site
+flutter pub get
+flutter test
+flutter run
+```
+
+É preciso o [Flutter SDK](https://docs.flutter.dev/get-started/install) instalado. Android com depuração USB ou um emulador.
+
 ## Arquitetura
 
 ```mermaid
@@ -107,16 +134,21 @@ flowchart TB
   subgraph Vercel[Vercel · região São Paulo]
     N[Next.js 16 · App Router<br/>Server Components e Server Actions]
   end
+  APP[App Flutter<br/>Laboratório ALEX]
   subgraph Supabase[Supabase · São Paulo]
     AU[Auth]
     DB[(PostgreSQL<br/>RLS + funções transacionais)]
-    ST[Storage privado<br/>fotos e PDFs]
+    ST[Storage privado<br/>fotos, PDFs e áudio]
   end
   G & MT --> N
   V --> N
+  MT --> APP
   N --> AU
   N --> DB
   N --> ST
+  APP --> AU
+  APP --> DB
+  APP --> ST
 ```
 
 Decisões de projeto que valem destacar:
@@ -131,7 +163,8 @@ Decisões de projeto que valem destacar:
 
 | Camada | Uso |
 | --- | --- |
-| **Next.js 16** (App Router), **React 19**, **TypeScript** | Interface e servidor |
+| **Next.js 16** (App Router), **React 19**, **TypeScript** | Sistema web |
+| **Flutter** e **Dart** | Aplicativo de chão, em `mobile/` |
 | **Tailwind CSS 4**, lucide-react, dnd-kit | Visual, ícones e Kanban |
 | **Supabase**: PostgreSQL, Auth, Storage | Dados, segurança (RLS) e arquivos |
 | **Zod** | Validação de formulários |
@@ -163,9 +196,23 @@ O desenvolvimento segue em ciclos curtos. As próximas entregas estão nas [Issu
 
 - [ ] Notificação automática ao vendedor (WhatsApp API) quando a OS ficar pronta ou entrar em risco
 - [ ] Tempo médio por etapa e por montador (gargalos da bancada)
-- [ ] Aplicativo instalável (PWA) para tablet na bancada
+- [x] Aplicativo do laboratório (Flutter), na pasta `mobile/`
+- [ ] Notificação push no aplicativo quando a OS entrar em risco
 - [ ] Integração com sistemas de venda das óticas para importar pedidos
 - [ ] Multi-laboratório com faturamento por loja
+
+## Para quem avalia
+
+O repositório está publicado para consulta. A licença não autoriza cópia nem uso comercial sem permissão: veja [LICENSE](LICENSE).
+
+| O que conferir | Onde |
+| --- | --- |
+| Sistema no ar | [lab.oticahub.com](https://lab.oticahub.com) |
+| Regras de prazo, ranking e fluxo | `src/lib/domain` e `npm test` |
+| Permissão no banco, não só na tela | `supabase/migrations` |
+| Aplicativo | `mobile/lib` e `flutter test` em `mobile/` |
+| Caso de melhoria contínua | [docs/estudo-de-caso.md](docs/estudo-de-caso.md) |
+| ERP da ótica, código privado | [erp-otica](https://github.com/alexferreiraindustrial-hue/erp-otica) |
 
 ## Autor
 

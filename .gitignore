@@ -33,6 +33,7 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+!mobile/.env.example
 
 # vercel
 .vercel
@@ -47,3 +48,8 @@ supabase/.temp/
 
 # imagens geradas localmente
 /test-results/
+
+# app Flutter: artefatos de build e pacotes
+/mobile/dist/
+/mobile/android/build/
+/mobile/ios/build/

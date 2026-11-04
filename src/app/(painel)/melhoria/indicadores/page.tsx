@@ -26,32 +26,32 @@ export default async function IndicadoresPage({ searchParams }: { searchParams: 
   return (
     <div className="grid gap-5 animate-[pagein_.35s_ease-out]">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-1 rounded-lg border border-[#e2e7e9] bg-white p-1">
+        <div className="flex gap-1 rounded-lg border border-[#e6dcce] bg-white p-1">
           {PERIODS.map((period) => (
             <Link
               key={period}
               href={`/melhoria/indicadores?dias=${period}`}
               scroll={false}
-              className={cn("rounded-md px-3 py-1.5 text-[13px] font-medium", period === days ? "bg-[#e4f1ef] font-semibold text-[#0a4f48]" : "text-[#44524f] hover:bg-[#f2f5f5]")}
+              className={cn("rounded-md px-3 py-1.5 text-[13px] font-medium", period === days ? "bg-[#d8ebe6] font-semibold text-[#0a4540]" : "text-[#4a453d] hover:bg-[#f3ece1]")}
             >
               {period} dias
             </Link>
           ))}
         </div>
-        <p className="text-xs text-[#6e7c7a]">
+        <p className="text-xs text-[#6b6358]">
           {m.completed} OS prontas · {m.entered} OS recebidas · {m.defects} ocorrências no período
         </p>
       </div>
 
       <ol className="grid gap-2 sm:grid-cols-5">
         {DMAIC.map((step, index) => (
-          <li key={step.letter} className="relative flex gap-2.5 rounded-xl border border-[#e2e7e9] bg-white p-3">
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm font-bold text-white" style={{ background: ["#0e6b62", "#1e4d9b", "#c8881a", "#5a3d86", "#1c6b43"][index] }}>
+          <li key={step.letter} className="relative flex gap-2.5 rounded-xl border border-[#e6dcce] bg-white p-3">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm font-bold text-white" style={{ background: ["#0b5c54", "#1e4d9b", "#c8881a", "#5a3d86", "#1c6b43"][index] }}>
               {step.letter}
             </span>
             <span className="flex flex-col">
               <span className="text-[13px] font-semibold">{step.name}</span>
-              <span className="text-xs leading-snug text-[#6e7c7a]">{step.text}</span>
+              <span className="text-xs leading-snug text-[#6b6358]">{step.text}</span>
             </span>
           </li>
         ))}
@@ -81,7 +81,7 @@ export default async function IndicadoresPage({ searchParams }: { searchParams: 
           subtitle="Princípio 80/20: as barras escuras são os poucos vitais que concentram a maior parte dos defeitos"
           action={vital.length ? <Pill tone="bad">{vital.length} causas = {pct(vital[vital.length - 1].cumulative)}</Pill> : undefined}
         >
-          {m.pareto.length ? <ParetoChart data={m.pareto} /> : <p className="py-16 text-center text-sm text-[#6e7c7a]">Nenhuma ocorrência no período.</p>}
+          {m.pareto.length ? <ParetoChart data={m.pareto} /> : <p className="py-16 text-center text-sm text-[#6b6358]">Nenhuma ocorrência no período.</p>}
         </Card>
 
         <Card
@@ -89,7 +89,7 @@ export default async function IndicadoresPage({ searchParams }: { searchParams: 
           subtitle="Média ± 3 desvios. Pontos vermelhos estão fora de controle: investigue a causa especial daquele dia"
           action={<Pill tone={outPoints.length ? "bad" : "ok"}>{outPoints.length ? `${outPoints.length} fora de controle` : "Processo sob controle"}</Pill>}
         >
-          {m.chart.points.length ? <ControlChart data={m.chart.points} /> : <p className="py-16 text-center text-sm text-[#6e7c7a]">Sem OS prontas no período.</p>}
+          {m.chart.points.length ? <ControlChart data={m.chart.points} /> : <p className="py-16 text-center text-sm text-[#6b6358]">Sem OS prontas no período.</p>}
         </Card>
 
         <Card
@@ -98,7 +98,7 @@ export default async function IndicadoresPage({ searchParams }: { searchParams: 
           action={bottleneck ? <Pill tone="warn">Gargalo: {STEP_LABEL[bottleneck.key as StepKey]}</Pill> : undefined}
         >
           <CycleBars data={m.cycle.rows} takt={m.takt} bottleneck={m.cycle.bottleneck} />
-          <p className="mt-2 text-xs text-[#6e7c7a]">
+          <p className="mt-2 text-xs text-[#6b6358]">
             Medido do início à conclusão de cada etapa na bancada ({m.cycle.rows.reduce((sum, row) => sum + row.samples, 0)} registros). A linha tracejada é o takt time.
           </p>
         </Card>
@@ -108,7 +108,7 @@ export default async function IndicadoresPage({ searchParams }: { searchParams: 
           subtitle="Em que etapa os defeitos nascem: conferência inicial, lensometria, blocagem, facetadora ou conferência final"
           action={m.paretoByStep[0] ? <Pill tone="warn">Mais crítica: {m.paretoByStep[0].name}</Pill> : undefined}
         >
-          {m.paretoByStep.length ? <ParetoChart data={m.paretoByStep} /> : <p className="py-16 text-center text-sm text-[#6e7c7a]">Nenhuma ocorrência no período.</p>}
+          {m.paretoByStep.length ? <ParetoChart data={m.paretoByStep} /> : <p className="py-16 text-center text-sm text-[#6b6358]">Nenhuma ocorrência no período.</p>}
         </Card>
 
         <Card title="Produção × ocorrências por dia" subtitle="Vazão diária comparada aos defeitos registrados">

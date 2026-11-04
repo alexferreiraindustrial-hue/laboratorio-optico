@@ -93,10 +93,50 @@ export async function saveSeller(formData: FormData): Promise<ActionResult> {
     }
   }
 
+  const pin = clean(formData.get("appPin"));
+  if (pin) {
+    if (!/^[0-9]{4,8}$/.test(pin)) {
+      return { ok: false, message: "O PIN do app deve ter de 4 a 8 dígitos." };
+    }
+    const { data: access, error: pinError } = await supabase.rpc("set_seller_app_access", {
+      p_seller_id: data.id,
+      p_pin: pin,
+    });
+    if (pinError) return { ok: false, message: pinError.message };
+    const login = access && typeof access === "object" && "login" in access ? String((access as { login?: string }).login ?? "") : "";
+    revalidatePath("/vendedores");
+    revalidatePath("/lojas");
+    revalidatePath("/laboratorio");
+    return {
+      ok: true,
+      id: data.id,
+      message: id
+        ? `Vendedor atualizado. Acesso do app: código ${login}. Entregue o PIN só para esta pessoa.`
+        : `Vendedor cadastrado. Acesso do app: código ${login}. Entregue o PIN só para esta pessoa.`,
+    };
+  }
+
   revalidatePath("/vendedores");
   revalidatePath("/lojas");
   revalidatePath("/laboratorio");
   return { ok: true, id: data.id, message: id ? "Vendedor atualizado." : "Vendedor cadastrado." };
+}
+
+export async function setSellerAppAccess(formData: FormData): Promise<ActionResult> {
+  const { supabase, role } = await requireProfile();
+  if (!can(role, "portal.manage")) return { ok: false, message: "Sem permissão para criar o acesso do vendedor." };
+  const sellerId = clean(formData.get("sellerId"));
+  const pin = clean(formData.get("appPin"));
+  if (!sellerId) return { ok: false, message: "Vendedor não informado." };
+  if (!pin || !/^[0-9]{4,8}$/.test(pin)) return { ok: false, message: "O PIN do app deve ter de 4 a 8 dígitos." };
+  const { data, error } = await supabase.rpc("set_seller_app_access", {
+    p_seller_id: sellerId,
+    p_pin: pin,
+  });
+  if (error) return { ok: false, message: error.message };
+  const login = data && typeof data === "object" && "login" in data ? String((data as { login?: string }).login ?? "") : "";
+  revalidatePath("/vendedores");
+  return { ok: true, message: `Acesso do app criado. Código: ${login}. Entregue o PIN só para este vendedor.` };
 }
 
 export async function issuePortalLink(subjectType: "store" | "seller", subjectId: string): Promise<ActionResult & { token?: string }> {

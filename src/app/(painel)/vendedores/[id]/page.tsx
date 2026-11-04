@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LinkManager } from "@/components/party-forms";
+import { LinkManager, SellerAppAccess } from "@/components/party-forms";
 import { PageHeading } from "@/components/shell";
 import { Button, Panel } from "@/components/ui";
 import { visibleOrderNumber } from "@/lib/domain/orders";
@@ -16,7 +16,7 @@ export default async function SellerDetailPage({ params }: { params: Promise<{ i
   const [{ data: links }, { data: orders }, { data: credentials }] = await Promise.all([
     supabase.from("seller_stores").select("store_id, stores(trade_name)").eq("seller_id", id),
     supabase.from("orders_enriched").select("id, number, external_order_id, client_name, store_name, status").eq("seller_id", id).order("entered_at", { ascending: false }).limit(50),
-    supabase.from("portal_credentials").select("id, token_prefix, revoked_at, created_at").eq("seller_id", id).order("created_at", { ascending: false }),
+    supabase.from("portal_credentials").select("id, token_prefix, revoked_at, created_at, access_kind").eq("seller_id", id).eq("access_kind", "link").order("created_at", { ascending: false }),
   ]);
   return (
     <div className="grid gap-4">
@@ -37,7 +37,7 @@ export default async function SellerDetailPage({ params }: { params: Promise<{ i
           {(links ?? []).map((link) => {
             const store = link.stores as { trade_name?: string } | { trade_name?: string }[] | null;
             const name = Array.isArray(store) ? store[0]?.trade_name : store?.trade_name;
-            return <li key={link.store_id}><Link className="text-[#0e6b62]" href={`/lojas/${link.store_id}`}>{name}</Link></li>;
+            return <li key={link.store_id}><Link className="text-[#0b5c54]" href={`/lojas/${link.store_id}`}>{name}</Link></li>;
           })}
         </ul>
       </Panel>
@@ -45,15 +45,23 @@ export default async function SellerDetailPage({ params }: { params: Promise<{ i
         <h2 className="font-medium">Ordens</h2>
         <ul className="mt-2 grid gap-1 text-sm">
           {(orders ?? []).map((order) => (
-            <li key={order.id}><Link className="font-mono text-[#0e6b62]" href={`/laboratorio/${order.id}`}>{visibleOrderNumber(order)}</Link> · {order.client_name} · {order.store_name || "sem loja"} · {STATUS_LABEL[order.status as OrderStatus]}</li>
+            <li key={order.id}><Link className="font-mono text-[#0b5c54]" href={`/laboratorio/${order.id}`}>{visibleOrderNumber(order)}</Link> · {order.client_name} · {order.store_name || "sem loja"} · {STATUS_LABEL[order.status as OrderStatus]}</li>
           ))}
         </ul>
       </Panel>
       {can(role, "portal.manage") ? (
-        <Panel className="p-4">
-          <h2 className="font-medium">Link de acompanhamento</h2>
-          <div className="mt-3"><LinkManager subjectType="seller" subjectId={id} credentials={credentials ?? []} phone={seller.whatsapp || seller.phone} name={seller.name} /></div>
-        </Panel>
+        <>
+          <Panel className="p-4">
+            <h2 className="font-medium">Acesso do app</h2>
+            <div className="mt-3">
+              <SellerAppAccess sellerId={id} login={`v${seller.quick_code ?? ""}`} />
+            </div>
+          </Panel>
+          <Panel className="p-4">
+            <h2 className="font-medium">Link de acompanhamento (PWA)</h2>
+            <div className="mt-3"><LinkManager subjectType="seller" subjectId={id} credentials={credentials ?? []} phone={seller.whatsapp || seller.phone} name={seller.name} /></div>
+          </Panel>
+        </>
       ) : null}
     </div>
   );

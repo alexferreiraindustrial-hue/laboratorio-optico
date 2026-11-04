@@ -45,7 +45,7 @@ export function OrderActions({
         });
       }}
     >
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         <Select value={nextStatus} onChange={(event) => setNextStatus(event.target.value as OrderStatus)} aria-label="Novo status">
           {targets.map((target) => (
             <option key={target} value={target}>
@@ -57,9 +57,9 @@ export function OrderActions({
           value={note}
           onChange={(event) => setNote(event.target.value)}
           placeholder="Observação da movimentação"
-          className="h-9 min-w-48 flex-1 rounded-md border border-[#cdd5d8] px-3 text-sm"
+          className="h-11 min-w-0 flex-1 rounded-md border border-[#d5cbbb] px-3 text-base md:h-9 md:text-sm"
         />
-        <Button type="submit" disabled={pending || !nextStatus}>
+        <Button type="submit" disabled={pending || !nextStatus} className="w-full sm:w-auto">
           {pending ? "Salvando..." : "Movimentar"}
         </Button>
       </div>

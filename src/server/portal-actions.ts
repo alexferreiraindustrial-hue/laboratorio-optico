@@ -1,7 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { sendPortalMessage } from "./portal";
+import { loginSellerApp, sendPortalMessage } from "./portal";
+
+export async function submitSellerAppLogin(formData: FormData) {
+  return loginSellerApp(String(formData.get("login") ?? ""), String(formData.get("pin") ?? ""));
+}
 
 export async function submitPortalMessage(formData: FormData) {
   const token = String(formData.get("token") ?? "");

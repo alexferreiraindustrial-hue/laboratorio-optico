@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { issuePortalLink, revokePortalLink, saveSeller, saveStore } from "@/server/parties";
+import { issuePortalLink, revokePortalLink, saveSeller, saveStore, setSellerAppAccess } from "@/server/parties";
 import { whatsappLink } from "@/lib/domain/forecast";
 import type { Store } from "@/lib/types";
 import { Button, Feedback, Field, Input, Select, TextArea } from "./ui";
@@ -108,7 +108,7 @@ export function SellerForm({
       </Field>
       <fieldset className="grid gap-2 md:col-span-2">
         <legend className="text-sm font-medium">Lojas vinculadas</legend>
-        {stores.length === 0 ? <p className="text-sm text-[#6e7c7a]">Cadastre uma loja antes de vincular.</p> : null}
+        {stores.length === 0 ? <p className="text-sm text-[#6b6358]">Cadastre uma loja antes de vincular.</p> : null}
         {stores.map((store) => (
           <label key={store.id} className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="storeId" value={store.id} defaultChecked={selected.includes(store.id)} />
@@ -118,8 +118,55 @@ export function SellerForm({
         {stores.length ? <input type="hidden" name="storeId" value="" /> : <input type="hidden" name="storeId" value="" />}
       </fieldset>
       <Field label="Observações internas"><TextArea name="notes" defaultValue={seller?.notes ?? ""} /></Field>
+      <Field
+        label="PIN do app (4 a 8 dígitos)"
+        hint="Você cria o acesso. O vendedor entra no app com o código rápido (v3) e este PIN. Só vê as OS dele. Deixe em branco para não alterar."
+      >
+        <Input name="appPin" inputMode="numeric" autoComplete="new-password" placeholder="••••" />
+      </Field>
       <div className="flex items-center gap-3 md:col-span-2">
         <Button type="submit" disabled={pending}>{pending ? "Salvando..." : "Salvar vendedor"}</Button>
+        <Feedback error={error} message={message} />
+      </div>
+    </form>
+  );
+}
+
+export function SellerAppAccess({ sellerId, login }: { sellerId: string; login: string }) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  return (
+    <form
+      className="grid gap-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        startTransition(async () => {
+          const result = await setSellerAppAccess(formData);
+          if (!result.ok) {
+            setMessage(null);
+            setError(result.message);
+            return;
+          }
+          setError(null);
+          setMessage(result.message ?? "Acesso criado.");
+          form.reset();
+          router.refresh();
+        });
+      }}
+    >
+      <input type="hidden" name="sellerId" value={sellerId} />
+      <p className="text-sm text-[#6b6358]">
+        Código de entrada no app: <strong className="text-[#1a1714]">{login}</strong>. Defina um PIN de 4 a 8 dígitos e entregue só para este vendedor. Ele acompanha apenas as OS dele.
+      </p>
+      <Field label="Novo PIN do app">
+        <Input name="appPin" inputMode="numeric" autoComplete="new-password" required placeholder="4 a 8 dígitos" />
+      </Field>
+      <div className="flex items-center gap-3">
+        <Button type="submit" disabled={pending}>{pending ? "Salvando..." : "Criar acesso do app"}</Button>
         <Feedback error={error} message={message} />
       </div>
     </form>
@@ -154,8 +201,8 @@ export function LinkManager({
 
   return (
     <div className="grid gap-3">
-      <p className="text-sm text-[#6e7c7a]">
-        O link é uma credencial. O sistema guarda apenas o hash. Gere de novo para revogar o anterior.
+      <p className="text-sm text-[#6b6358]">
+        Link opcional do PWA. O acesso principal do vendedor no app é o PIN que você cria no cadastro. O sistema guarda só o hash do link.
         {active ? ` Prefixo do link ativo: ${active.token_prefix}…` : " Nenhum link ativo."}
       </p>
       <div className="flex flex-wrap gap-2">

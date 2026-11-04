@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canCompleteStep, canStartStep, prontoBlockers, stepsAfterReopen } from "./assembly";
-import { monthRange, weekRange } from "./calendar";
+import { addBusinessDays, monthRange, weekRange } from "./calendar";
 import { duplicateOrderMessage, validateOrderDraft, visibleOrderNumber } from "./orders";
 import { can } from "./permissions";
 import { powerSeries, isSpecialPower, parseDiopterToCents, DEFAULT_GRID } from "./powers";
@@ -9,6 +9,7 @@ import { qualityRate } from "./quality";
 import { isPublicCode, resolveQrScan } from "./qr";
 import { applyMovement, assertConsumptionAvailable, consumptionKey, stockTone } from "./stock";
 import { canTransition } from "./status";
+import { validateAttachment } from "./files";
 import { orderUrgency } from "./urgency";
 import type { ProductionOrder } from "./production";
 
@@ -294,5 +295,20 @@ describe("permissões e QR Code", () => {
     expect(resolveQrScan("lente -2,00").status).toBe("invalid");
     const empty = resolveQrScan("");
     expect(empty.status === "invalid" && empty.message).toMatch(/nenhum código/i);
+  });
+});
+
+describe("prazo em dias úteis", () => {
+  it("pula sábado e domingo", () => {
+    expect(addBusinessDays("2026-10-29", 3)).toBe("2026-11-03");
+    expect(addBusinessDays("2026-10-30", 1)).toBe("2026-11-02");
+  });
+});
+
+describe("anexos da OS", () => {
+  it("aceita foto até 8 MB e recusa tipo estranho", () => {
+    expect(validateAttachment({ name: "armacao.jpg", type: "image/jpeg", size: 120_000 })).toBeNull();
+    expect(validateAttachment({ name: "nota.exe", type: "application/octet-stream", size: 100 })).toMatch(/JPG/);
+    expect(validateAttachment({ name: "grande.jpg", type: "image/jpeg", size: 9 * 1024 * 1024 })).toMatch(/8 MB/);
   });
 });

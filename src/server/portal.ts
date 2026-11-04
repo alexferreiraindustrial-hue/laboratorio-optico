@@ -47,6 +47,23 @@ async function ipHash() {
   return createHash("sha256").update(ip).digest("hex").slice(0, 32);
 }
 
+export async function loginSellerApp(login: string, pin: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("seller_app_login", {
+    p_login: login.trim(),
+    p_pin: pin.trim(),
+    p_ip_hash: await ipHash(),
+  });
+  if (error || !data || typeof data !== "object") {
+    const message = error?.message ?? "";
+    if (message.includes("Muitas tentativas")) return { ok: false as const, message: "Muitas tentativas. Aguarde alguns minutos." };
+    return { ok: false as const, message: "Código ou PIN inválidos." };
+  }
+  const row = data as { token?: string; name?: string };
+  if (!row.token) return { ok: false as const, message: "Código ou PIN inválidos." };
+  return { ok: true as const, token: row.token, name: row.name ?? "Vendedor", kind: "vendedor" as const };
+}
+
 export async function portalContextError(error: { message: string } | null) {
   const message = error?.message ?? "";
   if (message.includes("revogado")) return "Este link foi revogado.";

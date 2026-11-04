@@ -112,7 +112,7 @@ export const loadCatalogs = cache(async function loadCatalogs() {
 
 export async function loadOrders(filters: OrderFilters, options?: { statuses?: OrderStatus[]; pageSize?: number }) {
   const { supabase } = await requireProfile();
-  const pageSize = options?.pageSize ?? 20;
+  const pageSize = options?.pageSize ?? (filters.status ? 400 : 20);
   const page = Math.max(1, Number(filters.page ?? "1") || 1);
   let query = supabase.from("orders_enriched").select(
     "id, number, client_name, laboratory_id, laboratory_name, laboratory_color, seller_name, store_name, external_order_id, entered_at, due_at, status, urgency",

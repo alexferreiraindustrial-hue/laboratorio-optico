@@ -16,7 +16,7 @@ import {
   YAxis,
 } from "recharts";
 
-const colors = ["#0e6b62", "#1e4d9b", "#c8881a", "#b42318", "#5a3d86", "#3d4b5c", "#1d6b45", "#8a5a12"];
+const colors = ["#0b5c54", "#1e4d9b", "#c8881a", "#b42318", "#5a3d86", "#3d4b5c", "#1d6b45", "#8a5a12"];
 
 export function ProductionChart({
   data,
@@ -26,17 +26,17 @@ export function ProductionChart({
   data: { label: string; produced: number; goal: number | null }[];
 }) {
   return (
-    <article className="rounded-lg border border-[#e2e7e9] bg-white p-3">
+    <article className="rounded-lg border border-[#e6dcce] bg-white p-3">
       <h2 className="mb-2 text-sm font-medium">{title}</h2>
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
-            <CartesianGrid stroke="#e2e7e9" vertical={false} />
+            <CartesianGrid stroke="#e6dcce" vertical={false} />
             <XAxis dataKey="label" tick={{ fontSize: 11 }} />
             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
             <Tooltip />
             <Legend />
-            <Bar dataKey="produced" name="Produção" fill="#0e6b62" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="produced" name="Produção" fill="#0b5c54" radius={[3, 3, 0, 0]} />
             <Bar dataKey="goal" name="Meta" fill="#c5d5d2" radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
@@ -47,16 +47,16 @@ export function ProductionChart({
 
 export function MonthlyLine({ data }: { data: { label: string; produced: number }[] }) {
   return (
-    <article className="rounded-lg border border-[#e2e7e9] bg-white p-3">
+    <article className="rounded-lg border border-[#e6dcce] bg-white p-3">
       <h2 className="mb-2 text-sm font-medium">Evolução mensal da produção</h2>
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
-            <CartesianGrid stroke="#e2e7e9" vertical={false} />
+            <CartesianGrid stroke="#e6dcce" vertical={false} />
             <XAxis dataKey="label" tick={{ fontSize: 11 }} />
             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
             <Tooltip />
-            <Line dataKey="produced" name="Produção" stroke="#0e6b62" strokeWidth={2} dot={false} />
+            <Line dataKey="produced" name="Produção" stroke="#0b5c54" strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -66,7 +66,7 @@ export function MonthlyLine({ data }: { data: { label: string; produced: number 
 
 export function StatusPie({ data }: { data: { name: string; value: number }[] }) {
   return (
-    <article className="rounded-lg border border-[#e2e7e9] bg-white p-3">
+    <article className="rounded-lg border border-[#e6dcce] bg-white p-3">
       <h2 className="mb-2 text-sm font-medium">Ordens por status</h2>
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
@@ -87,12 +87,12 @@ export function StatusPie({ data }: { data: { name: string; value: number }[] })
 
 export function CategoryBars({ data }: { data: { name: string; value: number }[] }) {
   return (
-    <article className="rounded-lg border border-[#e2e7e9] bg-white p-3">
+    <article className="rounded-lg border border-[#e6dcce] bg-white p-3">
       <h2 className="mb-2 text-sm font-medium">Ocorrências por categoria</h2>
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical" margin={{ left: 24 }}>
-            <CartesianGrid stroke="#e2e7e9" horizontal={false} />
+            <CartesianGrid stroke="#e6dcce" horizontal={false} />
             <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
             <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 11 }} />
             <Tooltip />

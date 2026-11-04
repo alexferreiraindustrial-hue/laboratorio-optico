@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toDateTimeLocalValue } from "@/lib/format";
+import { addBusinessDays, timeZoneOffset, zonedYmd } from "@/lib/domain/calendar";
 import { generatedOrderNumber, visibleOrderNumber } from "@/lib/domain/orders";
 import { sellersForStore } from "@/lib/domain/portal";
 import type { Laboratory, OrderRow, Seller, SellerStoreLink, Store } from "@/lib/types";
@@ -10,13 +11,11 @@ import { saveOrder } from "@/server/actions";
 import { saveSeller, saveStore } from "@/server/parties";
 import { Button, Feedback, Field, Input, Select, TextArea } from "./ui";
 
-/** Calcula prazo automático: simples = 3 dias úteis, multifocal = 5 dias corridos */
+/** Prazo em dias úteis, às 17h: simples 3, multifocal 5. Não cai em sábado ou domingo. */
 function calcDueAt(lensType: "simples" | "multifocal"): string {
-  const d = new Date();
-  d.setDate(d.getDate() + (lensType === "simples" ? 3 : 5));
-  // Ajusta para fim do dia
-  d.setHours(17, 0, 0, 0);
-  return toDateTimeLocalValue(d.toISOString());
+  const dueYmd = addBusinessDays(zonedYmd(new Date()), lensType === "simples" ? 3 : 5);
+  const offset = timeZoneOffset(new Date(`${dueYmd}T15:00:00Z`));
+  return toDateTimeLocalValue(new Date(`${dueYmd}T17:00:00${offset}`).toISOString());
 }
 
 export function OrderForm({
@@ -53,7 +52,7 @@ export function OrderForm({
 
   if (laboratories.length === 0) {
     return (
-      <p className="text-sm text-[#6e7c7a]">
+      <p className="text-sm text-[#6b6358]">
         Cadastre um laboratório em Configurações antes de abrir uma OS.
       </p>
     );
@@ -84,16 +83,16 @@ export function OrderForm({
 
         {/* Bloco 1: Tipo de lente — define o prazo automaticamente */}
         {!order ? (
-          <div className="rounded-lg border border-[#cdd5d8] bg-[#f7f9f9] p-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#6e7c7a]">Tipo de lente</p>
+          <div className="rounded-lg border border-[#d5cbbb] bg-[#f8f3ea] p-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#6b6358]">Tipo de lente</p>
             <div className="flex gap-3">
               {(["simples", "multifocal"] as const).map((tipo) => (
                 <label
                   key={tipo}
                   className={`flex flex-1 cursor-pointer items-center gap-2.5 rounded-lg border-2 px-4 py-3 transition-colors ${
                     lensType === tipo
-                      ? "border-[#0e6b62] bg-white"
-                      : "border-[#e2e7e9] bg-white hover:border-[#b4c4c2]"
+                      ? "border-[#0b5c54] bg-white"
+                      : "border-[#e6dcce] bg-white hover:border-[#b4c4c2]"
                   }`}
                 >
                   <input
@@ -105,11 +104,11 @@ export function OrderForm({
                       setLensType(tipo);
                       setDueAt(calcDueAt(tipo));
                     }}
-                    className="accent-[#0e6b62]"
+                    className="accent-[#0b5c54]"
                   />
                   <div>
                     <p className="font-semibold capitalize">{tipo}</p>
-                    <p className="text-xs text-[#6e7c7a]">{tipo === "simples" ? "Prazo: 3 dias" : "Prazo: 5 dias"}</p>
+                    <p className="text-xs text-[#6b6358]">{tipo === "simples" ? "Prazo: 3 dias úteis" : "Prazo: 5 dias úteis"}</p>
                   </div>
                 </label>
               ))}
@@ -153,7 +152,7 @@ export function OrderForm({
               defaultValue={order ? toDateTimeLocalValue(order.entered_at) : toDateTimeLocalValue(new Date().toISOString())}
             />
           </Field>
-          <Field label={`Previsão de entrega${!order ? ` (${lensType === "simples" ? "3 dias" : "5 dias"})` : ""}`}>
+          <Field label={`Previsão de entrega${!order ? ` (${lensType === "simples" ? "3 dias úteis" : "5 dias úteis"})` : ""}`}>
             <Input
               type="datetime-local"
               name="dueAt"
@@ -201,17 +200,16 @@ export function OrderForm({
         </Field>
 
         {/* Bloco 4: Receita (expansível) */}
-        <div className="rounded-lg border border-[#e2e7e9]">
+        <div className="rounded-lg border border-[#e6dcce]">
           <button
             type="button"
             onClick={() => setShowReceita((v) => !v)}
-            className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold text-[#44524f] hover:bg-[#f7f9f9]"
+            className="flex min-h-12 w-full items-center justify-between px-4 py-3 text-sm font-semibold text-[#4a453d] hover:bg-[#f8f3ea]"
           >
             <span>📋 Dados da receita (opcional)</span>
-            <span className="text-xs font-normal text-[#6e7c7a]">{showReceita ? "▲ Fechar" : "▼ Abrir"}</span>
+            <span className="text-xs font-normal text-[#6b6358]">{showReceita ? "▲ Fechar" : "▼ Abrir"}</span>
           </button>
-          {showReceita ? (
-            <div className="grid gap-3 border-t border-[#e2e7e9] p-4 sm:grid-cols-4">
+          <div className={`grid gap-3 border-t border-[#e6dcce] p-4 sm:grid-cols-4 ${showReceita ? "" : "hidden"}`}>
               <Field label="Esférico OD"><Input name="odSphere" defaultValue={spec.od_sphere} placeholder="-2,00" /></Field>
               <Field label="Cilíndrico OD"><Input name="odCylinder" defaultValue={spec.od_cylinder} placeholder="-0,75" /></Field>
               <Field label="Eixo OD"><Input name="odAxis" defaultValue={spec.od_axis} /></Field>
@@ -226,7 +224,6 @@ export function OrderForm({
                 </Field>
               </div>
             </div>
-          ) : null}
         </div>
 
         {/* Bloco 5: Observações gerais */}
@@ -282,7 +279,7 @@ function QuickParty({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   return (
-    <div className="rounded-md border border-[#e2e7e9] bg-[#f7f9f9] p-3">
+    <div className="rounded-md border border-[#e6dcce] bg-[#f8f3ea] p-3">
       <p className="mb-2 text-sm font-medium">{kind === "store" ? "Nova loja" : "Novo vendedor"}</p>
       <form
         className="grid gap-2 md:grid-cols-2"

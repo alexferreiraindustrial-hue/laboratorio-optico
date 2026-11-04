@@ -87,3 +87,14 @@ begin
   return v_order;
 end;
 $$;
+
+-- OS já abertas com número da ótica só no campo externo passam a ter esse número como número da OS.
+alter table public.service_orders disable trigger orders_guard;
+
+update public.service_orders
+set number = external_order_id,
+    external_order_id = null
+where number ~ '^OS-[0-9]{4}-[0-9]{6}$'
+  and external_order_id ~ '^[0-9]+$';
+
+alter table public.service_orders enable trigger orders_guard;

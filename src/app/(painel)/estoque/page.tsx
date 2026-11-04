@@ -24,7 +24,7 @@ export default async function EstoquePage() {
     <div>
       <PageHeading
         title="Estoque de lentes"
-        description="Clique em um grau da grade para ver o saldo ou use “Cadastrar lente” para incluir uma nova combinação. Cada combinação tem saldo e QR Code próprios."
+        description="A grade mostra todos os graus. Clique no saldo para abrir o item, ou no + para cadastrar aquele grau. Use “Encontrar na grade” para ir direto ao esférico e ao cilíndrico."
       >
         <Button asChild><Link href="/estoque/nova">+ Cadastrar lente</Link></Button>
         <Button variant="secondary" asChild><Link href="/estoque/especiais">Graus especiais</Link></Button>

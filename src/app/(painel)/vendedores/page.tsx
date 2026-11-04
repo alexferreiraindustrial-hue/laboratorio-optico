@@ -18,11 +18,11 @@ export default async function SellersPage({ searchParams }: { searchParams: Prom
         <Button asChild><Link href="/vendedores/novo">Novo vendedor</Link></Button>
       </PageHeading>
       <Panel className="mb-4 p-3">
-        <form><input name="q" defaultValue={q} placeholder="Nome, código ou telefone" className="h-9 w-full rounded-md border border-[#cdd5d8] px-3 text-sm" /></form>
+        <form><input name="q" defaultValue={q} placeholder="Nome, código ou telefone" className="h-9 w-full rounded-md border border-[#d5cbbb] px-3 text-sm" /></form>
       </Panel>
-      <div className="overflow-x-auto rounded-md border border-[#e2e7e9] bg-white">
+      <div className="overflow-x-auto rounded-md border border-[#e6dcce] bg-white">
         <table className="w-full min-w-[640px] text-left text-sm">
-          <thead className="bg-[#f7f9f9] text-[#6e7c7a]">
+          <thead className="bg-[#f8f3ea] text-[#6b6358]">
             <tr>
               <th className="px-3 py-2 font-medium">Vendedor</th>
               <th className="px-3 py-2 font-medium">Lojas</th>
@@ -40,8 +40,8 @@ export default async function SellersPage({ searchParams }: { searchParams: Prom
                 })
                 .filter(Boolean);
               return (
-                <tr key={seller.id} className="border-t border-[#e2e7e9]">
-                  <td className="px-3 py-2"><Link className="font-medium text-[#0e6b62]" href={`/vendedores/${seller.id}`}>{seller.quick_code ? <span className="mr-1.5 rounded bg-[#e4f1ef] px-1.5 py-px font-mono text-xs text-[#0a4f48]">v{seller.quick_code}</span> : null}{seller.name}</Link><div className="font-mono text-xs text-[#6e7c7a]">{seller.public_code}</div></td>
+                <tr key={seller.id} className="border-t border-[#e6dcce]">
+                  <td className="px-3 py-2"><Link className="font-medium text-[#0b5c54]" href={`/vendedores/${seller.id}`}>{seller.quick_code ? <span className="mr-1.5 rounded bg-[#d8ebe6] px-1.5 py-px font-mono text-xs text-[#0a4540]">v{seller.quick_code}</span> : null}{seller.name}</Link><div className="font-mono text-xs text-[#6b6358]">{seller.public_code}</div></td>
                   <td className="px-3 py-2">{names.join(", ") || "—"}</td>
                   <td className="px-3 py-2">{seller.phone || "—"}</td>
                   <td className="px-3 py-2">{seller.active ? "Ativo" : "Inativo"}</td>

@@ -10,6 +10,7 @@ import { Feedback } from "@/components/ui";
 import { canCompleteStep, canStartStep } from "@/lib/domain/assembly";
 import { STEP_KEYS, STEP_LABEL, type AppRole, type OrderStatus, type StepKey, type StepStatus } from "@/lib/domain/constants";
 import { forecastOrder, formatHoursShort } from "@/lib/domain/forecast";
+import { formatDateTime } from "@/lib/format";
 import { visibleOrderNumber } from "@/lib/domain/orders";
 import { can } from "@/lib/domain/permissions";
 import { canTransition } from "@/lib/domain/status";
@@ -20,6 +21,7 @@ export type BenchOrder = {
   id: string;
   number: string;
   clientName: string;
+  laboratoryName: string | null;
   sellerName: string | null;
   storeName: string | null;
   externalOrderId: string | null;
@@ -104,7 +106,7 @@ export function BenchBoard({ orders, role, error, nowIso }: { orders: BenchOrder
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.02em]">Bancada de montagem</h1>
-          <p className="mt-1.5 max-w-2xl text-sm text-[#6e7c7a]">
+          <p className="mt-1.5 max-w-2xl text-sm text-[#6b6358]">
             Cada cartão mostra a próxima ação da OS. Um toque registra a etapa com o seu nome e o horário.
             {lateCount > 0 ? (
               <strong className="font-semibold text-[#a3261b]">
@@ -114,8 +116,8 @@ export function BenchBoard({ orders, role, error, nowIso }: { orders: BenchOrder
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex h-11 w-full items-center gap-2 rounded-xl border border-[#cdd5d8] bg-white px-3 focus-within:border-[#0e6b62] focus-within:ring-[3px] focus-within:ring-[#0e6b62]/20 sm:w-80">
-            <ScanLine size={18} className="text-[#6e7c7a]" />
+          <label className="flex h-11 w-full items-center gap-2 rounded-xl border border-[#d5cbbb] bg-white px-3 focus-within:border-[#0b5c54] focus-within:ring-[3px] focus-within:ring-[#0b5c54]/20 sm:w-80">
+            <ScanLine size={18} className="text-[#6b6358]" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -124,16 +126,16 @@ export function BenchBoard({ orders, role, error, nowIso }: { orders: BenchOrder
               className="min-w-0 flex-1 border-0 bg-transparent text-[15px] shadow-none outline-none focus:shadow-none"
             />
             {query ? (
-              <button type="button" onClick={() => setQuery("")} className="text-xs font-semibold text-[#0e6b62]">
+              <button type="button" onClick={() => setQuery("")} className="inline-flex h-11 items-center px-1 text-sm font-semibold text-[#0b5c54] md:h-auto md:text-xs">
                 Limpar
               </button>
             ) : (
-              <Search size={16} className="text-[#8a9694]" />
+              <Search size={16} className="text-[#8a8173]" />
             )}
           </label>
           <Link
             href="/montagem?view=lista"
-            className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#cdd5d8] bg-white px-3.5 text-sm font-medium text-[#13201f] hover:bg-[#f7f9f9]"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#d5cbbb] bg-white px-3.5 text-sm font-medium text-[#1a1714] hover:bg-[#f8f3ea] sm:w-auto"
           >
             <LayoutList size={16} />
             Ver em lista
@@ -151,12 +153,12 @@ export function BenchBoard({ orders, role, error, nowIso }: { orders: BenchOrder
               <header className="flex items-baseline justify-between gap-2 px-1">
                 <div>
                   <h2 className="text-[15px] font-semibold">{lane.title}</h2>
-                  <p className="text-xs text-[#6e7c7a]">{lane.hint}</p>
+                  <p className="text-xs text-[#6b6358]">{lane.hint}</p>
                 </div>
-                <span className="tabular rounded-lg bg-white px-2 py-0.5 text-sm font-bold text-[#0a4f48]">{items.length}</span>
+                <span className="tabular rounded-lg bg-white px-2 py-0.5 text-sm font-bold text-[#0a4540]">{items.length}</span>
               </header>
               {items.length === 0 ? (
-                <p className="rounded-xl border border-dashed border-[#c5d1d2] px-4 py-8 text-center text-sm text-[#6e7c7a]">
+                <p className="rounded-xl border border-dashed border-[#c5d1d2] px-4 py-8 text-center text-sm text-[#6b6358]">
                   {query ? "Nenhuma OS encontrada aqui." : lane.key === "proximas" ? "Nada esperando. Libere lentes no Lançamento rápido." : "Nenhuma OS nesta etapa."}
                 </p>
               ) : (
@@ -209,7 +211,7 @@ function BenchCard({ order, role, now }: { order: BenchOrder; role: AppRole; now
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <Link href={`/montagem/${order.id}`} className="font-mono text-[13px] font-semibold text-[#0e6b62] hover:underline">
+            <Link href={`/montagem/${order.id}`} className="font-mono text-[13px] font-semibold text-[#0b5c54] hover:underline">
               {visibleOrderNumber(order)}
             </Link>
             {order.urgent ? <span className="rounded-md bg-[#fdecea] px-1.5 py-px text-[11px] font-bold text-[#a3261b]">Urgente</span> : null}
@@ -218,7 +220,11 @@ function BenchCard({ order, role, now }: { order: BenchOrder; role: AppRole; now
             ) : null}
           </div>
           <p className="mt-0.5 truncate text-[17px] font-semibold leading-snug">{order.clientName}</p>
-          <p className="truncate text-xs text-[#6e7c7a]">{[order.storeName, order.sellerName].filter(Boolean).join(" · ") || "Sem loja ou vendedor"}</p>
+          <p className="truncate text-xs font-semibold text-[#0a4540]">{order.laboratoryName || "Sem laboratório"}</p>
+          <p className="truncate text-xs text-[#6b6358]">{[order.storeName, order.sellerName].filter(Boolean).join(" · ") || "Sem loja ou vendedor"}</p>
+          <p className={cn("mt-1 text-xs font-semibold", late ? "text-[#a3261b]" : "text-[#1a1714]")}>
+            {order.dueAt ? `Previsão ${formatDateTime(order.dueAt)}` : "Sem previsão de entrega"}
+          </p>
         </div>
         <LensGauge value={forecast.progress} risk={forecast.risk} size={62} />
       </div>
@@ -232,7 +238,7 @@ function BenchCard({ order, role, now }: { order: BenchOrder; role: AppRole; now
               <span
                 className={cn(
                   "h-1.5 rounded-full",
-                  status === "concluida" && "bg-[#0e6b62]",
+                  status === "concluida" && "bg-[#0b5c54]",
                   status === "em_andamento" && "bg-[repeating-linear-gradient(135deg,#3fb58f_0_5px,#8fdcc1_5px_10px)]",
                   status === "reprovada" && "bg-[#d2382b]",
                   status === "pendente" && "bg-[#dfe6e7]",
@@ -241,7 +247,7 @@ function BenchCard({ order, role, now }: { order: BenchOrder; role: AppRole; now
               <span
                 className={cn(
                   "truncate text-[10.5px] leading-none",
-                  status === "em_andamento" ? "font-bold text-[#0a4f48]" : status === "concluida" ? "text-[#44524f]" : "text-[#8a9694]",
+                  status === "em_andamento" ? "font-bold text-[#0a4540]" : status === "concluida" ? "text-[#4a453d]" : "text-[#8a8173]",
                 )}
               >
                 {SHORT[key]}
@@ -251,7 +257,7 @@ function BenchCard({ order, role, now }: { order: BenchOrder; role: AppRole; now
         })}
       </ol>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#6e7c7a]">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#6b6358]">
         <span className="min-w-0 truncate">
           {running ? (
             <>
@@ -273,19 +279,19 @@ function BenchCard({ order, role, now }: { order: BenchOrder; role: AppRole; now
       </div>
 
       {action.kind === "none" ? (
-        <p className="rounded-lg bg-[#f2f5f5] px-3 py-2.5 text-center text-sm font-medium text-[#6e7c7a]">{action.label}</p>
+        <p className="rounded-lg bg-[#f3ece1] px-3 py-2.5 text-center text-sm font-medium text-[#6b6358]">{action.label}</p>
       ) : (
         <button
           type="button"
           onClick={run}
           disabled={pending}
           className={cn(
-            "flex h-12 w-full items-center justify-center gap-2 rounded-xl text-[15px] font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#0e6b62]/30 disabled:opacity-60",
+            "flex h-12 w-full items-center justify-center gap-2 rounded-xl text-[15px] font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#0b5c54]/30 disabled:opacity-60",
             action.kind === "status" && action.to === "pronto"
               ? "bg-[#1f8a52] hover:bg-[#18723f]"
               : action.kind === "step" && action.action === "concluir"
-                ? "bg-[#0b5850] hover:bg-[#08463f]"
-                : "bg-[#0e6b62] hover:bg-[#0b5850]",
+                ? "bg-[#084840] hover:bg-[#08463f]"
+                : "bg-[#0b5c54] hover:bg-[#084840]",
           )}
         >
           {action.kind === "step" && action.action === "concluir" ? <Check size={18} /> : <Play size={16} />}

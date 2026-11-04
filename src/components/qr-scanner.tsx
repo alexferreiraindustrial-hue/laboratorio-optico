@@ -48,7 +48,7 @@ export function QrScanner() {
     <div className="grid gap-4 lg:grid-cols-2">
       <Panel className="p-4">
         <h2 className="font-medium">Câmera</h2>
-        <p className="mt-1 text-sm text-[#6e7c7a]">{cameraState}</p>
+        <p className="mt-1 text-sm text-[#6b6358]">{cameraState}</p>
         <div id="qr-reader" className="mt-3 overflow-hidden rounded-md" />
         <Feedback error={error} />
       </Panel>

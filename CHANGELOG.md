@@ -2,6 +2,16 @@
 
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e as versões seguem o [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.4.0] – 2026-11-04
+
+### Aplicativo
+- Fotos do Laboratório ALEX no README: painel, lançamento em lote, bancada, ordem de serviço, fila de lentes e carteira da vendedora.
+
+### Fila e visual
+- A fila do laboratório abre por status e agrupa as OS por loja e por vendedora.
+- O site usa papel quente, título em Fraunces e alvos maiores no celular.
+- Ícone e manifesto para instalar o painel na tela inicial.
+
 ## [0.3.0] – 2026-11-03
 
 ### Aplicativo

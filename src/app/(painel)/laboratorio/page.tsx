@@ -1,4 +1,5 @@
 import { OrderScreen } from "@/components/order-screen";
+import { STATUS_LABEL, type OrderStatus } from "@/lib/domain/constants";
 import { loadCatalogs, loadOrders, loadOrderTabCounts, type OrderFilters } from "@/server/queries";
 import { requireProfile } from "@/server/session";
 
@@ -18,8 +19,8 @@ export default async function LaboratorioPage({
 
   return (
     <OrderScreen
-      title="Laboratório"
-      description="Ordens recebidas, fila de lentes e liberação para montagem. Lista e Kanban usam os mesmos registros."
+      title={filters.status && STATUS_LABEL[filters.status as OrderStatus] ? STATUS_LABEL[filters.status as OrderStatus] : "Laboratório"}
+      description={filters.status ? `Somente OS em ${STATUS_LABEL[filters.status as OrderStatus] ?? filters.status}.` : "Ordens recebidas, fila de lentes e liberação para montagem. Lista e Kanban usam os mesmos registros."}
       basePath="/laboratorio"
       detailPath="/laboratorio"
       orders={orders}

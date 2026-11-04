@@ -144,7 +144,7 @@ const allItems = groups.flatMap((group) => group.items);
 /** Indicador instantâneo de navegação: aparece no item clicado enquanto a próxima tela carrega. */
 function PendingDot() {
   const { pending } = useLinkStatus();
-  return pending ? <Loader2 size={14} className="animate-spin text-[#0e6b62]" aria-label="Carregando" /> : null;
+  return pending ? <Loader2 size={14} className="animate-spin text-[var(--accent)]" aria-label="Carregando" /> : null;
 }
 
 function initials(name: string) {
@@ -193,9 +193,9 @@ export function Shell({
     <nav className="flex flex-col gap-[14px]">
       {visibleGroups.map((group) => (
         <div key={group.title} className="flex flex-col gap-0.5">
-          <p className="flex items-center gap-1.5 px-2.5 pb-1 text-xs font-medium text-[#8a9694]">
+          <p className="flex items-center gap-1.5 px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
             {group.step ? (
-              <span className="grid h-4 w-4 place-items-center rounded bg-[#e4f1ef] font-mono text-[10px] font-bold text-[#0a4f48]">{group.step}</span>
+              <span className="grid h-4 w-4 place-items-center rounded-md bg-[var(--accent-soft)] font-mono text-[10px] font-bold text-[var(--accent-strong)]">{group.step}</span>
             ) : null}
             {group.title}
           </p>
@@ -219,15 +219,15 @@ export function Shell({
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors",
-                  active ? "bg-[#e4f1ef] font-semibold text-[#0a4f48]" : "font-medium text-[#44524f] hover:bg-[#f2f5f5]",
+                  "flex min-h-11 items-center gap-2.5 rounded-xl px-2.5 text-sm transition-[background-color,color,transform] duration-150 [transition-timing-function:var(--ease-out)] md:min-h-8 md:h-8",
+                  active ? "bg-[var(--accent)] font-semibold text-white shadow-[0_10px_20px_-14px_rgba(11,92,84,.9)]" : "font-medium text-[#4a453d] hover:bg-[#f3ece1]",
                 )}
               >
                 <Icon size={16} strokeWidth={2} />
                 <span className="flex-1">{item.label}</span>
                 <PendingDot />
                 {count > 0 ? (
-                  <span className={cn("rounded-md px-[7px] py-px text-xs font-semibold", alert ? "bg-[#fdecea] text-[#a3261b]" : "bg-[#e4f1ef] text-[#0a4f48]")}>{count}</span>
+                  <span className={cn("rounded-full px-[7px] py-px text-xs font-semibold", alert ? "bg-[#fdecea] text-[#a3261b]" : active ? "bg-white/20 text-white" : "bg-[var(--accent-soft)] text-[var(--accent-strong)]")}>{count}</span>
                 ) : null}
               </Link>
             );
@@ -238,24 +238,24 @@ export function Shell({
   );
 
   const brand = (
-    <div className="flex h-[56px] items-center gap-2.5 border-b border-[#e2e7e9] px-[18px]">
-      <LensMark size={28} />
-      <div className="flex flex-col leading-tight">
-        <span className="text-sm font-bold tracking-tight">{orgName}</span>
-        <span className="text-[11px] text-[#6e7c7a]">Lab · Gestão operacional</span>
+    <div className="flex h-[64px] items-center gap-2.5 border-b border-[var(--line)] px-[18px]">
+      <LensMark size={30} />
+      <div className="flex min-w-0 flex-col leading-tight">
+        <span className="display truncate text-[17px]">{orgName}</span>
+        <span className="text-[11px] font-medium tracking-[0.08em] text-[var(--muted)]">LAB · OPERAÇÃO</span>
       </div>
     </div>
   );
 
   const footer = (
-    <div className="flex items-center gap-2 border-t border-[#e2e7e9] px-[18px] py-2.5">
-      <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e4f1ef] text-xs font-bold text-[#0a4f48]">{initials(name)}</div>
+    <div className="flex items-center gap-2 border-t border-[var(--line)] px-[18px] py-3">
+      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">{initials(name)}</div>
       <div className="flex min-w-0 flex-col leading-tight">
         <span className="truncate text-[13px] font-semibold">{name}</span>
-        <span className="text-[11px] text-[#6e7c7a]">{ROLE_LABEL[role]}</span>
+        <span className="text-[11px] text-[var(--muted)]">{ROLE_LABEL[role]}</span>
       </div>
       <form action={signOut} className="ml-auto">
-        <button type="submit" title="Sair" className="flex h-7 w-7 items-center justify-center rounded-lg text-[#6e7c7a] hover:bg-[#f2f4f5]">
+        <button type="submit" title="Sair" className="flex h-11 w-11 items-center justify-center rounded-xl text-[var(--muted)] transition-colors hover:bg-[#f3ece1] md:h-8 md:w-8">
           <LogOut size={14} />
         </button>
       </form>
@@ -264,7 +264,7 @@ export function Shell({
 
   return (
     <div className="min-h-screen">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[232px] flex-col border-r border-[#e2e7e9] bg-white lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] backdrop-blur-xl lg:flex">
         {brand}
         <div className="flex-1 overflow-auto px-3 py-3">{nav}</div>
         {footer}
@@ -272,12 +272,12 @@ export function Shell({
 
       {mobileOpen ? (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <button aria-label="Fechar menu" className="absolute inset-0 bg-[#13201f]/30" onClick={() => setMobileOpen(false)} type="button" />
-          <aside className="absolute inset-y-0 left-0 flex w-64 flex-col bg-white shadow-xl">
+          <button aria-label="Fechar menu" className="absolute inset-0 bg-[#1a1714]/35" onClick={() => setMobileOpen(false)} type="button" />
+          <aside className="absolute inset-y-0 left-0 flex w-[280px] flex-col bg-[var(--surface)] shadow-[var(--shadow-soft)]">
             <div className="relative">
               {brand}
-              <button aria-label="Fechar menu" className="absolute right-3 top-3.5 rounded-md p-1 text-[#44524f] hover:bg-[#f2f4f5]" onClick={() => setMobileOpen(false)} type="button">
-                <X size={18} />
+              <button aria-label="Fechar menu" className="absolute right-2 top-2 grid h-11 w-11 place-items-center rounded-xl text-[#4a453d] hover:bg-[#f3ece1]" onClick={() => setMobileOpen(false)} type="button">
+                <X size={20} />
               </button>
             </div>
             <div className="flex-1 overflow-auto px-3 py-3">{nav}</div>
@@ -286,57 +286,153 @@ export function Shell({
         </div>
       ) : null}
 
-      <div className="flex min-h-screen min-w-0 flex-col lg:pl-[232px]">
-        <header className="no-print sticky top-0 z-20 flex h-[56px] items-center gap-4 border-b border-[#e2e7e9] bg-white px-3 md:px-5">
-          <button aria-label="Abrir menu" className="rounded-md p-2 text-[#44524f] lg:hidden" onClick={() => setMobileOpen(true)} type="button">
-            <Menu size={18} />
+      <div className="flex min-h-screen min-w-0 flex-col lg:pl-[248px]">
+        <header className="no-print sticky top-0 z-20 flex min-h-[60px] items-center gap-2 border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_82%,transparent)] px-2 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:gap-4 md:px-5">
+          <button aria-label="Abrir menu" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-[#4a453d] hover:bg-[#f3ece1] lg:hidden" onClick={() => setMobileOpen(true)} type="button">
+            <Menu size={22} />
           </button>
-          <div className="hidden shrink-0 items-center gap-2 whitespace-nowrap text-[13px] text-[#6e7c7a] sm:flex">
+          <div className="hidden shrink-0 items-center gap-2 whitespace-nowrap text-[13px] text-[var(--muted)] sm:flex">
             <span>Painel</span>
-            <span className="text-[#cdd5d8]">/</span>
-            <span className="font-semibold text-[#13201f]">{current?.label ?? "Início"}</span>
+            <span className="text-[#d5cbbb]">/</span>
+            <span className="font-semibold text-[var(--ink)]">{current?.label ?? "Início"}</span>
           </div>
-          <form action="/laboratorio" method="get" className="hidden min-w-0 max-w-[360px] flex-1 md:ml-3 md:flex">
-            <label className="flex h-8 w-full items-center gap-2 rounded-lg border border-[#e2e7e9] bg-[#f7f9f9] px-2.5 text-[#6e7c7a] focus-within:border-[#0e6b62]">
-              <Search size={15} className="shrink-0" />
+          <form action="/laboratorio" method="get" className="min-w-0 max-w-[380px] flex-1 md:ml-3">
+            <label className="flex h-11 w-full items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 text-[var(--muted)] focus-within:border-[var(--accent)] md:h-9">
+              <Search size={16} className="shrink-0" />
               <input
                 name="q"
                 placeholder="Buscar OS, cliente ou vendedor"
-                className="min-w-0 flex-1 border-0 bg-transparent text-sm text-[#13201f] shadow-none outline-none placeholder:text-[#8a9694] focus:shadow-none"
+                className="min-w-0 flex-1 border-0 bg-transparent text-base text-[var(--ink)] shadow-none outline-none placeholder:text-[#8a8173] focus:shadow-none md:text-sm"
               />
             </label>
           </form>
-          <div className="flex-1" />
           {readOnly ? (
-            <span className="hidden shrink-0 whitespace-nowrap rounded-md bg-[#eef1f3] px-2 py-1 text-xs font-semibold text-[#44524f] sm:inline">
+            <span className="hidden shrink-0 whitespace-nowrap rounded-full bg-[#efe8dc] px-2.5 py-1 text-xs font-semibold text-[#4a453d] sm:inline">
               Somente leitura
             </span>
           ) : null}
           <Link
             href="/estoque/leitura"
-            className="hidden h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#cdd5d8] bg-white px-2.5 text-sm font-medium text-[#13201f] hover:bg-[#f7f9f9] sm:flex"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[#f3ece1] sm:flex sm:h-11 sm:w-auto sm:items-center sm:gap-1.5 sm:px-3 md:h-9"
+            aria-label="Ler QR Code"
           >
-            <QrCode size={15} />
-            QR Code
+            <QrCode size={18} />
+            <span className="hidden sm:inline">QR Code</span>
           </Link>
-          <div className="hidden h-6 w-px bg-[#e2e7e9] sm:block" />
-          <div className="flex shrink-0 items-center gap-2 whitespace-nowrap">
-            <div className="grid h-7 w-7 place-items-center rounded-full bg-[#e4f1ef] text-xs font-bold text-[#0a4f48]">{initials(name)}</div>
-            <div className="hidden flex-col leading-tight sm:flex">
+          <div className="hidden h-6 w-px bg-[var(--line)] sm:block" />
+          <div className="hidden shrink-0 items-center gap-2 whitespace-nowrap sm:flex">
+            <div className="grid h-8 w-8 place-items-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">{initials(name)}</div>
+            <div className="hidden flex-col leading-tight md:flex">
               <span className="text-[13px] font-semibold">{name}</span>
-              <span className="text-[11px] text-[#6e7c7a]">{ROLE_LABEL[role]}</span>
+              <span className="text-[11px] text-[var(--muted)]">{ROLE_LABEL[role]}</span>
             </div>
             <form action={signOut}>
-              <button type="submit" className="flex h-7 items-center gap-1 rounded-lg px-2 text-[13px] font-medium text-[#44524f] hover:bg-[#f2f4f5]">
+              <button type="submit" className="flex h-11 items-center gap-1 rounded-xl px-2 text-[13px] font-medium text-[#4a453d] hover:bg-[#f3ece1] md:h-8">
                 <LogOut size={14} />
                 Sair
               </button>
             </form>
           </div>
         </header>
-        <main className="flex min-w-0 flex-col px-4 pb-12 pt-5 md:px-7 md:pt-6">{children}</main>
+        <main className="flex min-w-0 flex-col px-3 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-5 md:px-8 md:pt-7 lg:pb-12">{children}</main>
       </div>
+
+      <MobileDock
+        role={role}
+        pathname={pathname}
+        onOpenMenu={() => setMobileOpen(true)}
+        unread={unread}
+        boOpen={boOpen}
+        lensLate={lensLate}
+      />
     </div>
+  );
+}
+
+const DOCK: Record<AppRole, { href: string; label: string; icon: typeof LayoutDashboard }[]> = {
+  admin: [
+    { href: "/dashboard", label: "Painel", icon: LayoutDashboard },
+    { href: "/laboratorio/rapido", label: "Lançar", icon: Zap },
+    { href: "/montagem", label: "Bancada", icon: Wrench },
+    { href: "/lentes", label: "Lentes", icon: PackageSearch },
+  ],
+  gestor: [
+    { href: "/dashboard", label: "Painel", icon: LayoutDashboard },
+    { href: "/laboratorio/rapido", label: "Lançar", icon: Zap },
+    { href: "/montagem", label: "Bancada", icon: Wrench },
+    { href: "/lentes", label: "Lentes", icon: PackageSearch },
+  ],
+  montador: [
+    { href: "/rotina", label: "Rotina", icon: ListChecks },
+    { href: "/laboratorio/rapido", label: "Lançar", icon: Zap },
+    { href: "/montagem", label: "Bancada", icon: Wrench },
+    { href: "/lentes", label: "Lentes", icon: PackageSearch },
+  ],
+  estoquista: [
+    { href: "/rotina", label: "Rotina", icon: ListChecks },
+    { href: "/laboratorio", label: "OS", icon: ClipboardList },
+    { href: "/lentes", label: "Lentes", icon: PackageSearch },
+    { href: "/estoque", label: "Estoque", icon: Package },
+  ],
+  consulta: [
+    { href: "/dashboard", label: "Painel", icon: LayoutDashboard },
+    { href: "/laboratorio", label: "OS", icon: ClipboardList },
+    { href: "/montagem", label: "Bancada", icon: Wrench },
+    { href: "/lentes", label: "Lentes", icon: PackageSearch },
+  ],
+};
+
+function MobileDock({
+  role,
+  pathname,
+  onOpenMenu,
+  unread,
+  boOpen,
+  lensLate,
+}: {
+  role: AppRole;
+  pathname: string;
+  onOpenMenu: () => void;
+  unread: number;
+  boOpen: number;
+  lensLate: number;
+}) {
+  const items = DOCK[role];
+  return (
+    <nav
+      className="no-print fixed inset-x-3 bottom-[calc(0.6rem+env(safe-area-inset-bottom))] z-30 grid grid-cols-5 rounded-[28px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_92%,white)] p-1.5 shadow-[var(--shadow-soft)] backdrop-blur-xl lg:hidden"
+      aria-label="Atalhos do celular"
+    >
+      {items.map((item) => {
+        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const Icon = item.icon;
+        const count = item.href === "/lentes" ? lensLate : item.href === "/assistencia" ? boOpen : item.href === "/recados" ? unread : 0;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "relative flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[11px] font-semibold",
+              active ? "bg-[var(--accent)] text-white" : "text-[var(--muted)]",
+            )}
+          >
+            <Icon size={22} strokeWidth={active ? 2.4 : 2} />
+            <span className="leading-none">{item.label}</span>
+            {count > 0 ? (
+              <span className="absolute right-1/2 top-1.5 mr-[-18px] min-w-4 rounded-full bg-[#d2382b] px-1 text-[10px] font-bold leading-4 text-white">{count}</span>
+            ) : null}
+          </Link>
+        );
+      })}
+      <button
+        type="button"
+        onClick={onOpenMenu}
+        className="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[11px] font-semibold text-[var(--muted)]"
+      >
+        <Menu size={22} />
+        <span className="leading-none">Mais</span>
+      </button>
+    </nav>
   );
 }
 
@@ -350,12 +446,12 @@ export function PageHeading({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+    <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
       <div>
-        <h1 className="text-[24px] font-semibold leading-tight tracking-[-0.02em]">{title}</h1>
-        {description ? <p className="mt-1 max-w-3xl text-sm text-[#6e7c7a]">{description}</p> : null}
+        <h1 className="text-[30px] leading-tight">{title}</h1>
+        {description ? <p className="mt-1.5 max-w-3xl text-sm text-[var(--muted)]">{description}</p> : null}
       </div>
-      {children ? <div className="flex flex-wrap items-center gap-2">{children}</div> : null}
+      {children ? <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto [&>a]:flex-1 sm:[&>a]:flex-none [&>button]:flex-1 sm:[&>button]:flex-none">{children}</div> : null}
     </div>
   );
 }

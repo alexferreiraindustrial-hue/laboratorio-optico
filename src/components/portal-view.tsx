@@ -40,9 +40,9 @@ function forecastLine(order: { status: string; due_at: string | null }, forecast
     case "atencao":
       return { text: `Prazo apertado · previsto para ${formatForecastDate(order.due_at)}`, tone: "text-[#8a5a00]", icon: Clock3 };
     case "sem_prazo":
-      return { text: "Sem prazo combinado", tone: "text-[#6e7c7a]", icon: Clock3 };
+      return { text: "Sem prazo combinado", tone: "text-[#6b6358]", icon: Clock3 };
     default:
-      return { text: `Previsto para ${formatForecastDate(order.due_at)}`, tone: "text-[#44524f]", icon: Clock3 };
+      return { text: `Previsto para ${formatForecastDate(order.due_at)}`, tone: "text-[#4a453d]", icon: Clock3 };
   }
 }
 
@@ -52,7 +52,7 @@ function Brand({ subtitle }: { subtitle: string }) {
       <LensMark size={36} />
       <div className="flex flex-col leading-tight">
         <span className="text-[15px] font-bold tracking-tight">Laboratório Óptico</span>
-        <span className="text-xs text-[#6e7c7a]">{subtitle}</span>
+        <span className="text-xs text-[#6b6358]">{subtitle}</span>
       </div>
     </div>
   );
@@ -94,13 +94,13 @@ export function PortalHome({
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 pb-16 pt-5 sm:px-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <Brand subtitle="Acompanhamento de serviços" />
-        <span className="flex items-center gap-1.5 text-xs text-[#6e7c7a]">
+        <span className="flex items-center gap-1.5 text-xs text-[#6b6358]">
           <RefreshCw size={13} /> Atualiza sozinho a cada minuto
         </span>
       </header>
       <RefreshSoon />
 
-      <section className="rounded-2xl bg-[#0e6b62] px-5 py-5 text-white sm:px-6">
+      <section className="rounded-2xl bg-[#0b5c54] px-5 py-5 text-white sm:px-6">
         <p className="text-sm text-white/75">{kind === "loja" ? "Loja" : "Vendedor"}</p>
         <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
         <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
@@ -121,40 +121,40 @@ export function PortalHome({
         </div>
       ) : null}
 
-      <form className="flex flex-col gap-2.5 rounded-2xl border border-[#e2e7e9] bg-white p-3 sm:p-4">
+      <form className="flex flex-col gap-2.5 rounded-2xl border border-[#e6dcce] bg-white p-3 sm:p-4">
         <div className="flex gap-2.5">
-          <label className="flex h-11 flex-1 items-center gap-2 rounded-xl border border-[#cdd5d8] bg-white px-3 text-[#6e7c7a] focus-within:border-[#0e6b62]">
+          <label className="flex h-11 flex-1 items-center gap-2 rounded-xl border border-[#d5cbbb] bg-white px-3 text-[#6b6358] focus-within:border-[#0b5c54]">
             <Search size={17} />
-            <input name="q" defaultValue={filters.q} placeholder="Número da OS, do pedido ou nome do cliente" className="min-w-0 flex-1 border-0 bg-transparent text-[15px] text-[#13201f] shadow-none outline-none focus:shadow-none" />
+            <input name="q" defaultValue={filters.q} placeholder="Número da OS, do pedido ou nome do cliente" className="min-w-0 flex-1 border-0 bg-transparent text-[15px] text-[#1a1714] shadow-none outline-none focus:shadow-none" />
           </label>
           <Button type="submit" className="h-11 px-5">Buscar</Button>
         </div>
         <details className="group">
-          <summary className="flex cursor-pointer list-none items-center gap-1 text-[13px] font-semibold text-[#0e6b62]">
+          <summary className="flex cursor-pointer list-none items-center gap-1 text-[13px] font-semibold text-[#0b5c54]">
             Mais filtros <ChevronDown size={15} className="transition-transform group-open:rotate-180" />
           </summary>
           <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             {kind === "loja" ? (
-              <select name="seller" defaultValue={filters.seller ?? ""} className="h-10 rounded-lg border border-[#cdd5d8] bg-white px-2.5 text-sm">
+              <select name="seller" defaultValue={filters.seller ?? ""} className="h-10 rounded-lg border border-[#d5cbbb] bg-white px-2.5 text-sm">
                 <option value="">Todos os vendedores</option>
                 {sellers.map((seller) => <option key={seller.id} value={seller.id}>{seller.name}</option>)}
               </select>
             ) : null}
-            <select name="status" defaultValue={filters.status ?? ""} className="h-10 rounded-lg border border-[#cdd5d8] bg-white px-2.5 text-sm">
+            <select name="status" defaultValue={filters.status ?? ""} className="h-10 rounded-lg border border-[#d5cbbb] bg-white px-2.5 text-sm">
               <option value="">Todas as situações</option>
               {Object.entries(STATUS_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
-            <input name="from" type="date" defaultValue={filters.from} aria-label="Entrada a partir de" className="h-10 rounded-lg border border-[#cdd5d8] bg-white px-2.5 text-sm" />
-            <input name="to" type="date" defaultValue={filters.to} aria-label="Entrada até" className="h-10 rounded-lg border border-[#cdd5d8] bg-white px-2.5 text-sm" />
+            <input name="from" type="date" defaultValue={filters.from} aria-label="Entrada a partir de" className="h-10 rounded-lg border border-[#d5cbbb] bg-white px-2.5 text-sm" />
+            <input name="to" type="date" defaultValue={filters.to} aria-label="Entrada até" className="h-10 rounded-lg border border-[#d5cbbb] bg-white px-2.5 text-sm" />
           </div>
         </details>
         {filtered ? (
-          <Link href={base} className="self-start text-[13px] font-semibold text-[#0e6b62] hover:underline">Limpar filtros</Link>
+          <Link href={base} className="self-start text-[13px] font-semibold text-[#0b5c54] hover:underline">Limpar filtros</Link>
         ) : null}
       </form>
 
       {orders.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-[#cdd5d8] bg-white px-4 py-10 text-center text-sm text-[#6e7c7a]">Nenhum serviço neste filtro.</p>
+        <p className="rounded-2xl border border-dashed border-[#d5cbbb] bg-white px-4 py-10 text-center text-sm text-[#6b6358]">Nenhum serviço neste filtro.</p>
       ) : null}
 
       <OrderSection title="Prontas para retirar" icon={PackageCheck} items={ready} base={base} />
@@ -170,10 +170,10 @@ function Summary({ href, label, value, highlight, alert }: { href: string; label
       href={href}
       className={cn(
         "flex flex-col gap-1 rounded-xl px-3.5 py-3 transition-colors",
-        alert ? "bg-[#d2382b] hover:bg-[#b42318]" : highlight ? "bg-white text-[#0a4f48] hover:bg-white/90" : "bg-white/10 hover:bg-white/20",
+        alert ? "bg-[#d2382b] hover:bg-[#b42318]" : highlight ? "bg-white text-[#0a4540] hover:bg-white/90" : "bg-white/10 hover:bg-white/20",
       )}
     >
-      <span className={cn("text-xs", highlight && !alert ? "text-[#44524f]" : "text-white/80")}>{label}</span>
+      <span className={cn("text-xs", highlight && !alert ? "text-[#4a453d]" : "text-white/80")}>{label}</span>
       <span className="tabular text-[28px] font-semibold leading-none">{value}</span>
     </Link>
   );
@@ -195,7 +195,7 @@ function OrderSection({
   if (items.length === 0) return null;
   return (
     <section className="flex flex-col gap-2.5">
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-[#44524f]">
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-[#4a453d]">
         <Icon size={16} /> {title} <span className="rounded-md bg-[#e7ebed] px-1.5 text-xs">{items.length}</span>
       </h2>
       <div className="grid gap-2.5 md:grid-cols-2">
@@ -218,7 +218,7 @@ function MiniJourney({ status }: { status: string }) {
           title={label}
           className={cn(
             "h-1.5 flex-1 rounded-full",
-            index < current || delivered ? "bg-[#0e6b62]" : index === current ? "bg-[#0e6b62]/45" : "bg-[#e2e7e9]",
+            index < current || delivered ? "bg-[#0b5c54]" : index === current ? "bg-[#0b5c54]/45" : "bg-[#e6dcce]",
           )}
         />
       ))}
@@ -235,13 +235,13 @@ function OrderCard({ order, forecast, href, muted }: { order: PortalOrderRow; fo
       href={href}
       className={cn(
         "flex flex-col gap-3 rounded-2xl border bg-white p-4 transition-shadow hover:shadow-[0_8px_24px_-12px_rgba(19,32,31,0.25)]",
-        forecast.risk === "pronta" ? "border-[#9fd5b4]" : forecast.risk === "atrasada" || forecast.risk === "risco" ? "border-[#f3c4be]" : "border-[#e2e7e9]",
+        forecast.risk === "pronta" ? "border-[#9fd5b4]" : forecast.risk === "atrasada" || forecast.risk === "risco" ? "border-[#f3c4be]" : "border-[#e6dcce]",
         muted && "opacity-80",
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="font-mono text-xs font-medium text-[#0e6b62]">
+          <span className="font-mono text-xs font-medium text-[#0b5c54]">
             {visibleOrderNumber(order)}
           </span>
           <span className="truncate text-base font-semibold">{order.client_name}</span>
@@ -250,14 +250,14 @@ function OrderCard({ order, forecast, href, muted }: { order: PortalOrderRow; fo
       </div>
       <MiniJourney status={order.status} />
       <div className="flex flex-wrap items-center justify-between gap-2 text-[13px]">
-        <span className="font-medium text-[#44524f]">{STATUS_LABEL[order.status as OrderStatus] ?? order.status}</span>
+        <span className="font-medium text-[#4a453d]">{STATUS_LABEL[order.status as OrderStatus] ?? order.status}</span>
         {urgent ? <span className="rounded-md bg-[#fdecea] px-1.5 py-0.5 text-[11px] font-semibold text-[#a3261b]">Urgente</span> : null}
       </div>
       <span className={cn("flex items-start gap-1.5 text-[13px] font-medium", line.tone)}>
         <LineIcon size={15} className="mt-0.5 shrink-0" />
         {line.text}
       </span>
-      <span className="text-xs text-[#8a9694]">
+      <span className="text-xs text-[#8a8173]">
         Entrada {formatDate(order.entered_at)}
         {order.seller_name ? ` · ${order.seller_name}` : ""}
         {order.store_name ? ` · ${order.store_name}` : ""}
@@ -293,25 +293,25 @@ export function PortalOrder({
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 pb-16 pt-5 sm:px-6">
       <header className="flex items-center justify-between gap-3">
-        <Link href={`/acompanhar/${kind}/${token}`} className="flex items-center gap-1.5 text-sm font-semibold text-[#0e6b62] hover:underline">
+        <Link href={`/acompanhar/${kind}/${token}`} className="flex items-center gap-1.5 text-sm font-semibold text-[#0b5c54] hover:underline">
           <ArrowLeft size={16} /> Meus serviços
         </Link>
-        <span className="flex items-center gap-1.5 text-xs text-[#6e7c7a]"><RefreshCw size={13} /> Ao vivo</span>
+        <span className="flex items-center gap-1.5 text-xs text-[#6b6358]"><RefreshCw size={13} /> Ao vivo</span>
       </header>
       <RefreshSoon />
 
-      <section className="flex flex-col gap-4 rounded-2xl border border-[#e2e7e9] bg-white p-5">
+      <section className="flex flex-col gap-4 rounded-2xl border border-[#e6dcce] bg-white p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
-            <span className="font-mono text-sm font-medium text-[#0e6b62]">
+            <span className="font-mono text-sm font-medium text-[#0b5c54]">
               {visibleOrderNumber(detail)}
             </span>
             <h1 className="text-[22px] font-semibold leading-tight tracking-tight">{detail.client_name}</h1>
-            <p className="text-sm text-[#6e7c7a]">{detail.service_description}</p>
+            <p className="text-sm text-[#6b6358]">{detail.service_description}</p>
           </div>
           <LensGauge value={forecast.progress} risk={forecast.risk} size={108} label="concluído" />
         </div>
-        <div className={cn("flex items-start gap-2 rounded-xl px-3.5 py-3 text-sm font-medium", forecast.risk === "pronta" ? "bg-[#e3f4ea]" : forecast.risk === "atrasada" || forecast.risk === "risco" ? "bg-[#fdecea]" : forecast.risk === "atencao" ? "bg-[#fdf3dc]" : "bg-[#f7f9f9]", line.tone)}>
+        <div className={cn("flex items-start gap-2 rounded-xl px-3.5 py-3 text-sm font-medium", forecast.risk === "pronta" ? "bg-[#e3f4ea]" : forecast.risk === "atrasada" || forecast.risk === "risco" ? "bg-[#fdecea]" : forecast.risk === "atencao" ? "bg-[#fdf3dc]" : "bg-[#f8f3ea]", line.tone)}>
           <LineIcon size={18} className="mt-0.5 shrink-0" />
           {line.text}
         </div>
@@ -327,27 +327,27 @@ export function PortalOrder({
                   <span
                     className={cn(
                       "grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold",
-                      done ? "bg-[#0e6b62] text-white" : now ? "bg-white text-[#0e6b62] ring-2 ring-[#0e6b62]" : "bg-[#eef1f3] text-[#8a9694]",
+                      done ? "bg-[#0b5c54] text-white" : now ? "bg-white text-[#0b5c54] ring-2 ring-[#0b5c54]" : "bg-[#efe8dc] text-[#8a8173]",
                     )}
                   >
                     {done ? "✓" : index + 1}
                   </span>
-                  {index < JOURNEY.length - 1 ? <span className={cn("min-h-5 w-0.5 flex-1", done ? "bg-[#0e6b62]" : "bg-[#e2e7e9]")} /> : null}
+                  {index < JOURNEY.length - 1 ? <span className={cn("min-h-5 w-0.5 flex-1", done ? "bg-[#0b5c54]" : "bg-[#e6dcce]")} /> : null}
                 </div>
                 <div className="pb-4 pt-1">
-                  <p className={cn("text-sm", now ? "font-semibold text-[#13201f]" : done ? "font-medium text-[#13201f]" : "text-[#8a9694]")}>
+                  <p className={cn("text-sm", now ? "font-semibold text-[#1a1714]" : done ? "font-medium text-[#1a1714]" : "text-[#8a8173]")}>
                     {label}
-                    {now ? <span className="ml-2 rounded-md bg-[#e4f1ef] px-1.5 py-0.5 text-[11px] font-semibold text-[#0a4f48]">agora</span> : null}
+                    {now ? <span className="ml-2 rounded-md bg-[#d8ebe6] px-1.5 py-0.5 text-[11px] font-semibold text-[#0a4540]">agora</span> : null}
                   </p>
-                  {at && (done || now) ? <p className="text-xs text-[#6e7c7a]">{formatDateTime(at)}</p> : null}
-                  {index === 4 && !done && !now && detail.due_at ? <p className="text-xs text-[#6e7c7a]">Previsto {formatForecastDate(detail.due_at)}</p> : null}
+                  {at && (done || now) ? <p className="text-xs text-[#6b6358]">{formatDateTime(at)}</p> : null}
+                  {index === 4 && !done && !now && detail.due_at ? <p className="text-xs text-[#6b6358]">Previsto {formatForecastDate(detail.due_at)}</p> : null}
                 </div>
               </li>
             );
           })}
         </ol>
 
-        <dl className="grid grid-cols-2 gap-3 border-t border-[#eef1f3] pt-4 text-sm sm:grid-cols-4">
+        <dl className="grid grid-cols-2 gap-3 border-t border-[#efe8dc] pt-4 text-sm sm:grid-cols-4">
           <Info label="Entrada" value={formatDateTime(detail.entered_at)} />
           <Info label="Prazo" value={formatDateTime(detail.due_at)} />
           <Info label="Vendedor" value={detail.seller_name || "—"} />
@@ -363,7 +363,7 @@ export function PortalOrder({
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs text-[#6e7c7a]">{label}</dt>
+      <dt className="text-xs text-[#6b6358]">{label}</dt>
       <dd className="font-medium">{value}</dd>
     </div>
   );
@@ -385,27 +385,27 @@ function MessageBox({
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-[#e2e7e9] bg-white p-5">
+    <section className="flex flex-col gap-3 rounded-2xl border border-[#e6dcce] bg-white p-5">
       <h2 className="flex items-center gap-2 text-[15px] font-semibold">
         <MessageSquare size={17} /> Conversa com o laboratório
       </h2>
       {messages.length === 0 ? (
-        <p className="text-sm text-[#6e7c7a]">Precisa de algo? Mande um recado — a equipe vê na hora no painel.</p>
+        <p className="text-sm text-[#6b6358]">Precisa de algo? Mande um recado — a equipe vê na hora no painel.</p>
       ) : (
         <ul className="flex flex-col gap-2.5">
           {messages.map((item) => (
             <li key={item.id} className="flex flex-col gap-1.5">
-              <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-[#0e6b62] px-3.5 py-2.5 text-sm text-white">
+              <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-[#0b5c54] px-3.5 py-2.5 text-sm text-white">
                 <p className="whitespace-pre-wrap">{item.body}</p>
                 <p className="mt-1 text-right text-[11px] text-white/70">
                   {formatDateTime(item.created_at)} · {item.status === "novo" ? "enviado" : item.status === "visualizado" ? "visto" : "respondido"}
                 </p>
               </div>
               {item.reply_body ? (
-                <div className="mr-auto max-w-[85%] rounded-2xl rounded-bl-md bg-[#eef1f3] px-3.5 py-2.5 text-sm">
-                  <p className="text-[11px] font-semibold text-[#0a4f48]">Laboratório</p>
+                <div className="mr-auto max-w-[85%] rounded-2xl rounded-bl-md bg-[#efe8dc] px-3.5 py-2.5 text-sm">
+                  <p className="text-[11px] font-semibold text-[#0a4540]">Laboratório</p>
                   <p className="whitespace-pre-wrap">{item.reply_body}</p>
-                  {item.replied_at ? <p className="mt-1 text-[11px] text-[#6e7c7a]">{formatDateTime(item.replied_at)}</p> : null}
+                  {item.replied_at ? <p className="mt-1 text-[11px] text-[#6b6358]">{formatDateTime(item.replied_at)}</p> : null}
                 </div>
               ) : null}
             </li>
@@ -441,7 +441,7 @@ function MessageBox({
           minLength={5}
           maxLength={800}
           placeholder="Ex.: cliente pediu para adiantar, troca de armação, dúvida no grau..."
-          className="min-h-20 rounded-xl border border-[#cdd5d8] px-3.5 py-2.5 text-[15px] outline-none focus:border-[#0e6b62]"
+          className="min-h-20 rounded-xl border border-[#d5cbbb] px-3.5 py-2.5 text-[15px] outline-none focus:border-[#0b5c54]"
         />
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={pending} className="h-10 px-5">{pending ? "Enviando..." : "Enviar recado"}</Button>
@@ -457,8 +457,8 @@ function PortalDenied({ message }: { message: string }) {
     <div className="mx-auto flex max-w-lg flex-col items-center gap-3 px-4 py-20 text-center">
       <Brand subtitle="Acompanhamento de serviços" />
       <h1 className="mt-4 text-xl font-semibold">Acompanhamento indisponível</h1>
-      <p className="text-sm text-[#6e7c7a]">{message}</p>
-      <p className="text-xs text-[#8a9694]">Peça um novo link ao laboratório.</p>
+      <p className="text-sm text-[#6b6358]">{message}</p>
+      <p className="text-xs text-[#8a8173]">Peça um novo link ao laboratório.</p>
     </div>
   );
 }

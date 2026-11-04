@@ -7,7 +7,7 @@ Da entrada da ordem de serviço até a entrega na loja, com bancada por etapas, 
 
 [![CI](https://github.com/alexferreiraindustrial-hue/laboratorio-optico/actions/workflows/ci.yml/badge.svg)](https://github.com/alexferreiraindustrial-hue/laboratorio-optico/actions/workflows/ci.yml)
 ![Status](https://img.shields.io/badge/status-em%20produ%C3%A7%C3%A3o%20%C2%B7%20desenvolvimento%20ativo-0e6b62)
-![Versão](https://img.shields.io/badge/vers%C3%A3o-0.3.0-0e6b62)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-0.4.0-0e6b62)
 ![Engenharia de Produção](https://img.shields.io/badge/Lean%20%C2%B7%20Kanban%20%C2%B7%205S%20%C2%B7%20Six%20Sigma-engenharia%20de%20produ%C3%A7%C3%A3o-8b7fd6)
 ![Next.js](https://img.shields.io/badge/Next.js-16-13201f?logo=nextdotjs)
 ![Flutter](https://img.shields.io/badge/Flutter-app%20de%20ch%C3%A3o-02569B?logo=flutter&logoColor=white)
@@ -112,6 +112,22 @@ O chão de fábrica também tem aplicativo, na pasta [`mobile/`](mobile/). O nom
 
 O código de tela, API e prazo está em `mobile/lib`. Os testes do prazo da lente estão em `mobile/test`.
 
+<p align="center">
+  <img src="docs/telas/app-painel.png" alt="Painel do aplicativo Laboratório ALEX" width="200">
+  &nbsp;
+  <img src="docs/telas/app-lancar.png" alt="Lançamento de OS no aplicativo" width="200">
+  &nbsp;
+  <img src="docs/telas/app-bancada.png" alt="Bancada no aplicativo" width="200">
+  <br>
+  <img src="docs/telas/app-os.png" alt="Ordem de serviço no aplicativo" width="200">
+  &nbsp;
+  <img src="docs/telas/app-lentes.png" alt="Fila de lentes no aplicativo" width="200">
+  &nbsp;
+  <img src="docs/telas/app-vendedor.png" alt="Acompanhamento da vendedora no aplicativo" width="200">
+  <br>
+  <sub><b>Laboratório ALEX</b> — painel, lançamento, bancada, ordem de serviço, fila de lentes e carteira da vendedora. Dados de demonstração.</sub>
+</p>
+
 ```bash
 cd mobile
 cp .env.example .env   # SUPABASE_URL e SUPABASE_ANON_KEY, as mesmas NEXT_PUBLIC do site
@@ -210,7 +226,7 @@ O repositório está publicado para consulta. A licença não autoriza cópia ne
 | Sistema no ar | [lab.oticahub.com](https://lab.oticahub.com) |
 | Regras de prazo, ranking e fluxo | `src/lib/domain` e `npm test` |
 | Permissão no banco, não só na tela | `supabase/migrations` |
-| Aplicativo | `mobile/lib` e `flutter test` em `mobile/` |
+| Aplicativo | fotos acima e o código em `mobile/lib` |
 | Caso de melhoria contínua | [docs/estudo-de-caso.md](docs/estudo-de-caso.md) |
 | ERP da ótica, código privado | [erp-otica](https://github.com/alexferreiraindustrial-hue/erp-otica) |
 

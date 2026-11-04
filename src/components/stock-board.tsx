@@ -59,14 +59,40 @@ export function StockBoard({
   const manufacturers = [...new Set(items.map((item) => item.manufacturer).filter(Boolean))] as string[];
   const treatments = [...new Set(items.map((item) => item.treatment).filter(Boolean))] as string[];
 
+  const [onlyStocked, setOnlyStocked] = useState(false);
+  const [band, setBand] = useState<"todas" | "neg" | "pos">("todas");
+  const [jumpSphere, setJumpSphere] = useState("");
+  const [jumpCylinder, setJumpCylinder] = useState("");
+
   const sphere = useMemo(() => powerSeries(grid.sphereMinCents, grid.sphereMaxCents, grid.stepCents), [grid]);
   const cylinder = useMemo(() => powerSeries(grid.cylinderMinCents, grid.cylinderMaxCents, grid.stepCents), [grid]);
-  const tooWide = sphere.length * cylinder.length > 2500;
+  const visibleSphere = useMemo(() => {
+    if (band === "neg") return sphere.filter((value) => value < 0);
+    if (band === "pos") return sphere.filter((value) => value >= 0);
+    return sphere;
+  }, [sphere, band]);
 
   const cellItems = (sphereCents: number, cylinderCents: number) =>
     filtered.filter((item) => item.sphere_cents === sphereCents && item.cylinder_cents === cylinderCents);
 
   const selectedItems = selected ? cellItems(selected.sphere, selected.cylinder) : [];
+
+  function jumpToGrade() {
+    const sph = jumpSphere.trim() ? Number.parseInt(String(Math.round(Number(jumpSphere.replace(",", ".")) * 100)), 10) : null;
+    const cyl = jumpCylinder.trim() ? Number.parseInt(String(Math.round(Number(jumpCylinder.replace(",", ".")) * 100)), 10) : null;
+    const nextSphere = sph != null && Number.isFinite(sph) ? sphere.find((value) => value === sph) : null;
+    const nextCylinder = cyl != null && Number.isFinite(cyl) ? cylinder.find((value) => value === cyl) : cylinder.includes(0) ? 0 : cylinder[0];
+    if (nextSphere == null || nextCylinder == null) {
+      setError("Use um grau da grade, como -1,25 e -0,75.");
+      return;
+    }
+    setError(null);
+    setBand(nextSphere < 0 ? "neg" : "pos");
+    setSelected({ sphere: nextSphere, cylinder: nextCylinder });
+    requestAnimationFrame(() => {
+      document.getElementById(`grau-${nextSphere}-${nextCylinder}`)?.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+    });
+  }
 
   return (
     <div className="grid gap-4">
@@ -80,41 +106,85 @@ export function StockBoard({
             <option value="">Todos os tratamentos</option>
             {treatments.map((item) => <option key={item}>{item}</option>)}
           </Select>
-          <p className="text-xs text-[#6e7c7a] md:col-span-2">
-            Vermelho: zerado ou abaixo do mínimo. Amarelo: acima do mínimo e ainda abaixo do ideal. Verde: no ideal ou acima. O saldo zerado permanece vermelho.
+          <label className="flex h-11 items-center gap-2 text-sm md:h-9">
+            <input type="checkbox" checked={onlyStocked} onChange={(event) => setOnlyStocked(event.target.checked)} />
+            Só graus já cadastrados
+          </label>
+          <p className="text-xs text-[#6b6358]">
+            Linha = esférico. Coluna = cilíndrico. Número = saldo. <strong>+</strong> = grau ainda sem lente — clique para cadastrar.
           </p>
         </div>
+        {special ? null : (
+          <div className="mt-3 flex flex-wrap items-end gap-2">
+            <div className="flex gap-1 rounded-lg bg-[#e7ebed] p-1">
+              {([
+                ["todas", "Grade inteira"],
+                ["neg", "Esférico −"],
+                ["pos", "Esférico 0 / +"],
+              ] as const).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setBand(key)}
+                  className={`h-9 rounded-md px-3 text-xs font-semibold ${band === key ? "bg-white text-[#1a1714] shadow-sm" : "text-[#6b6358]"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <Field label="Ir ao esférico">
+              <Input value={jumpSphere} onChange={(event) => setJumpSphere(event.target.value)} placeholder="-1,25" />
+            </Field>
+            <Field label="Cilíndrico">
+              <Input value={jumpCylinder} onChange={(event) => setJumpCylinder(event.target.value)} placeholder="-0,75" />
+            </Field>
+            <Button type="button" variant="secondary" onClick={jumpToGrade}>Encontrar na grade</Button>
+          </div>
+        )}
       </Panel>
 
-      {special ? null : tooWide ? (
-        <p className="text-sm text-[#8a5a12]">A faixa configurada gera uma grade grande demais para consulta rápida. Reduza o intervalo em Configurações.</p>
-      ) : (
+      {special ? null : (
         <Panel className="overflow-auto p-2">
+          <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-[#8a8173]">
+            Cilíndrico → &nbsp;&nbsp; Esférico ↓ &nbsp;· passo {formatDiopter(grid.stepCents).replace("+", "")}
+          </p>
           <table className="border-separate border-spacing-1 text-center text-xs">
             <thead>
               <tr>
-                <th className="sticky left-0 bg-white px-2">Esf. \ Cil.</th>
-                {cylinder.map((value) => <th key={value} className="px-1 font-medium">{formatDiopter(value)}</th>)}
+                <th className="sticky left-0 z-20 bg-white px-2 py-2 text-[11px] font-semibold text-[#6b6358]">Esf. \ Cil.</th>
+                {cylinder.map((value) => (
+                  <th key={value} className="sticky top-0 z-10 min-w-11 bg-[#f8f3ea] px-1 py-2 font-semibold text-[#4a453d]">
+                    {formatDiopter(value)}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {sphere.map((sphereValue) => (
+              {visibleSphere.map((sphereValue) => (
                 <tr key={sphereValue}>
-                  <th className="sticky left-0 bg-white px-2 text-right font-medium">{formatDiopter(sphereValue)}</th>
+                  <th className="sticky left-0 z-10 bg-white px-2 text-right font-semibold text-[#1a1714]">{formatDiopter(sphereValue)}</th>
                   {cylinder.map((cylinderValue) => {
                     const group = cellItems(sphereValue, cylinderValue);
+                    if (onlyStocked && group.length === 0) {
+                      return <td key={cylinderValue} className="min-w-11" />;
+                    }
                     const qty = group.reduce((sum, item) => sum + item.current_qty, 0);
                     const min = group.length ? Math.min(...group.map((item) => item.min_qty)) : 0;
                     const ideal = group.length ? Math.max(...group.map((item) => item.ideal_qty)) : null;
                     const tone = group.length ? stockTone(qty, min, ideal) : "verde";
+                    const on = selected?.sphere === sphereValue && selected?.cylinder === cylinderValue;
                     return (
                       <td key={cylinderValue}>
                         <button
                           type="button"
+                          id={`grau-${sphereValue}-${cylinderValue}`}
+                          title={group.length ? `${formatDiopter(sphereValue)} / ${formatDiopter(cylinderValue)} · saldo ${qty}` : `Cadastrar ${formatDiopter(sphereValue)} / ${formatDiopter(cylinderValue)}`}
                           onClick={() => setSelected({ sphere: sphereValue, cylinder: cylinderValue })}
-                          className={`h-8 min-w-8 rounded ${group.length ? toneClass[tone] : "bg-[#f4f6f8] text-[#8a9694]"}`}
+                          className={`h-11 min-w-11 rounded-md text-sm font-semibold md:h-9 md:min-w-9 ${
+                            group.length ? toneClass[tone] : "border border-dashed border-[#d5cbbb] bg-[#fbfaf7] text-[#0b5c54]"
+                          } ${on ? "ring-2 ring-[#0b5c54]" : ""}`}
                         >
-                          {group.length ? qty : "·"}
+                          {group.length ? qty : "+"}
                         </button>
                       </td>
                     );
@@ -127,18 +197,20 @@ export function StockBoard({
       )}
 
       {selected ? (
-        <Panel className="p-4">
-          <h2 className="font-medium">{formatDiopter(selected.sphere)} / {formatDiopter(selected.cylinder)}</h2>
+        <Panel className="p-4" id="grau-selecionado">
+          <h2 className="font-medium">
+            Grau {formatDiopter(selected.sphere)} / {formatDiopter(selected.cylinder)}
+          </h2>
           {selectedItems.length === 0 ? (
-            <p className="mt-2 text-sm text-[#6e7c7a]">Não há item cadastrado nesta combinação com os filtros atuais.</p>
+            <p className="mt-2 text-sm text-[#6b6358]">Este grau ainda não está no estoque. Preencha abaixo para incluir na grade.</p>
           ) : (
             <ul className="mt-3 grid gap-2 text-sm">
               {selectedItems.map((item) => (
-                <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-[#eef1f3] pb-2">
+                <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-[#efe8dc] pb-2">
                   <span>{item.public_code} · saldo {item.current_qty} · mín. {item.min_qty} · {item.location || "sem localização"} · {formatBRLFromCents(item.unit_cost_cents)}</span>
                   <span className="flex gap-3">
-                    <Link className="text-[#0e6b62] underline" href={`/estoque/${item.id}`}>Abrir</Link>
-                    <Link className="text-[#0e6b62] underline" href={`/estoque/etiquetas?ids=${item.id}`}>Etiqueta</Link>
+                    <Link className="text-[#0b5c54] underline" href={`/estoque/${item.id}`}>Abrir</Link>
+                    <Link className="text-[#0b5c54] underline" href={`/estoque/etiquetas?ids=${item.id}`}>Etiqueta</Link>
                   </span>
                 </li>
               ))}
@@ -167,9 +239,15 @@ export function StockBoard({
           ) : null}
           {can(role, "stock.write") ? (
             <StockCreateForm
+              key={`${selected.sphere}-${selected.cylinder}`}
               sphere={formatDiopter(selected.sphere)}
               cylinder={formatDiopter(selected.cylinder)}
               isSpecial={!isOnGrid(selected.sphere, selected.cylinder, grid)}
+              compact={selectedItems.length === 0}
+              onCreated={() => {
+                setMessage("Lente incluída na grade.");
+                router.refresh();
+              }}
             />
           ) : null}
           <Feedback error={error} message={message} />
@@ -183,19 +261,24 @@ export function StockCreateForm({
   sphere = "",
   cylinder = "",
   isSpecial = false,
+  compact = false,
+  onCreated,
 }: {
   sphere?: string;
   cylinder?: string;
   isSpecial?: boolean;
+  compact?: boolean;
+  onCreated?: () => void;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [more, setMore] = useState(!compact);
 
   return (
     <form
-      className="mt-4 grid gap-3 border-t border-[#eef1f3] pt-3 md:grid-cols-4"
+      className="mt-4 grid gap-3 border-t border-[#efe8dc] pt-3 md:grid-cols-4"
       onSubmit={(event) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
@@ -208,31 +291,56 @@ export function StockCreateForm({
           }
           setError(null);
           setMessage(result.message ?? "Lente cadastrada.");
-          if (result.id) router.push(`/estoque/${result.id}`);
+          if (onCreated) onCreated();
+          else if (result.id) router.push(`/estoque/${result.id}`);
         });
       }}
     >
       <input type="hidden" name="isSpecial" value={String(isSpecial)} />
-      <Field label="Esférico"><Input name="sphere" required defaultValue={sphere} /></Field>
-      <Field label="Cilíndrico"><Input name="cylinder" required defaultValue={cylinder} /></Field>
-      <Field label="Adição"><Input name="addition" placeholder="opcional" /></Field>
-      <Field label="Fabricante"><Input name="manufacturer" /></Field>
-      <Field label="Marca ou modelo"><Input name="brand" /></Field>
-      <Field label="Material"><Input name="material" /></Field>
-      <Field label="Índice"><Input name="refractiveIndex" placeholder="1,56" /></Field>
-      <Field label="Tratamento"><Input name="treatment" /></Field>
-      <Field label="Cor"><Input name="color" /></Field>
-      <Field label="Diâmetro (mm)"><Input name="diameterMm" /></Field>
-      <Field label="Tipo"><Input name="lensType" /></Field>
-      <Field label="Lote"><Input name="lotCode" /></Field>
-      <Field label="Localização"><Input name="location" /></Field>
-      <Field label="Mínimo"><Input name="minQty" type="number" min={0} defaultValue={0} /></Field>
-      <Field label="Ideal"><Input name="idealQty" type="number" min={0} defaultValue={0} /></Field>
-      <Field label="Quantidade inicial"><Input name="initialQty" type="number" min={0} defaultValue={0} /></Field>
-      <Field label="Custo unitário"><Input name="unitCost" placeholder="0,00" /></Field>
-      <Field label="Observações"><Input name="notes" /></Field>
+      <Field label="Esférico"><Input name="sphere" required defaultValue={sphere} key={`esf-${sphere}`} /></Field>
+      <Field label="Cilíndrico"><Input name="cylinder" required defaultValue={cylinder} key={`cil-${cylinder}`} /></Field>
+      <Field label="Localização"><Input name="location" placeholder="gaveta / caixa" /></Field>
+      <Field label="Quantidade inicial"><Input name="initialQty" type="number" min={0} defaultValue={compact ? "1" : "0"} /></Field>
+      <Field label="Mínimo"><Input name="minQty" type="number" min={0} defaultValue={1} /></Field>
+      <Field label="Ideal"><Input name="idealQty" type="number" min={0} defaultValue={4} /></Field>
+      {more ? (
+        <>
+          <Field label="Adição"><Input name="addition" placeholder="opcional" /></Field>
+          <Field label="Fabricante"><Input name="manufacturer" /></Field>
+          <Field label="Marca ou modelo"><Input name="brand" /></Field>
+          <Field label="Material"><Input name="material" /></Field>
+          <Field label="Índice"><Input name="refractiveIndex" placeholder="1,56" /></Field>
+          <Field label="Tratamento"><Input name="treatment" /></Field>
+          <Field label="Cor"><Input name="color" /></Field>
+          <Field label="Diâmetro (mm)"><Input name="diameterMm" /></Field>
+          <Field label="Tipo"><Input name="lensType" /></Field>
+          <Field label="Lote"><Input name="lotCode" /></Field>
+          <Field label="Custo unitário"><Input name="unitCost" placeholder="0,00" /></Field>
+          <Field label="Observações"><Input name="notes" /></Field>
+        </>
+      ) : (
+        <>
+          <input type="hidden" name="addition" value="" />
+          <input type="hidden" name="manufacturer" value="" />
+          <input type="hidden" name="brand" value="" />
+          <input type="hidden" name="material" value="" />
+          <input type="hidden" name="refractiveIndex" value="" />
+          <input type="hidden" name="treatment" value="" />
+          <input type="hidden" name="color" value="" />
+          <input type="hidden" name="diameterMm" value="" />
+          <input type="hidden" name="lensType" value="" />
+          <input type="hidden" name="lotCode" value="" />
+          <input type="hidden" name="unitCost" value="" />
+          <input type="hidden" name="notes" value="" />
+          <div className="md:col-span-4">
+            <button type="button" className="text-sm font-semibold text-[#0b5c54] underline" onClick={() => setMore(true)}>
+              Mais detalhes (marca, lote, custo…)
+            </button>
+          </div>
+        </>
+      )}
       <div className="md:col-span-4 flex items-center gap-3">
-        <Button type="submit" disabled={pending}>{pending ? "Salvando..." : "Cadastrar combinação"}</Button>
+        <Button type="submit" disabled={pending}>{pending ? "Salvando..." : compact ? "Incluir este grau na grade" : "Cadastrar combinação"}</Button>
         <Feedback error={error} message={message} />
       </div>
     </form>

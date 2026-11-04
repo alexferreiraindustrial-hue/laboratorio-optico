@@ -20,14 +20,14 @@ export default async function NovaLentePage({ searchParams }: { searchParams: Pr
       </PageHeading>
       {can(role, "stock.write") ? (
         <Panel className="p-5">
-          <p className="text-sm text-[#44524f]">
+          <p className="text-sm text-[#4a453d]">
             Só <strong>esférico</strong> e <strong>cilíndrico</strong> são obrigatórios. Use vírgula ou ponto: <span className="font-mono">-1,25</span>,{" "}
             <span className="font-mono">+0,50</span>, <span className="font-mono">0,00</span>. A quantidade inicial já entra como movimentação de entrada.
           </p>
           <StockCreateForm sphere={params.esf ?? ""} cylinder={params.cil ?? "0,00"} />
         </Panel>
       ) : (
-        <Panel className="px-5 py-8 text-center text-sm text-[#6e7c7a]">Seu perfil não cadastra lentes. Peça a um gestor, administrador ou estoquista.</Panel>
+        <Panel className="px-5 py-8 text-center text-sm text-[#6b6358]">Seu perfil não cadastra lentes. Peça a um gestor, administrador ou estoquista.</Panel>
       )}
     </div>
   );

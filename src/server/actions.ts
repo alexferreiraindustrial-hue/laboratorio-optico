@@ -87,21 +87,28 @@ export async function createFirstAdmin(formData: FormData): Promise<ActionResult
 }
 
 export async function createManagedUser(formData: FormData): Promise<ActionResult> {
-  const { role } = await requireProfile();
+  const { supabase, role } = await requireProfile();
   if (!can(role, "users.manage")) return { ok: false, message: "Apenas o administrador cadastra usuários." };
-  const admin = createAdminClient();
-  if (!admin) {
-    return {
-      ok: false,
-      message: "Defina SUPABASE_SERVICE_ROLE_KEY no servidor para cadastrar usuários por aqui.",
-    };
-  }
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const fullName = String(formData.get("fullName") ?? "").trim();
   const nextRole = String(formData.get("role") ?? "consulta");
   if (!email || password.length < 8 || fullName.length < 3) {
     return { ok: false, message: "Informe nome, e-mail e uma senha com pelo menos 8 caracteres." };
+  }
+  const { error: rpcError } = await supabase.rpc("create_staff_user", {
+    p_email: email,
+    p_password: password,
+    p_full_name: fullName,
+    p_role: nextRole,
+  });
+  if (!rpcError) {
+    revalidatePath("/configuracoes");
+    return { ok: true, message: "Usuário criado." };
+  }
+  const admin = createAdminClient();
+  if (!admin) {
+    return { ok: false, message: actionError(rpcError, "Não foi possível criar o usuário.") ?? rpcError.message };
   }
   const { data, error } = await admin.auth.admin.createUser({
     email,
@@ -111,7 +118,6 @@ export async function createManagedUser(formData: FormData): Promise<ActionResul
   });
   if (error || !data.user) return { ok: false, message: error?.message ?? "Não foi possível criar o usuário." };
   if (nextRole !== "consulta") {
-    const { supabase } = await requireProfile();
     const { error: roleError } = await supabase.from("profiles").update({ role: nextRole }).eq("id", data.user.id);
     if (roleError) return { ok: false, message: roleError.message };
   }

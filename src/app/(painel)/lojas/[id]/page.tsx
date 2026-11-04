@@ -42,18 +42,18 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ id
           {(links ?? []).map((link) => {
             const seller = link.sellers as { name?: string; active?: boolean; public_code?: string } | { name?: string; active?: boolean; public_code?: string }[] | null;
             const row = Array.isArray(seller) ? seller[0] : seller;
-            return <li key={link.seller_id}><Link className="text-[#0e6b62]" href={`/vendedores/${link.seller_id}`}>{row?.name}</Link> · {row?.public_code} · {row?.active ? "ativo" : "inativo"}</li>;
+            return <li key={link.seller_id}><Link className="text-[#0b5c54]" href={`/vendedores/${link.seller_id}`}>{row?.name}</Link> · {row?.public_code} · {row?.active ? "ativo" : "inativo"}</li>;
           })}
-          {(links ?? []).length === 0 ? <li className="text-[#6e7c7a]">Nenhum vendedor vinculado.</li> : null}
+          {(links ?? []).length === 0 ? <li className="text-[#6b6358]">Nenhum vendedor vinculado.</li> : null}
         </ul>
       </Panel>
       <Panel className="p-4">
         <h2 className="font-medium">Ordens</h2>
         <ul className="mt-2 grid gap-1 text-sm">
           {(orders ?? []).map((order) => (
-            <li key={order.id}><Link className="font-mono text-[#0e6b62]" href={`/laboratorio/${order.id}`}>{visibleOrderNumber(order)}</Link> · {order.client_name} · {order.seller_name || "sem vendedor"} · {STATUS_LABEL[order.status as OrderStatus]} · {formatDateTime(order.entered_at)}</li>
+            <li key={order.id}><Link className="font-mono text-[#0b5c54]" href={`/laboratorio/${order.id}`}>{visibleOrderNumber(order)}</Link> · {order.client_name} · {order.seller_name || "sem vendedor"} · {STATUS_LABEL[order.status as OrderStatus]} · {formatDateTime(order.entered_at)}</li>
           ))}
-          {(orders ?? []).length === 0 ? <li className="text-[#6e7c7a]">Nenhuma OS desta loja.</li> : null}
+          {(orders ?? []).length === 0 ? <li className="text-[#6b6358]">Nenhuma OS desta loja.</li> : null}
         </ul>
       </Panel>
       {can(role, "portal.manage") ? (

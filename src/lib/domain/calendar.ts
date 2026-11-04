@@ -38,6 +38,18 @@ export function weekdayOfYmd(ymd: string) {
   return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 }
 
+/** Soma dias pulando sábado e domingo. O dia de partida não conta. */
+export function addBusinessDays(ymd: string, days: number) {
+  let cursor = ymd;
+  let left = days;
+  while (left > 0) {
+    cursor = addDays(cursor, 1);
+    const weekday = weekdayOfYmd(cursor);
+    if (weekday !== 0 && weekday !== 6) left -= 1;
+  }
+  return cursor;
+}
+
 export function dayRange(now: Date, timeZone = TIME_ZONE) {
   const startYmd = zonedYmd(now, timeZone);
   const start = zonedStart(startYmd, timeZone);

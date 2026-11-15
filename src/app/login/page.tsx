@@ -18,6 +18,7 @@ function LoginForm() {
       className="grid gap-4"
       onSubmit={(event) => {
         event.preventDefault();
+        setError(null);
         const formData = new FormData(event.currentTarget);
         startTransition(async () => {
           const result = await signIn(formData);

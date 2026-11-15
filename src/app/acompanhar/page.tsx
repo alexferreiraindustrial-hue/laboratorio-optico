@@ -34,9 +34,9 @@ export default function PortalGatePage() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-[max(1.5rem,env(safe-area-inset-top))]">
-      <p className="text-sm font-medium text-[#0b5c54]">Acompanhamento</p>
+      <p className="text-sm font-medium text-[#087e83]">Acompanhamento</p>
       <h1 className="mt-1 text-3xl font-semibold leading-tight">Serviços do vendedor</h1>
-      <p className="mt-2 text-sm text-[#6b6358]">
+      <p className="mt-2 text-sm text-[#60767b]">
         O laboratório cria o seu cadastro e o PIN. Você vê só as suas OS — prontas, em produção e encerradas.
       </p>
       <Panel className="mt-5 grid gap-3 p-4">
@@ -76,8 +76,8 @@ export default function PortalGatePage() {
           {pending ? "Entrando..." : "Ver meus serviços"}
         </Button>
       </Panel>
-      <details className="mt-4 rounded-2xl border border-[#e6dcce] bg-white p-4">
-        <summary className="cursor-pointer text-sm font-semibold text-[#0b5c54]">Já tenho o link do PWA</summary>
+      <details className="mt-4 rounded-2xl border border-[#dce5e7] bg-white p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-[#087e83]">Já tenho o link do PWA</summary>
         <div className="mt-3 grid gap-3">
           <Field label="Cole o link">
             <Input value={link} onChange={(event) => setLink(event.target.value)} placeholder="https://lab.oticahub.com/acompanhar/vendedor/…" />
@@ -99,8 +99,8 @@ export default function PortalGatePage() {
           </Button>
         </div>
       </details>
-      <p className="mt-4 text-sm text-[#6b6358]">
-        Equipe do laboratório? <Link className="text-[#0b5c54] underline" href="/login">Entrar no sistema</Link>
+      <p className="mt-4 text-sm text-[#60767b]">
+        Equipe do laboratório? <Link className="text-[#087e83] underline" href="/login">Entrar no sistema</Link>
       </p>
     </main>
   );

@@ -37,7 +37,7 @@ export default async function SellerDetailPage({ params }: { params: Promise<{ i
           {(links ?? []).map((link) => {
             const store = link.stores as { trade_name?: string } | { trade_name?: string }[] | null;
             const name = Array.isArray(store) ? store[0]?.trade_name : store?.trade_name;
-            return <li key={link.store_id}><Link className="text-[#0b5c54]" href={`/lojas/${link.store_id}`}>{name}</Link></li>;
+            return <li key={link.store_id}><Link className="text-[#087e83]" href={`/lojas/${link.store_id}`}>{name}</Link></li>;
           })}
         </ul>
       </Panel>
@@ -45,7 +45,7 @@ export default async function SellerDetailPage({ params }: { params: Promise<{ i
         <h2 className="font-medium">Ordens</h2>
         <ul className="mt-2 grid gap-1 text-sm">
           {(orders ?? []).map((order) => (
-            <li key={order.id}><Link className="font-mono text-[#0b5c54]" href={`/laboratorio/${order.id}`}>{visibleOrderNumber(order)}</Link> · {order.client_name} · {order.store_name || "sem loja"} · {STATUS_LABEL[order.status as OrderStatus]}</li>
+            <li key={order.id}><Link className="font-mono text-[#087e83]" href={`/laboratorio/${order.id}`}>{visibleOrderNumber(order)}</Link> · {order.client_name} · {order.store_name || "sem loja"} · {STATUS_LABEL[order.status as OrderStatus]}</li>
           ))}
         </ul>
       </Panel>

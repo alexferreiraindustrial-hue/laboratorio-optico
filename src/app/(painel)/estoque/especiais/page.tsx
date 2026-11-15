@@ -40,7 +40,7 @@ export default async function SpecialStockPage() {
       ) : (
         <Panel className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="text-xs uppercase text-[#6b6358]">
+            <thead className="text-xs uppercase text-[#60767b]">
               <tr>
                 <th className="px-3 py-2">Código</th>
                 <th className="px-3 py-2">Grau</th>
@@ -51,8 +51,8 @@ export default async function SpecialStockPage() {
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr key={item.id} className="border-t border-[#efe8dc]">
-                  <td className="px-3 py-2"><Link className="text-[#0b5c54] underline" href={`/estoque/${item.id}`}>{item.public_code}</Link></td>
+                <tr key={item.id} className="border-t border-[#edf2f3]">
+                  <td className="px-3 py-2"><Link className="text-[#087e83] underline" href={`/estoque/${item.id}`}>{item.public_code}</Link></td>
                   <td className="px-3 py-2">{formatDiopter(item.sphere_cents)} / {formatDiopter(item.cylinder_cents)}</td>
                   <td className="px-3 py-2">{item.current_qty}</td>
                   <td className="px-3 py-2">{stockTone(item.current_qty, item.min_qty, item.ideal_qty)}</td>

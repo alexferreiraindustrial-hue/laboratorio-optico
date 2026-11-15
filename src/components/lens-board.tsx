@@ -62,7 +62,7 @@ function ForecastFields({
         type="date"
         value={date}
         onChange={(event) => onDate(event.target.value)}
-        className="h-11 w-full rounded-md border border-[#d5cbbb] px-2 text-base outline-none focus:border-[#0b5c54] md:h-9 md:w-[160px] md:text-[13px]"
+        className="h-11 w-full rounded-md border border-[#cbdadd] px-2 text-base outline-none focus:border-[#087e83] md:h-9 md:w-[160px] md:text-[13px]"
         aria-label="Previsão do laboratório"
       />
       <input
@@ -70,7 +70,7 @@ function ForecastFields({
         onChange={(event) => onRef(event.target.value.slice(0, 60))}
         onBlur={onBlurRef}
         placeholder="nº do pedido"
-        className="h-11 w-full rounded-md border border-transparent bg-[#f8f3ea] px-2 text-base outline-none focus:border-[#0b5c54] md:h-8 md:w-[160px] md:text-xs"
+        className="h-11 w-full rounded-md border border-transparent bg-[#f6f9f9] px-2 text-base outline-none focus:border-[#087e83] md:h-8 md:w-[160px] md:text-xs"
       />
     </div>
   );
@@ -82,21 +82,21 @@ function Row({ row, now, selected, onToggle, canEdit }: { row: LensQueueRow; now
   const tone = LENS_RISK[risk.risk];
 
   return (
-    <tr className={cn("border-t border-[#efe8dc] transition-colors", selected ? "bg-[#f0f7f6]" : "hover:bg-[#fafbfb]", pending && "opacity-60")}>
+    <tr className={cn("border-t border-[#edf2f3] transition-colors", selected ? "bg-[#f0f7f6]" : "hover:bg-[#fafbfb]", pending && "opacity-60")}>
       <td className="py-2.5 pl-4 pr-1">
-        <input type="checkbox" checked={selected} onChange={onToggle} className="h-5 w-5 accent-[#0b5c54]" aria-label={`Selecionar ${row.number}`} />
+        <input type="checkbox" checked={selected} onChange={onToggle} className="h-5 w-5 accent-[#087e83]" aria-label={`Selecionar ${row.number}`} />
       </td>
       <td className="px-3 py-2.5">
-        <Link href={`/laboratorio/${row.id}`} className="font-mono text-xs font-semibold text-[#0b5c54] hover:underline">
+        <Link href={`/laboratorio/${row.id}`} className="font-mono text-xs font-semibold text-[#087e83] hover:underline">
           {visibleOrderNumber(row)}
         </Link>
         <p className="max-w-[220px] truncate text-sm font-semibold">{row.client_name}</p>
-        <p className="max-w-[220px] truncate text-xs font-semibold text-[#0a4540]">{row.laboratory_name || "Sem laboratório"}</p>
-        <p className="max-w-[220px] truncate text-xs text-[#6b6358]">{[row.seller_name, row.store_name].filter(Boolean).join(" · ") || "Sem vendedor"}</p>
+        <p className="max-w-[220px] truncate text-xs font-semibold text-[#125d63]">{row.laboratory_name || "Sem laboratório"}</p>
+        <p className="max-w-[220px] truncate text-xs text-[#60767b]">{[row.seller_name, row.store_name].filter(Boolean).join(" · ") || "Sem vendedor"}</p>
       </td>
       <td className="px-3 py-2.5 text-sm">
-        {row.due_at ? fmt.format(new Date(row.due_at)) : <span className="text-[#8a8173]">sem prazo</span>}
-        {risk.latestArrival ? <p className="text-[11px] text-[#6b6358]">lente até {fmt.format(risk.latestArrival)}</p> : null}
+        {row.due_at ? fmt.format(new Date(row.due_at)) : <span className="text-[#74898e]">sem prazo</span>}
+        {risk.latestArrival ? <p className="text-[11px] text-[#60767b]">lente até {fmt.format(risk.latestArrival)}</p> : null}
       </td>
       <td className="px-3 py-2.5">
         {canEdit ? (
@@ -118,9 +118,9 @@ function Row({ row, now, selected, onToggle, canEdit }: { row: LensQueueRow; now
         <span className="inline-block rounded-md px-2 py-0.5 text-xs font-semibold" style={{ color: tone.fg, background: tone.bg }}>
           {tone.label}
         </span>
-        <p className="mt-0.5 text-[11px] text-[#6b6358]">{risk.risk === "ok" || risk.risk === "apertado" || risk.risk === "vai_atrasar" ? slackText(risk.slackHours) : ""}</p>
+        <p className="mt-0.5 text-[11px] text-[#60767b]">{risk.risk === "ok" || risk.risk === "apertado" || risk.risk === "vai_atrasar" ? slackText(risk.slackHours) : ""}</p>
       </td>
-      <td className="px-3 py-2.5 text-xs text-[#6b6358]">{fmt.format(new Date(row.entered_at))}</td>
+      <td className="px-3 py-2.5 text-xs text-[#60767b]">{fmt.format(new Date(row.entered_at))}</td>
     </tr>
   );
 }
@@ -130,19 +130,19 @@ function LensCard({ row, now, selected, onToggle, canEdit }: { row: LensQueueRow
   const risk = lensRisk({ dueAt: row.due_at, lensExpectedAt: row.lens_expected_at, now });
   const tone = LENS_RISK[risk.risk];
   return (
-    <article className={cn("rounded-xl border bg-white p-3.5", selected ? "border-[#0b5c54] bg-[#f0f7f6]" : "border-[#e6dcce]", pending && "opacity-60")}>
+    <article className={cn("rounded-xl border bg-white p-3.5", selected ? "border-[#087e83] bg-[#f0f7f6]" : "border-[#dce5e7]", pending && "opacity-60")}>
       <div className="flex items-start gap-3">
         <label className="grid h-11 w-11 shrink-0 place-items-center">
-          <input type="checkbox" checked={selected} onChange={onToggle} className="h-5 w-5 accent-[#0b5c54]" aria-label={`Selecionar ${row.number}`} />
+          <input type="checkbox" checked={selected} onChange={onToggle} className="h-5 w-5 accent-[#087e83]" aria-label={`Selecionar ${row.number}`} />
         </label>
         <div className="min-w-0 flex-1">
-          <Link href={`/laboratorio/${row.id}`} className="font-mono text-[13px] font-semibold text-[#0b5c54]">
+          <Link href={`/laboratorio/${row.id}`} className="font-mono text-[13px] font-semibold text-[#087e83]">
             {visibleOrderNumber(row)}
           </Link>
           <p className="truncate text-[16px] font-semibold leading-snug">{row.client_name}</p>
-          <p className="truncate text-xs font-semibold text-[#0a4540]">{row.laboratory_name || "Sem laboratório"}</p>
-          <p className="truncate text-xs text-[#6b6358]">{[row.seller_name, row.store_name].filter(Boolean).join(" · ") || "Sem vendedor"}</p>
-          <p className="mt-1 text-xs text-[#6b6358]">
+          <p className="truncate text-xs font-semibold text-[#125d63]">{row.laboratory_name || "Sem laboratório"}</p>
+          <p className="truncate text-xs text-[#60767b]">{[row.seller_name, row.store_name].filter(Boolean).join(" · ") || "Sem vendedor"}</p>
+          <p className="mt-1 text-xs text-[#60767b]">
             Cliente: {row.due_at ? fmt.format(new Date(row.due_at)) : "sem prazo"}
             {risk.latestArrival ? ` · lente até ${fmt.format(risk.latestArrival)}` : ""}
           </p>
@@ -150,7 +150,7 @@ function LensCard({ row, now, selected, onToggle, canEdit }: { row: LensQueueRow
             {tone.label}
           </span>
           {risk.risk === "ok" || risk.risk === "apertado" || risk.risk === "vai_atrasar" ? (
-            <p className="mt-0.5 text-[11px] text-[#6b6358]">{slackText(risk.slackHours)}</p>
+            <p className="mt-0.5 text-[11px] text-[#60767b]">{slackText(risk.slackHours)}</p>
           ) : null}
           <div className="mt-3">
             {canEdit ? (
@@ -225,7 +225,7 @@ export function LensBoard({ rows, canEdit, canRelease, nowIso }: { rows: LensQue
               onClick={() => setFilter(key)}
               className={cn(
                 "flex h-11 min-h-11 items-center gap-1.5 rounded-lg border px-3 text-sm font-semibold transition-colors md:h-8 md:min-h-8 md:px-2.5 md:text-[13px]",
-                filter === key ? "border-[#1a1714] bg-[#1a1714] text-white" : "border-[#e6dcce] bg-white text-[#4a453d] hover:border-[#d5cbbb]",
+                filter === key ? "border-[#172e32] bg-[#172e32] text-white" : "border-[#dce5e7] bg-white text-[#425f65] hover:border-[#cbdadd]",
               )}
             >
               {tone ? <span className="h-2 w-2 rounded-full" style={{ background: tone.bg === "#b42318" ? "#b42318" : tone.fg }} /> : null}
@@ -234,15 +234,15 @@ export function LensBoard({ rows, canEdit, canRelease, nowIso }: { rows: LensQue
             </button>
           );
         })}
-        <label className="flex h-11 w-full items-center gap-2 rounded-lg border border-[#e6dcce] bg-white px-2.5 text-[#6b6358] sm:ml-auto sm:w-auto md:h-9">
+        <label className="flex h-11 w-full items-center gap-2 rounded-lg border border-[#dce5e7] bg-white px-2.5 text-[#60767b] sm:ml-auto sm:w-auto md:h-9">
           <Search size={16} />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="OS, cliente, pedido" className="min-w-0 flex-1 bg-transparent text-base text-[#1a1714] outline-none sm:w-40 md:text-sm" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="OS, cliente, pedido" className="min-w-0 flex-1 bg-transparent text-base text-[#172e32] outline-none sm:w-40 md:text-sm" />
         </label>
       </div>
 
       {selected.size > 0 && canRelease ? (
-        <div className="sticky top-[68px] z-10 flex flex-col gap-3 rounded-xl border border-[#0b5c54] bg-[#d8ebe6] px-4 py-3 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-          <span className="text-sm font-semibold text-[#0a4540]">{selected.size} OS selecionadas</span>
+        <div className="sticky top-[68px] z-10 flex flex-col gap-3 rounded-xl border border-[#087e83] bg-[#e0f2f1] px-4 py-3 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <span className="text-sm font-semibold text-[#125d63]">{selected.size} OS selecionadas</span>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())} className="w-full sm:w-auto">
               Limpar
@@ -272,18 +272,18 @@ export function LensBoard({ rows, canEdit, canRelease, nowIso }: { rows: LensQue
             }
           />
         ))}
-        {visible.length === 0 ? <p className="rounded-xl border border-dashed border-[#d5cbbb] bg-white px-4 py-10 text-center text-sm text-[#6b6358]">Nenhuma OS aguardando lente neste filtro.</p> : null}
+        {visible.length === 0 ? <p className="rounded-xl border border-dashed border-[#cbdadd] bg-white px-4 py-10 text-center text-sm text-[#60767b]">Nenhuma OS aguardando lente neste filtro.</p> : null}
       </div>
 
-      <div className="hidden overflow-x-auto rounded-xl border border-[#e6dcce] bg-white md:block">
+      <div className="hidden overflow-x-auto rounded-xl border border-[#dce5e7] bg-white md:block">
         <table className="w-full min-w-[860px] text-left">
-          <thead className="bg-[#f8f3ea] text-xs text-[#6b6358]">
+          <thead className="bg-[#f6f9f9] text-xs text-[#60767b]">
             <tr>
               <th className="py-2 pl-4 pr-1">
                 <input
                   type="checkbox"
                   aria-label="Selecionar todas"
-                  className="h-5 w-5 accent-[#0b5c54]"
+                  className="h-5 w-5 accent-[#087e83]"
                   checked={visible.length > 0 && visible.every((item) => selected.has(item.row.id))}
                   onChange={(event) => setSelected(event.target.checked ? new Set(visible.map((item) => item.row.id)) : new Set())}
                 />
@@ -315,7 +315,7 @@ export function LensBoard({ rows, canEdit, canRelease, nowIso }: { rows: LensQue
             ))}
           </tbody>
         </table>
-        {visible.length === 0 ? <p className="px-4 py-10 text-center text-sm text-[#6b6358]">Nenhuma OS aguardando lente neste filtro.</p> : null}
+        {visible.length === 0 ? <p className="px-4 py-10 text-center text-sm text-[#60767b]">Nenhuma OS aguardando lente neste filtro.</p> : null}
       </div>
     </div>
   );

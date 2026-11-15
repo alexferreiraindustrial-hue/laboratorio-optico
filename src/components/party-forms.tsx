@@ -108,7 +108,7 @@ export function SellerForm({
       </Field>
       <fieldset className="grid gap-2 md:col-span-2">
         <legend className="text-sm font-medium">Lojas vinculadas</legend>
-        {stores.length === 0 ? <p className="text-sm text-[#6b6358]">Cadastre uma loja antes de vincular.</p> : null}
+        {stores.length === 0 ? <p className="text-sm text-[#60767b]">Cadastre uma loja antes de vincular.</p> : null}
         {stores.map((store) => (
           <label key={store.id} className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="storeId" value={store.id} defaultChecked={selected.includes(store.id)} />
@@ -159,8 +159,8 @@ export function SellerAppAccess({ sellerId, login }: { sellerId: string; login: 
       }}
     >
       <input type="hidden" name="sellerId" value={sellerId} />
-      <p className="text-sm text-[#6b6358]">
-        Código de entrada no app: <strong className="text-[#1a1714]">{login}</strong>. Defina um PIN de 4 a 8 dígitos e entregue só para este vendedor. Ele acompanha apenas as OS dele.
+      <p className="text-sm text-[#60767b]">
+        Código de entrada no app: <strong className="text-[#172e32]">{login}</strong>. Defina um PIN de 4 a 8 dígitos e entregue só para este vendedor. Ele acompanha apenas as OS dele.
       </p>
       <Field label="Novo PIN do app">
         <Input name="appPin" inputMode="numeric" autoComplete="new-password" required placeholder="4 a 8 dígitos" />
@@ -201,7 +201,7 @@ export function LinkManager({
 
   return (
     <div className="grid gap-3">
-      <p className="text-sm text-[#6b6358]">
+      <p className="text-sm text-[#60767b]">
         Link opcional do PWA. O acesso principal do vendedor no app é o PIN que você cria no cadastro. O sistema guarda só o hash do link.
         {active ? ` Prefixo do link ativo: ${active.token_prefix}…` : " Nenhum link ativo."}
       </p>

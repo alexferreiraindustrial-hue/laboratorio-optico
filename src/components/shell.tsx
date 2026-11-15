@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signOut } from "@/server/actions";
 import { LensMark } from "@/components/lens";
 import { ROLE_LABEL, type AppRole } from "@/lib/domain/constants";
@@ -41,9 +41,9 @@ type NavItem = { href: string; label: string; icon: typeof LayoutDashboard };
 // Grupos com adminOnly=true ficam ocultos para montador/estoquista — o fluxo fica limpo.
 const groups: { title: string; step?: string; adminOnly?: boolean; items: NavItem[] }[] = [
   {
-    title: "Hoje",
+    title: "Operação",
     items: [
-      { href: "/dashboard", label: "Painel", icon: LayoutDashboard },
+      { href: "/dashboard", label: "Visão do dia", icon: LayoutDashboard },
       { href: "/rotina", label: "Rotina do dia", icon: ListChecks },
     ],
   },
@@ -52,14 +52,14 @@ const groups: { title: string; step?: string; adminOnly?: boolean; items: NavIte
     step: "1",
     items: [
       { href: "/laboratorio/rapido", label: "Lançar OS", icon: Zap },
-      { href: "/laboratorio", label: "Todas as OS", icon: ClipboardList },
+      { href: "/laboratorio", label: "Fila de produção", icon: ClipboardList },
     ],
   },
   {
     title: "Lentes",
     step: "2",
     items: [
-      { href: "/lentes", label: "Lentes a chegar", icon: PackageSearch },
+      { href: "/lentes", label: "Pedidos e lentes", icon: PackageSearch },
       { href: "/estoque", label: "Estoque de lentes", icon: Package },
     ],
   },
@@ -74,7 +74,7 @@ const groups: { title: string; step?: string; adminOnly?: boolean; items: NavIte
   {
     title: "Saída",
     step: "4",
-    items: [{ href: "/entrega", label: "Entrega ao vendedor", icon: PackageCheck }],
+    items: [{ href: "/entrega", label: "Retirada e entrega", icon: PackageCheck }],
   },
   {
     title: "Equipe",
@@ -176,6 +176,14 @@ export function Shell({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setMobileOpen(false); };
+    window.addEventListener("keydown", close);
+    return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", close); };
+  }, [mobileOpen]);
   const allowed = ACCESS[role];
   const isAdmin = ADMIN_ROLES.includes(role);
 
@@ -190,15 +198,15 @@ export function Shell({
   const readOnly = role === "consulta";
 
   const nav = (
-    <nav className="flex flex-col gap-[14px]">
+    <nav aria-label="Navegação do laboratório" className="flex flex-col gap-5">
       {visibleGroups.map((group) => (
-        <div key={group.title} className="flex flex-col gap-0.5">
-          <p className="flex items-center gap-1.5 px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+        <details key={group.title} open={!group.adminOnly || group.items.some((item) => item.href === current?.href)} className="group flex flex-col gap-0.5">
+          <summary className="flex items-center gap-1.5 px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
             {group.step ? (
               <span className="grid h-4 w-4 place-items-center rounded-md bg-[var(--accent-soft)] font-mono text-[10px] font-bold text-[var(--accent-strong)]">{group.step}</span>
             ) : null}
-            {group.title}
-          </p>
+            {group.title}{group.adminOnly ? <span className="ml-auto text-sm group-open:rotate-90">›</span> : null}
+          </summary>
           {group.items.map((item) => {
             const active = current?.href === item.href;
             const Icon = item.icon;
@@ -216,46 +224,47 @@ export function Shell({
             return (
               <Link
                 key={item.href}
+                aria-current={active ? "page" : undefined}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex min-h-11 items-center gap-2.5 rounded-xl px-2.5 text-sm transition-[background-color,color,transform] duration-150 [transition-timing-function:var(--ease-out)] md:min-h-8 md:h-8",
-                  active ? "bg-[var(--accent)] font-semibold text-white shadow-[0_10px_20px_-14px_rgba(11,92,84,.9)]" : "font-medium text-[#4a453d] hover:bg-[#f3ece1]",
+                  "flex min-h-11 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-[background-color,color,transform] duration-150 [transition-timing-function:var(--ease-out)] md:min-h-9 md:h-9",
+                  active ? "bg-[var(--accent)] font-semibold text-white shadow-[0_10px_20px_-14px_rgba(11,92,84,.9)]" : "font-medium text-[#425f65] hover:bg-[#edf4f4]",
                 )}
               >
                 <Icon size={16} strokeWidth={2} />
                 <span className="flex-1">{item.label}</span>
                 <PendingDot />
                 {count > 0 ? (
-                  <span className={cn("rounded-full px-[7px] py-px text-xs font-semibold", alert ? "bg-[#fdecea] text-[#a3261b]" : active ? "bg-white/20 text-white" : "bg-[var(--accent-soft)] text-[var(--accent-strong)]")}>{count}</span>
+                  <span className={cn("rounded-full px-[7px] py-px text-xs font-semibold", alert ? "bg-[#fdecea] text-[#a3261b]" : active ? "bg-[#c3e7e5] text-[#125d63]" : "bg-[var(--accent-soft)] text-[var(--accent-strong)]")}>{count}</span>
                 ) : null}
               </Link>
             );
           })}
-        </div>
+        </details>
       ))}
     </nav>
   );
 
   const brand = (
-    <div className="flex h-[64px] items-center gap-2.5 border-b border-[var(--line)] px-[18px]">
+    <div className="lab-brand flex h-[80px] items-center gap-2.5 border-b border-[var(--line)] px-[18px]">
       <LensMark size={30} />
       <div className="flex min-w-0 flex-col leading-tight">
         <span className="display truncate text-[17px]">{orgName}</span>
-        <span className="text-[11px] font-medium tracking-[0.08em] text-[var(--muted)]">LAB · OPERAÇÃO</span>
+        <small className="mt-1 text-[10px] font-semibold tracking-[0.16em] text-[var(--muted)]">LABORATÓRIO · PRODUÇÃO</small>
       </div>
     </div>
   );
 
   const footer = (
-    <div className="flex items-center gap-2 border-t border-[var(--line)] px-[18px] py-3">
+    <div className="lab-account flex items-center gap-2 border-t border-[var(--line)] px-[18px] py-3">
       <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">{initials(name)}</div>
       <div className="flex min-w-0 flex-col leading-tight">
         <span className="truncate text-[13px] font-semibold">{name}</span>
         <span className="text-[11px] text-[var(--muted)]">{ROLE_LABEL[role]}</span>
       </div>
       <form action={signOut} className="ml-auto">
-        <button type="submit" title="Sair" className="flex h-11 w-11 items-center justify-center rounded-xl text-[var(--muted)] transition-colors hover:bg-[#f3ece1] md:h-8 md:w-8">
+        <button type="submit" title="Sair" className="flex h-11 w-11 items-center justify-center rounded-xl text-[var(--muted)] transition-colors hover:bg-[#edf4f4] md:h-8 md:w-8">
           <LogOut size={14} />
         </button>
       </form>
@@ -264,7 +273,8 @@ export function Shell({
 
   return (
     <div className="min-h-screen">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] backdrop-blur-xl lg:flex">
+      <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:p-3">Ir para o conteúdo</a>
+      <aside className="lab-sidebar fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] backdrop-blur-xl lg:flex">
         {brand}
         <div className="flex-1 overflow-auto px-3 py-3">{nav}</div>
         {footer}
@@ -272,11 +282,11 @@ export function Shell({
 
       {mobileOpen ? (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <button aria-label="Fechar menu" className="absolute inset-0 bg-[#1a1714]/35" onClick={() => setMobileOpen(false)} type="button" />
-          <aside className="absolute inset-y-0 left-0 flex w-[280px] flex-col bg-[var(--surface)] shadow-[var(--shadow-soft)]">
+          <button aria-label="Fechar menu" className="absolute inset-0 bg-[#172e32]/35" onClick={() => setMobileOpen(false)} type="button" />
+          <aside className="lab-sidebar absolute inset-y-0 left-0 flex w-[280px] flex-col bg-[var(--surface)] shadow-[var(--shadow-soft)]">
             <div className="relative">
               {brand}
-              <button aria-label="Fechar menu" className="absolute right-2 top-2 grid h-11 w-11 place-items-center rounded-xl text-[#4a453d] hover:bg-[#f3ece1]" onClick={() => setMobileOpen(false)} type="button">
+              <button aria-label="Fechar menu" className="absolute right-2 top-2 grid h-11 w-11 place-items-center rounded-xl text-[#425f65] hover:bg-[#edf4f4]" onClick={() => setMobileOpen(false)} type="button">
                 <X size={20} />
               </button>
             </div>
@@ -288,12 +298,12 @@ export function Shell({
 
       <div className="flex min-h-screen min-w-0 flex-col lg:pl-[248px]">
         <header className="no-print sticky top-0 z-20 flex min-h-[60px] items-center gap-2 border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_82%,transparent)] px-2 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:gap-4 md:px-5">
-          <button aria-label="Abrir menu" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-[#4a453d] hover:bg-[#f3ece1] lg:hidden" onClick={() => setMobileOpen(true)} type="button">
+          <button aria-label="Abrir menu" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-[#425f65] hover:bg-[#edf4f4] lg:hidden" onClick={() => setMobileOpen(true)} type="button">
             <Menu size={22} />
           </button>
           <div className="hidden shrink-0 items-center gap-2 whitespace-nowrap text-[13px] text-[var(--muted)] sm:flex">
-            <span>Painel</span>
-            <span className="text-[#d5cbbb]">/</span>
+            <span>ÓticaHub</span>
+            <span className="text-[#cbdadd]">/</span>
             <span className="font-semibold text-[var(--ink)]">{current?.label ?? "Início"}</span>
           </div>
           <form action="/laboratorio" method="get" className="min-w-0 max-w-[380px] flex-1 md:ml-3">
@@ -302,18 +312,18 @@ export function Shell({
               <input
                 name="q"
                 placeholder="Buscar OS, cliente ou vendedor"
-                className="min-w-0 flex-1 border-0 bg-transparent text-base text-[var(--ink)] shadow-none outline-none placeholder:text-[#8a8173] focus:shadow-none md:text-sm"
+                className="min-w-0 flex-1 border-0 bg-transparent text-base text-[var(--ink)] shadow-none outline-none placeholder:text-[#74898e] focus:shadow-none md:text-sm"
               />
             </label>
           </form>
           {readOnly ? (
-            <span className="hidden shrink-0 whitespace-nowrap rounded-full bg-[#efe8dc] px-2.5 py-1 text-xs font-semibold text-[#4a453d] sm:inline">
+            <span className="hidden shrink-0 whitespace-nowrap rounded-full bg-[#edf2f3] px-2.5 py-1 text-xs font-semibold text-[#425f65] sm:inline">
               Somente leitura
             </span>
           ) : null}
           <Link
             href="/estoque/leitura"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[#f3ece1] sm:flex sm:h-11 sm:w-auto sm:items-center sm:gap-1.5 sm:px-3 md:h-9"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[#edf4f4] sm:flex sm:h-11 sm:w-auto sm:items-center sm:gap-1.5 sm:px-3 md:h-9"
             aria-label="Ler QR Code"
           >
             <QrCode size={18} />
@@ -327,14 +337,14 @@ export function Shell({
               <span className="text-[11px] text-[var(--muted)]">{ROLE_LABEL[role]}</span>
             </div>
             <form action={signOut}>
-              <button type="submit" className="flex h-11 items-center gap-1 rounded-xl px-2 text-[13px] font-medium text-[#4a453d] hover:bg-[#f3ece1] md:h-8">
+              <button type="submit" className="flex h-11 items-center gap-1 rounded-xl px-2 text-[13px] font-medium text-[#425f65] hover:bg-[#edf4f4] md:h-8">
                 <LogOut size={14} />
                 Sair
               </button>
             </form>
           </div>
         </header>
-        <main className="flex min-w-0 flex-col px-3 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-5 md:px-8 md:pt-7 lg:pb-12">{children}</main>
+        <main id="conteudo" className="lab-workspace flex min-w-0 flex-col px-3 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-5 md:px-8 md:pt-7 lg:pb-12">{children}</main>
       </div>
 
       <MobileDock
@@ -351,13 +361,13 @@ export function Shell({
 
 const DOCK: Record<AppRole, { href: string; label: string; icon: typeof LayoutDashboard }[]> = {
   admin: [
-    { href: "/dashboard", label: "Painel", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Visão do dia", icon: LayoutDashboard },
     { href: "/laboratorio/rapido", label: "Lançar", icon: Zap },
     { href: "/montagem", label: "Bancada", icon: Wrench },
     { href: "/lentes", label: "Lentes", icon: PackageSearch },
   ],
   gestor: [
-    { href: "/dashboard", label: "Painel", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Visão do dia", icon: LayoutDashboard },
     { href: "/laboratorio/rapido", label: "Lançar", icon: Zap },
     { href: "/montagem", label: "Bancada", icon: Wrench },
     { href: "/lentes", label: "Lentes", icon: PackageSearch },
@@ -375,7 +385,7 @@ const DOCK: Record<AppRole, { href: string; label: string; icon: typeof LayoutDa
     { href: "/estoque", label: "Estoque", icon: Package },
   ],
   consulta: [
-    { href: "/dashboard", label: "Painel", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Visão do dia", icon: LayoutDashboard },
     { href: "/laboratorio", label: "OS", icon: ClipboardList },
     { href: "/montagem", label: "Bancada", icon: Wrench },
     { href: "/lentes", label: "Lentes", icon: PackageSearch },
@@ -417,7 +427,7 @@ function MobileDock({
             )}
           >
             <Icon size={22} strokeWidth={active ? 2.4 : 2} />
-            <span className="leading-none">{item.label}</span>
+            <span className="leading-none">{item.href === "/dashboard" ? "Hoje" : item.label}</span>
             {count > 0 ? (
               <span className="absolute right-1/2 top-1.5 mr-[-18px] min-w-4 rounded-full bg-[#d2382b] px-1 text-[10px] font-bold leading-4 text-white">{count}</span>
             ) : null}
@@ -448,7 +458,7 @@ export function PageHeading({
   return (
     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
       <div>
-        <h1 className="text-[30px] leading-tight">{title}</h1>
+        <h1 className="text-[26px] font-bold leading-tight md:text-[30px]">{title}</h1>
         {description ? <p className="mt-1.5 max-w-3xl text-sm text-[var(--muted)]">{description}</p> : null}
       </div>
       {children ? <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto [&>a]:flex-1 sm:[&>a]:flex-none [&>button]:flex-1 sm:[&>button]:flex-none">{children}</div> : null}

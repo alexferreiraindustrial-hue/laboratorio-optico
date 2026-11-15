@@ -34,12 +34,12 @@ export default async function StoresPage({ searchParams }: { searchParams: Promi
       </PageHeading>
       <Panel className="mb-4 p-3">
         <form>
-          <input name="q" defaultValue={q} placeholder="Nome, código, responsável ou telefone" className="h-9 w-full rounded-md border border-[#d5cbbb] px-3 text-sm" />
+          <input name="q" defaultValue={q} placeholder="Nome, código, responsável ou telefone" className="h-9 w-full rounded-md border border-[#cbdadd] px-3 text-sm" />
         </form>
       </Panel>
-      <div className="overflow-x-auto rounded-md border border-[#e6dcce] bg-white">
+      <div className="overflow-x-auto rounded-md border border-[#dce5e7] bg-white">
         <table className="w-full min-w-[760px] text-left text-sm">
-          <thead className="bg-[#f8f3ea] text-[#6b6358]">
+          <thead className="bg-[#f6f9f9] text-[#60767b]">
             <tr>
               <th className="px-3 py-2 font-medium">Loja</th>
               <th className="px-3 py-2 font-medium">Responsável</th>
@@ -54,8 +54,8 @@ export default async function StoresPage({ searchParams }: { searchParams: Promi
             {(stores ?? []).map((store) => {
               const item = stats.get(store.id) ?? { open: 0, ready: 0, late: 0 };
               return (
-                <tr key={store.id} className="border-t border-[#e6dcce]">
-                  <td className="px-3 py-2"><Link className="font-medium text-[#0b5c54]" href={`/lojas/${store.id}`}>{store.quick_code ? <span className="mr-1.5 rounded bg-[#d8ebe6] px-1.5 py-px font-mono text-xs text-[#0a4540]">l{store.quick_code}</span> : null}{store.trade_name}</Link><div className="font-mono text-xs text-[#6b6358]">{store.public_code}</div></td>
+                <tr key={store.id} className="border-t border-[#dce5e7]">
+                  <td className="px-3 py-2"><Link className="font-medium text-[#087e83]" href={`/lojas/${store.id}`}>{store.quick_code ? <span className="mr-1.5 rounded bg-[#e0f2f1] px-1.5 py-px font-mono text-xs text-[#125d63]">l{store.quick_code}</span> : null}{store.trade_name}</Link><div className="font-mono text-xs text-[#60767b]">{store.public_code}</div></td>
                   <td className="px-3 py-2">{store.contact_name || "—"}</td>
                   <td className="px-3 py-2">{store.phone || "—"}</td>
                   <td className="px-3 py-2">{item.open}</td>

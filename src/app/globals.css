@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ede6d8;
-  --surface: #fbf7f0;
-  --ink: #1a1714;
-  --muted: #6b6358;
-  --line: #e6dcce;
-  --accent: #0b5c54;
-  --accent-strong: #084840;
-  --accent-soft: #d8ebe6;
+  --background: #f3f6f6;
+  --surface: #ffffff;
+  --ink: #172e32;
+  --muted: #60767b;
+  --line: #dce5e7;
+  --accent: #087e83;
+  --accent-strong: #066369;
+  --accent-soft: #e0f2f1;
   --danger: #b42318;
   --warning: #9a5b00;
   --ok: #1a6b4a;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --shadow-soft: 0 18px 40px -28px rgba(26, 23, 20, 0.45);
+  --shadow-soft: 0 2px 6px -4px rgba(23, 46, 50, 0.18);
   color-scheme: light;
 }
 
@@ -26,7 +26,7 @@
   --color-line: var(--line);
   --color-accent: var(--accent);
   --font-sans: var(--font-ui);
-  --font-display: var(--font-display);
+  --font-display: var(--font-ui);
   --font-mono: var(--font-ui-mono);
 }
 
@@ -43,10 +43,7 @@ body {
 
 body {
   margin: 0;
-  background:
-    radial-gradient(900px 420px at 92% -8%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
-    radial-gradient(700px 380px at -10% 18%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 55%),
-    var(--background);
+  background: var(--background);
   color: var(--ink);
   font-family: var(--font-ui), "Segoe UI", sans-serif;
   font-size: 14px;
@@ -55,22 +52,11 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-body::before {
-  content: "";
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  opacity: 0.045;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
-}
-
 h1,
 .display {
-  font-family: var(--font-display), Georgia, serif;
+  font-family: var(--font-ui), "Segoe UI", sans-serif;
   font-weight: 600;
-  letter-spacing: -0.038em;
+  letter-spacing: -0.035em;
   line-height: 1.05;
 }
 
@@ -86,6 +72,8 @@ select,
 textarea {
   font: inherit;
 }
+
+input[type="file"] { width: 100%; min-width: 0; max-width: 100%; font-size: 12px; }
 
 input[type="checkbox"],
 input[type="radio"] {
@@ -153,7 +141,7 @@ textarea:focus {
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -165,3 +153,29 @@ html {
     scroll-behavior: auto !important;
   }
 }
+
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+button:not(:disabled), summary, select { cursor: pointer; }
+table { font-variant-numeric: tabular-nums; }
+thead th { position: relative; white-space: nowrap; }
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+.lab-sidebar { background: #102e34; color: #e4f0f1; }
+.lab-sidebar nav a { color: #bed0d3; }
+.lab-sidebar nav a:hover { background: #1c4148; color: white; }
+.lab-sidebar nav a[aria-current="page"] { background: #e0f2f1; color: #125d63; box-shadow: none; }
+.lab-sidebar nav p { color: #86a5ac; }
+.lab-sidebar nav details[open] summary { color: #e4f0f1; }
+.lab-sidebar .lab-brand { border-color: #29474d; }
+.lab-sidebar .lab-brand .display { color: white; }
+.lab-sidebar .lab-brand small { color: #8fb4bc; }
+.lab-sidebar .lab-account { border-color: #29474d; }
+.lab-sidebar .lab-account span { color: #bed0d3; }
+.lab-sidebar .lab-account button { color: #bed0d3; }
+.lab-sidebar .lab-account button:hover { background: #1c4148; }
+.lab-workspace section { scroll-margin-top: 88px; }
+.lab-drawer form { padding-bottom: 24px; }
+.lab-drawer form > .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+@media (max-width: 640px) { .lab-drawer form > .grid { grid-template-columns: 1fr; } }
+@media print { .lab-sidebar, .lab-drawer { display: none !important; } }

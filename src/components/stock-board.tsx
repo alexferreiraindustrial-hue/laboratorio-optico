@@ -110,7 +110,7 @@ export function StockBoard({
             <input type="checkbox" checked={onlyStocked} onChange={(event) => setOnlyStocked(event.target.checked)} />
             Só graus já cadastrados
           </label>
-          <p className="text-xs text-[#6b6358]">
+          <p className="text-xs text-[#60767b]">
             Linha = esférico. Coluna = cilíndrico. Número = saldo. <strong>+</strong> = grau ainda sem lente — clique para cadastrar.
           </p>
         </div>
@@ -126,7 +126,7 @@ export function StockBoard({
                   key={key}
                   type="button"
                   onClick={() => setBand(key)}
-                  className={`h-9 rounded-md px-3 text-xs font-semibold ${band === key ? "bg-white text-[#1a1714] shadow-sm" : "text-[#6b6358]"}`}
+                  className={`h-9 rounded-md px-3 text-xs font-semibold ${band === key ? "bg-white text-[#172e32] shadow-sm" : "text-[#60767b]"}`}
                 >
                   {label}
                 </button>
@@ -145,15 +145,15 @@ export function StockBoard({
 
       {special ? null : (
         <Panel className="overflow-auto p-2">
-          <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-[#8a8173]">
+          <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-[#74898e]">
             Cilíndrico → &nbsp;&nbsp; Esférico ↓ &nbsp;· passo {formatDiopter(grid.stepCents).replace("+", "")}
           </p>
           <table className="border-separate border-spacing-1 text-center text-xs">
             <thead>
               <tr>
-                <th className="sticky left-0 z-20 bg-white px-2 py-2 text-[11px] font-semibold text-[#6b6358]">Esf. \ Cil.</th>
+                <th className="sticky left-0 z-20 bg-white px-2 py-2 text-[11px] font-semibold text-[#60767b]">Esf. \ Cil.</th>
                 {cylinder.map((value) => (
-                  <th key={value} className="sticky top-0 z-10 min-w-11 bg-[#f8f3ea] px-1 py-2 font-semibold text-[#4a453d]">
+                  <th key={value} className="sticky top-0 z-10 min-w-11 bg-[#f6f9f9] px-1 py-2 font-semibold text-[#425f65]">
                     {formatDiopter(value)}
                   </th>
                 ))}
@@ -162,7 +162,7 @@ export function StockBoard({
             <tbody>
               {visibleSphere.map((sphereValue) => (
                 <tr key={sphereValue}>
-                  <th className="sticky left-0 z-10 bg-white px-2 text-right font-semibold text-[#1a1714]">{formatDiopter(sphereValue)}</th>
+                  <th className="sticky left-0 z-10 bg-white px-2 text-right font-semibold text-[#172e32]">{formatDiopter(sphereValue)}</th>
                   {cylinder.map((cylinderValue) => {
                     const group = cellItems(sphereValue, cylinderValue);
                     if (onlyStocked && group.length === 0) {
@@ -181,8 +181,8 @@ export function StockBoard({
                           title={group.length ? `${formatDiopter(sphereValue)} / ${formatDiopter(cylinderValue)} · saldo ${qty}` : `Cadastrar ${formatDiopter(sphereValue)} / ${formatDiopter(cylinderValue)}`}
                           onClick={() => setSelected({ sphere: sphereValue, cylinder: cylinderValue })}
                           className={`h-11 min-w-11 rounded-md text-sm font-semibold md:h-9 md:min-w-9 ${
-                            group.length ? toneClass[tone] : "border border-dashed border-[#d5cbbb] bg-[#fbfaf7] text-[#0b5c54]"
-                          } ${on ? "ring-2 ring-[#0b5c54]" : ""}`}
+                            group.length ? toneClass[tone] : "border border-dashed border-[#cbdadd] bg-[#fbfaf7] text-[#087e83]"
+                          } ${on ? "ring-2 ring-[#087e83]" : ""}`}
                         >
                           {group.length ? qty : "+"}
                         </button>
@@ -202,15 +202,15 @@ export function StockBoard({
             Grau {formatDiopter(selected.sphere)} / {formatDiopter(selected.cylinder)}
           </h2>
           {selectedItems.length === 0 ? (
-            <p className="mt-2 text-sm text-[#6b6358]">Este grau ainda não está no estoque. Preencha abaixo para incluir na grade.</p>
+            <p className="mt-2 text-sm text-[#60767b]">Este grau ainda não está no estoque. Preencha abaixo para incluir na grade.</p>
           ) : (
             <ul className="mt-3 grid gap-2 text-sm">
               {selectedItems.map((item) => (
-                <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-[#efe8dc] pb-2">
+                <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-[#edf2f3] pb-2">
                   <span>{item.public_code} · saldo {item.current_qty} · mín. {item.min_qty} · {item.location || "sem localização"} · {formatBRLFromCents(item.unit_cost_cents)}</span>
                   <span className="flex gap-3">
-                    <Link className="text-[#0b5c54] underline" href={`/estoque/${item.id}`}>Abrir</Link>
-                    <Link className="text-[#0b5c54] underline" href={`/estoque/etiquetas?ids=${item.id}`}>Etiqueta</Link>
+                    <Link className="text-[#087e83] underline" href={`/estoque/${item.id}`}>Abrir</Link>
+                    <Link className="text-[#087e83] underline" href={`/estoque/etiquetas?ids=${item.id}`}>Etiqueta</Link>
                   </span>
                 </li>
               ))}
@@ -278,7 +278,7 @@ export function StockCreateForm({
 
   return (
     <form
-      className="mt-4 grid gap-3 border-t border-[#efe8dc] pt-3 md:grid-cols-4"
+      className="mt-4 grid gap-3 border-t border-[#edf2f3] pt-3 md:grid-cols-4"
       onSubmit={(event) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
@@ -333,7 +333,7 @@ export function StockCreateForm({
           <input type="hidden" name="unitCost" value="" />
           <input type="hidden" name="notes" value="" />
           <div className="md:col-span-4">
-            <button type="button" className="text-sm font-semibold text-[#0b5c54] underline" onClick={() => setMore(true)}>
+            <button type="button" className="text-sm font-semibold text-[#087e83] underline" onClick={() => setMore(true)}>
               Mais detalhes (marca, lote, custo…)
             </button>
           </div>

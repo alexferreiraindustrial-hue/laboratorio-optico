@@ -21,12 +21,12 @@ import {
 } from "recharts";
 import type { ControlPoint, ParetoItem } from "@/lib/domain/lean";
 
-const ACCENT = "#0b5c54";
+const ACCENT = "#087e83";
 const AMBER = "#c8881a";
 const RED = "#b42318";
-const GRID = "#e6dcce";
-const tick = { fontSize: 11, fill: "#6b6358" };
-const tooltipStyle = { borderRadius: 10, border: "1px solid #e6dcce", fontSize: 12, boxShadow: "0 8px 24px -12px rgba(19,32,31,.25)" };
+const GRID = "#dce5e7";
+const tick = { fontSize: 11, fill: "#60767b" };
+const tooltipStyle = { borderRadius: 10, border: "1px solid #dce5e7", fontSize: 12, boxShadow: "0 8px 24px -12px rgba(19,32,31,.25)" };
 
 
 export function ParetoChart({ data }: { data: ParetoItem[] }) {
@@ -78,7 +78,7 @@ export function ControlChart({ data }: { data: ControlPoint[] }) {
           <YAxis tick={tick} />
           <Tooltip contentStyle={tooltipStyle} />
           <Line dataKey="ucl" name="LSC" stroke={RED} strokeDasharray="5 4" dot={false} strokeWidth={1.5} type="stepAfter" />
-          <Line dataKey="cl" name="Média (ū)" stroke="#8a8173" dot={false} strokeWidth={1.5} />
+          <Line dataKey="cl" name="Média (ū)" stroke="#74898e" dot={false} strokeWidth={1.5} />
           <Line dataKey="lcl" name="LIC" stroke={RED} strokeDasharray="5 4" dot={false} strokeWidth={1.5} type="stepAfter" />
           <Line
             dataKey="value"
@@ -132,8 +132,8 @@ export function FiveSRadar({ series }: { series: { name: string; color: string; 
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart data={rows} outerRadius="72%">
           <PolarGrid stroke={GRID} />
-          <PolarAngleAxis dataKey="axis" tick={{ fontSize: 12, fill: "#4a453d", fontWeight: 600 }} />
-          <PolarRadiusAxis domain={[0, 5]} tickCount={6} tick={{ fontSize: 10, fill: "#8a8173" }} axisLine={false} />
+          <PolarAngleAxis dataKey="axis" tick={{ fontSize: 12, fill: "#425f65", fontWeight: 600 }} />
+          <PolarRadiusAxis domain={[0, 5]} tickCount={6} tick={{ fontSize: 10, fill: "#74898e" }} axisLine={false} />
           <Tooltip contentStyle={tooltipStyle} />
           {series.map((item) => (
             <Radar key={item.name} name={item.name} dataKey={item.name} stroke={item.color} fill={item.color} fillOpacity={0.18} strokeWidth={2} />

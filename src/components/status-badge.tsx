@@ -4,10 +4,10 @@ import { cn } from "@/lib/utils";
 
 export const STATUS_TONE: Record<OrderStatus, { fg: string; bg: string; dot: string }> = {
   aguardando_lentes: { fg: "#8a5a00", bg: "#fdf3dc", dot: "#d99a0b" },
-  aguardando_montagem: { fg: "#4a453d", bg: "#efe8dc", dot: "#8a96a0" },
-  em_montagem: { fg: "#0a4540", bg: "#d8ebe6", dot: "#0b5c54" },
+  aguardando_montagem: { fg: "#425f65", bg: "#edf2f3", dot: "#8a96a0" },
+  em_montagem: { fg: "#125d63", bg: "#e0f2f1", dot: "#087e83" },
   em_correcao: { fg: "#a3261b", bg: "#fdecea", dot: "#d2382b" },
-  em_conferencia: { fg: "#0a4540", bg: "#d8ebe6", dot: "#0b5c54" },
+  em_conferencia: { fg: "#125d63", bg: "#e0f2f1", dot: "#087e83" },
   pronto: { fg: "#1c6b43", bg: "#e3f4ea", dot: "#23955a" },
   entregue: { fg: "#3b4650", bg: "#e6e9ec", dot: "#3b4650" },
   cancelado: { fg: "#6b7680", bg: "#f3f4f6", dot: "#a0a8b0" },
@@ -16,8 +16,8 @@ export const STATUS_TONE: Record<OrderStatus, { fg: string; bg: string; dot: str
 const urgencyTone: Record<Urgency, { dot: string; fg: string; weight: string }> = {
   vermelho: { dot: "#d2382b", fg: "#a3261b", weight: "font-semibold" },
   amarelo: { dot: "#d99a0b", fg: "#8a5a00", weight: "font-semibold" },
-  verde: { dot: "#23955a", fg: "#4a453d", weight: "font-medium" },
-  cinza: { dot: "#c9d0d4", fg: "#8a8173", weight: "font-normal" },
+  verde: { dot: "#23955a", fg: "#425f65", weight: "font-medium" },
+  cinza: { dot: "#c9d0d4", fg: "#74898e", weight: "font-normal" },
 };
 
 const urgencyLabel: Record<Urgency, string> = {

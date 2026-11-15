@@ -245,9 +245,9 @@ export function SettingsScreen({
           {can(role, "users.manage") ? <UserCreateForm /> : null}
           <div className="mt-4">
             {can(role, "users.manage") ? (
-              <div className="overflow-x-auto rounded-xl border border-[#e6dcce]">
+              <div className="overflow-x-auto rounded-xl border border-[#dce5e7]">
                 <table className="w-full min-w-[480px] text-left text-sm">
-                  <thead className="bg-[#f8f3ea] text-xs font-medium uppercase tracking-wide text-[#6b6358]">
+                  <thead className="bg-[#f6f9f9] text-xs font-medium uppercase tracking-wide text-[#60767b]">
                     <tr>
                       <th className="px-3 py-2.5">Nome</th>
                       <th className="px-3 py-2.5">Status</th>
@@ -260,7 +260,7 @@ export function SettingsScreen({
                     ))}
                     {profiles.length === 0 ? (
                       <tr>
-                        <td colSpan={3} className="px-3 py-4 text-[#6b6358]">
+                        <td colSpan={3} className="px-3 py-4 text-[#60767b]">
                           Nenhum usuário encontrado.
                         </td>
                       </tr>
@@ -294,7 +294,7 @@ export function SettingsScreen({
               <span key={`${item.id}-d`}>{formatDateTime(item.created_at)}</span>,
               <span
                 key={`${item.id}-a`}
-                className="rounded-md bg-[#f3ece1] px-2 py-0.5 font-mono text-xs uppercase tracking-wide text-[#4a453d]"
+                className="rounded-md bg-[#edf4f4] px-2 py-0.5 font-mono text-xs uppercase tracking-wide text-[#425f65]"
               >
                 {item.action}
               </span>,
@@ -317,8 +317,8 @@ function SettingsCard({
   className?: string;
 }) {
   return (
-    <Panel className={cn("rounded-xl border-[#e6dcce] p-4 shadow-sm", className)}>
-      <h2 className="mb-3 text-sm font-semibold tracking-tight text-[#1a1714]">{title}</h2>
+    <Panel className={cn("rounded-xl border-[#dce5e7] p-4 shadow-sm", className)}>
+      <h2 className="mb-3 text-sm font-semibold tracking-tight text-[#172e32]">{title}</h2>
       {children}
     </Panel>
   );
@@ -354,7 +354,7 @@ function ToggleSwitch({ active, onToggle }: { active: boolean; onToggle: () => P
       }
       className={cn(
         "relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-50",
-        active ? "bg-[#0b5c54]" : "bg-[#d5cbbb]",
+        active ? "bg-[#087e83]" : "bg-[#cbdadd]",
       )}
     >
       <span
@@ -380,7 +380,7 @@ function TextAction({ label, onAction }: { label: string; onAction: () => Promis
           router.refresh();
         })
       }
-      className="shrink-0 text-xs font-medium text-[#0b5c54] hover:underline disabled:opacity-50"
+      className="shrink-0 text-xs font-medium text-[#087e83] hover:underline disabled:opacity-50"
     >
       {pending ? "..." : label}
     </button>
@@ -390,10 +390,10 @@ function TextAction({ label, onAction }: { label: string; onAction: () => Promis
 function ItemList({ children, empty }: { children: ReactNode; empty: string }) {
   const items = Array.isArray(children) ? children.filter(Boolean) : [children];
   if (items.length === 0) {
-    return <p className="rounded-lg bg-[#f8f3ea] px-3 py-3 text-sm text-[#6b6358]">{empty}</p>;
+    return <p className="rounded-lg bg-[#f6f9f9] px-3 py-3 text-sm text-[#60767b]">{empty}</p>;
   }
   return (
-    <ul className="max-h-48 divide-y divide-[#efe8dc] overflow-y-auto rounded-lg border border-[#e6dcce] bg-white">
+    <ul className="max-h-48 divide-y divide-[#edf2f3] overflow-y-auto rounded-lg border border-[#dce5e7] bg-white">
       {children}
     </ul>
   );
@@ -411,7 +411,7 @@ function ItemRow({
   return (
     <li className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
       <div className="min-w-0 flex flex-wrap items-center gap-1.5">
-        <span className="font-medium text-[#1a1714]">{title}</span>
+        <span className="font-medium text-[#172e32]">{title}</span>
         {badge}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
@@ -429,13 +429,13 @@ function SettingsTable({
   empty: string;
 }) {
   if (rows.length === 0) {
-    return <p className="rounded-lg bg-[#f8f3ea] px-3 py-3 text-sm text-[#6b6358]">{empty}</p>;
+    return <p className="rounded-lg bg-[#f6f9f9] px-3 py-3 text-sm text-[#60767b]">{empty}</p>;
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-[#e6dcce]">
+    <div className="overflow-x-auto rounded-lg border border-[#dce5e7]">
       <table className="w-full min-w-[280px] text-left text-sm">
-        <thead className="bg-[#f8f3ea] text-[11px] font-medium uppercase tracking-wide text-[#6b6358]">
+        <thead className="bg-[#f6f9f9] text-[11px] font-medium uppercase tracking-wide text-[#60767b]">
           <tr>
             {headers.map((header) => (
               <th key={header || "actions"} className="px-2.5 py-2">
@@ -446,7 +446,7 @@ function SettingsTable({
         </thead>
         <tbody>
           {rows.map((cells, index) => (
-            <tr key={index} className={cn("border-t border-[#efe8dc]", index % 2 === 1 && "bg-[#fafbfc]")}>
+            <tr key={index} className={cn("border-t border-[#edf2f3]", index % 2 === 1 && "bg-[#fafbfc]")}>
               {cells.map((cell, cellIndex) => (
                 <td key={cellIndex} className="px-2.5 py-2 align-middle">
                   {cell}
@@ -473,7 +473,7 @@ function AddRecordForm({
   const [pending, startTransition] = useTransition();
   return (
     <form
-      className="mt-3 grid gap-2.5 border-t border-[#efe8dc] pt-3"
+      className="mt-3 grid gap-2.5 border-t border-[#edf2f3] pt-3"
       onSubmit={(event) => {
         event.preventDefault();
         const form = event.currentTarget;
@@ -500,7 +500,7 @@ function AddRecordForm({
               {key === "notes" ? (
                 <TextArea name={key} rows={2} />
               ) : key === "color" ? (
-                <Input name={key} required type="color" defaultValue="#0b5c54" className="h-10 cursor-pointer overflow-hidden p-1" />
+                <Input name={key} required type="color" defaultValue="#087e83" className="h-10 cursor-pointer overflow-hidden p-1" />
               ) : (
                 <Input name={key} required={key !== "notes"} type="text" />
               )}
@@ -710,7 +710,7 @@ function ScheduleForm({
               }
               className={cn(
                 "inline-flex h-11 min-w-11 items-center justify-center rounded-lg px-3 text-sm font-semibold transition-colors disabled:opacity-50 md:h-8 md:min-w-8 md:px-2.5 md:text-xs",
-                on ? "bg-[#0b5c54] text-white" : "bg-[#f3ece1] text-[#6b6358] hover:bg-[#e4e9ee]",
+                on ? "bg-[#087e83] text-white" : "bg-[#edf4f4] text-[#60767b] hover:bg-[#e4e9ee]",
               )}
             >
               {label}
@@ -797,8 +797,8 @@ function UserRoleRow({ profile, striped }: { profile: ProfileRow; striped: boole
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   return (
-    <tr className={cn("border-t border-[#efe8dc]", striped && "bg-[#fafbfc]")}>
-      <td className="px-3 py-2.5 font-medium text-[#1a1714]">{profile.full_name}</td>
+    <tr className={cn("border-t border-[#edf2f3]", striped && "bg-[#fafbfc]")}>
+      <td className="px-3 py-2.5 font-medium text-[#172e32]">{profile.full_name}</td>
       <td className="px-3 py-2.5">
         <div className="flex items-center gap-2">
           <StatusBadge active={profile.active} />

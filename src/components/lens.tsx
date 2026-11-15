@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
  * antirreflexo) e, no vidro, a mira do lensômetro.
  */
 const TONES = {
-  ok: ["#0b5c54", "#3fb58f"],
+  ok: ["#087e83", "#3fb58f"],
   atencao: ["#c98a06", "#f0c04a"],
   risco: ["#c42f22", "#f0705f"],
   pronta: ["#1f8a52", "#5cc98d"],
@@ -104,11 +104,11 @@ export function LensGauge({
           textAnchor="middle"
           fontSize={big ? 21 : 22}
           fontWeight="700"
-          fill="#1a1714"
+          fill="#172e32"
           style={{ fontVariantNumeric: "tabular-nums", letterSpacing: "-0.03em" }}
         >
           {pct}
-          <tspan fontSize={big ? 11 : 12} fontWeight="600" fill="#6b6358" dx="1">%</tspan>
+          <tspan fontSize={big ? 11 : 12} fontWeight="600" fill="#60767b" dx="1">%</tspan>
         </text>
       ) : null}
       {label && big ? (
@@ -124,7 +124,7 @@ export function LensGauge({
 export function LensMark({ size = 30, className }: { size?: number; className?: string }) {
   return (
     <svg viewBox="0 0 32 32" width={size} height={size} aria-hidden className={cn("shrink-0", className)}>
-      <rect width="32" height="32" rx="10" fill="#0b5c54" />
+      <rect width="32" height="32" rx="10" fill="#087e83" />
       <circle cx="16" cy="16" r="9.5" fill="none" stroke="#7fd8bd" strokeWidth="2.2" />
       <circle cx="16" cy="16" r="6.4" fill="#ffffff" fillOpacity="0.14" />
       <path d="M16 9.5v13M9.5 16h13" stroke="#ffffff" strokeOpacity="0.55" strokeWidth="1" />

@@ -48,13 +48,13 @@ export default async function AssistenciaPage() {
 
       <BoBoard rows={rows} canManage={["admin", "gestor", "montador"].includes(role)} canCancel={can(role, "orders.cancel")} nowMs={nowMs} />
 
-      <section className="rounded-xl border border-[#e6dcce] bg-white p-5">
+      <section className="rounded-xl border border-[#dce5e7] bg-white p-5">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
             <h2 className="text-[15px] font-semibold">Onde os defeitos nascem · últimos 30 dias</h2>
-            <p className="text-xs text-[#6b6358]">Cada ocorrência é registrada na etapa em que aconteceu. É a base da reunião mensal de melhoria contínua.</p>
+            <p className="text-xs text-[#60767b]">Cada ocorrência é registrada na etapa em que aconteceu. É a base da reunião mensal de melhoria contínua.</p>
           </div>
-          <Link href="/melhoria/indicadores" className="text-[13px] font-semibold text-[#0b5c54] hover:underline">
+          <Link href="/melhoria/indicadores" className="text-[13px] font-semibold text-[#087e83] hover:underline">
             Ver Pareto completo
           </Link>
         </div>
@@ -62,7 +62,7 @@ export default async function AssistenciaPage() {
           {[...byStep, ...(noStep ? [{ key: "sem", label: "Sem etapa informada", count: noStep }] : [])].map((item) => (
             <li key={item.key} className="grid grid-cols-[170px_1fr_40px] items-center gap-3 text-sm">
               <span className="truncate font-medium">{item.label}</span>
-              <span className="h-2.5 overflow-hidden rounded-full bg-[#efe8dc]">
+              <span className="h-2.5 overflow-hidden rounded-full bg-[#edf2f3]">
                 <span className="block h-full rounded-full bg-[#b42318] transition-[width] duration-500" style={{ width: `${(item.count / max) * 100}%`, opacity: item.count === max ? 1 : 0.55 }} />
               </span>
               <span className="tabular text-right font-semibold">{item.count}</span>

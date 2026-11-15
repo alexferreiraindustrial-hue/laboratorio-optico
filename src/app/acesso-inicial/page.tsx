@@ -13,7 +13,7 @@ export default function FirstAccessPage() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <h1 className="text-2xl font-semibold">Criar o administrador</h1>
-      <p className="mt-2 text-sm text-[#6b6358]">
+      <p className="mt-2 text-sm text-[#60767b]">
         Esta tela só funciona enquanto não existir nenhum usuário. A primeira conta recebe o perfil de administrador.
       </p>
       <Panel className="mt-5 p-4">
@@ -41,7 +41,7 @@ export default function FirstAccessPage() {
           <Feedback error={error} message={message} />
         </form>
       </Panel>
-      <Link className="mt-4 text-sm text-[#0b5c54] underline" href="/login">Voltar ao acesso</Link>
+      <Link className="mt-4 text-sm text-[#087e83] underline" href="/login">Voltar ao acesso</Link>
     </main>
   );
 }

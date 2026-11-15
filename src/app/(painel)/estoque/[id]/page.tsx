@@ -30,7 +30,7 @@ export default async function StockItemPage({ params }: { params: Promise<{ id: 
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
       <div>
         <PageHeading title={item.public_code} description="Identificador do estoque. O QR Code não contém receita nem dados de cliente.">
-          <Link className="text-sm text-[#0b5c54] underline" href={`/estoque/etiquetas?ids=${item.id}`}>Imprimir etiqueta</Link>
+          <Link className="text-sm text-[#087e83] underline" href={`/estoque/etiquetas?ids=${item.id}`}>Imprimir etiqueta</Link>
         </PageHeading>
         <Panel className="p-4 text-sm">
           <p className="text-lg font-medium">{formatDiopter(item.sphere_cents)} / {formatDiopter(item.cylinder_cents)}</p>
@@ -57,7 +57,7 @@ export default async function StockItemPage({ params }: { params: Promise<{ id: 
         </Panel>
         <Panel className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="text-xs uppercase text-[#6b6358]">
+            <thead className="text-xs uppercase text-[#60767b]">
               <tr>
                 <th className="px-3 py-2">Quando</th>
                 <th className="px-3 py-2">Tipo</th>
@@ -68,7 +68,7 @@ export default async function StockItemPage({ params }: { params: Promise<{ id: 
             </thead>
             <tbody>
               {(movements.data ?? []).map((movement) => (
-                <tr key={movement.id} className="border-t border-[#efe8dc]">
+                <tr key={movement.id} className="border-t border-[#edf2f3]">
                   <td className="px-3 py-2">{formatDateTime(movement.created_at)}</td>
                   <td className="px-3 py-2">{MOVEMENT_LABEL[movement.movement_type as MovementType]} {movement.exceptional ? "· excepcional" : ""} {movement.needs_review ? "· conferir" : ""}</td>
                   <td className="px-3 py-2">{movement.signed_delta}</td>

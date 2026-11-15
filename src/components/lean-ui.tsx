@@ -23,7 +23,7 @@ const toneStyle: Record<Tone, string> = {
   ok: "bg-[#e6f4ec] text-[#1c6b43]",
   warn: "bg-[#fdf3dc] text-[#8a5a00]",
   bad: "bg-[#fdecea] text-[#a3261b]",
-  neutral: "bg-[#efe8dc] text-[#4a453d]",
+  neutral: "bg-[#edf2f3] text-[#425f65]",
 };
 
 export function Pill({ tone = "neutral", children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
@@ -45,18 +45,18 @@ export function Kpi({
   badge?: string;
   tool?: string;
 }) {
-  const bar = { ok: "#23955a", warn: "#d99a0b", bad: "#d2382b", neutral: "#d5cbbb" }[tone];
+  const bar = { ok: "#23955a", warn: "#d99a0b", bad: "#d2382b", neutral: "#cbdadd" }[tone];
   return (
     <article className="relative overflow-hidden rounded-[22px] border border-[var(--line)] bg-[var(--surface)] p-4 shadow-[var(--shadow-soft)]">
       <span className="absolute inset-y-0 left-0 w-1" style={{ background: bar }} />
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[13px] font-medium text-[#6b6358]">{label}</p>
-        {tool ? <span className="rounded-full bg-[#f3ece1] px-1.5 py-px text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">{tool}</span> : null}
+        <p className="text-[13px] font-medium text-[#60767b]">{label}</p>
+        {tool ? <span className="rounded-full bg-[#edf4f4] px-1.5 py-px text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">{tool}</span> : null}
       </div>
       <p className="display tabular mt-2 text-[28px] leading-none">{value}</p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         {badge ? <Pill tone={tone}>{badge}</Pill> : null}
-        {hint ? <span className="text-xs text-[#6b6358]">{hint}</span> : null}
+        {hint ? <span className="text-xs text-[#60767b]">{hint}</span> : null}
       </div>
     </article>
   );
@@ -68,7 +68,7 @@ export function Card({ title, subtitle, action, children, className }: { title: 
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--line)] px-5 py-3.5">
         <div>
           <h2 className="text-[15px] font-semibold">{title}</h2>
-          {subtitle ? <p className="mt-0.5 text-xs text-[#6b6358]">{subtitle}</p> : null}
+          {subtitle ? <p className="mt-0.5 text-xs text-[#60767b]">{subtitle}</p> : null}
         </div>
         {action}
       </header>

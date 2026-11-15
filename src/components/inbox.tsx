@@ -38,19 +38,19 @@ export function Inbox({
     <div className="grid gap-3">
       <Panel className="p-3">
         <form className="grid gap-2 md:grid-cols-5">
-          <input name="q" defaultValue={filters.q} placeholder="OS ou trecho" className="h-9 rounded-md border border-[#d5cbbb] px-3 text-sm" />
+          <input name="q" defaultValue={filters.q} placeholder="OS ou trecho" className="h-9 rounded-md border border-[#cbdadd] px-3 text-sm" />
           <Select name="status" defaultValue={filters.status ?? ""}>
             <option value="">Todas</option>
             <option value="novo">Novas</option>
             <option value="visualizado">Visualizadas</option>
             <option value="respondido">Respondidas</option>
           </Select>
-          <input name="from" type="date" defaultValue={filters.from} aria-label="De" className="h-9 rounded-md border border-[#d5cbbb] px-3 text-sm" />
-          <input name="to" type="date" defaultValue={filters.to} aria-label="Até" className="h-9 rounded-md border border-[#d5cbbb] px-3 text-sm" />
+          <input name="from" type="date" defaultValue={filters.from} aria-label="De" className="h-9 rounded-md border border-[#cbdadd] px-3 text-sm" />
+          <input name="to" type="date" defaultValue={filters.to} aria-label="Até" className="h-9 rounded-md border border-[#cbdadd] px-3 text-sm" />
           <Button type="submit">Filtrar</Button>
         </form>
       </Panel>
-      {items.length === 0 ? <p className="text-sm text-[#6b6358]">Nenhum recado neste filtro.</p> : null}
+      {items.length === 0 ? <p className="text-sm text-[#60767b]">Nenhum recado neste filtro.</p> : null}
       {items.map((item) => <MessageCard key={item.id} item={item} />)}
     </div>
   );
@@ -64,14 +64,14 @@ function MessageCard({ item }: { item: InboxItem }) {
     <Panel className="p-4 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-medium">{item.sender_label}</p>
-        <span className="text-xs uppercase text-[#6b6358]">{item.status}</span>
+        <span className="text-xs uppercase text-[#60767b]">{item.status}</span>
       </div>
-      <p className="mt-1 text-xs text-[#6b6358]">
+      <p className="mt-1 text-xs text-[#60767b]">
         {item.store_name || "Sem loja"}{item.seller_name ? ` · ${item.seller_name}` : ""} · {formatDateTime(item.created_at)}
       </p>
       <p className="mt-2 whitespace-pre-wrap">{item.body}</p>
-      <p className="mt-2"><Link className="text-[#0b5c54]" href={`/laboratorio/${item.order_id}`}>{item.order_number || "Abrir OS"}</Link></p>
-      {item.reply_body ? <p className="mt-2 border-t border-[#e6dcce] pt-2 whitespace-pre-wrap">Resposta: {item.reply_body}</p> : (
+      <p className="mt-2"><Link className="text-[#087e83]" href={`/laboratorio/${item.order_id}`}>{item.order_number || "Abrir OS"}</Link></p>
+      {item.reply_body ? <p className="mt-2 border-t border-[#dce5e7] pt-2 whitespace-pre-wrap">Resposta: {item.reply_body}</p> : (
         <form
           className="mt-3 grid gap-2"
           onSubmit={(event) => {
@@ -85,7 +85,7 @@ function MessageCard({ item }: { item: InboxItem }) {
           }}
         >
           <input type="hidden" name="id" value={item.id} />
-          <textarea name="reply" required maxLength={800} placeholder="Resposta do laboratório" className="min-h-20 rounded-md border border-[#d5cbbb] px-3 py-2" />
+          <textarea name="reply" required maxLength={800} placeholder="Resposta do laboratório" className="min-h-20 rounded-md border border-[#cbdadd] px-3 py-2" />
           <div className="flex items-center gap-3">
             <Button type="submit" disabled={pending}>{pending ? "Salvando..." : "Responder"}</Button>
             <Feedback error={error} />

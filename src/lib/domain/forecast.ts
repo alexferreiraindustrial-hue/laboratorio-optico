@@ -1,4 +1,5 @@
 import { STATUS_LABEL, type OrderStatus } from "./constants";
+import { ASSEMBLY_BUFFER_HOURS } from "./flow";
 import { visibleOrderNumber } from "./orders";
 
 /**
@@ -41,7 +42,7 @@ export const RISK_TONE: Record<Risk, { fg: string; bg: string; dot: string }> = 
   atencao: { fg: "#8a5a00", bg: "#fdf3dc", dot: "#d99a0b" },
   risco: { fg: "#a3261b", bg: "#fdecea", dot: "#d2382b" },
   atrasada: { fg: "#ffffff", bg: "#b42318", dot: "#ffffff" },
-  sem_prazo: { fg: "#6b6358", bg: "#efe8dc", dot: "#c9d0d4" },
+  sem_prazo: { fg: "#60767b", bg: "#edf2f3", dot: "#c9d0d4" },
   pronta: { fg: "#1c6b43", bg: "#e3f4ea", dot: "#23955a" },
   entregue: { fg: "#3b4650", bg: "#e6e9ec", dot: "#3b4650" },
   cancelada: { fg: "#6b7680", bg: "#f3f4f6", dot: "#a0a8b0" },
@@ -104,6 +105,7 @@ export function forecastOrder(input: {
   status: OrderStatus;
   dueAt: string | null;
   stepsDone?: number;
+  lensExpectedAt?: string | null;
   now?: Date;
 }): Forecast {
   const now = input.now ?? new Date();
@@ -114,7 +116,10 @@ export function forecastOrder(input: {
   if (input.status === "cancelado") return { risk: "cancelada", progress, projectedReadyAt: null, slackHours: null, reason: "OS cancelada." };
   if (input.status === "pronto") return { risk: "pronta", progress, projectedReadyAt: null, slackHours: null, reason: "Pronta para retirada." };
 
-  const hours = remainingHours(input.status, steps);
+  const eta = input.lensExpectedAt ? new Date(input.lensExpectedAt).getTime() : NaN;
+  const hours = input.status === "aguardando_lentes" && Number.isFinite(eta)
+    ? Math.max(0, (eta - now.getTime()) / 36e5) + ASSEMBLY_BUFFER_HOURS
+    : remainingHours(input.status, steps);
   const projected = new Date(now.getTime() + hours * 36e5);
   if (!input.dueAt) {
     return { risk: "sem_prazo", progress, projectedReadyAt: projected, slackHours: null, reason: "Sem prazo combinado." };

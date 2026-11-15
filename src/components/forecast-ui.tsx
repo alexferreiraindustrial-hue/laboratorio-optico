@@ -26,13 +26,13 @@ export function ProgressBar({ value, risk, className, showLabel = true }: { valu
         ? "#d99a0b"
         : risk === "pronta" || risk === "entregue" || value >= 100
           ? "#23955a"
-          : "#0b5c54";
+          : "#087e83";
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#e7ebed]">
         <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${Math.max(3, Math.min(100, value))}%`, background: color }} />
       </div>
-      {showLabel ? <span className="tabular w-9 text-right font-mono text-[11px] font-medium text-[#4a453d]">{value}%</span> : null}
+      {showLabel ? <span className="tabular w-9 text-right font-mono text-[11px] font-medium text-[#425f65]">{value}%</span> : null}
     </div>
   );
 }
@@ -81,7 +81,7 @@ export function NotifySeller({
         onClick={copy}
         title="Copiar mensagem"
         className={cn(
-          "inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#d5cbbb] bg-white font-medium text-[#4a453d] hover:bg-[#f8f3ea]",
+          "inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#cbdadd] bg-white font-medium text-[#425f65] hover:bg-[#f6f9f9]",
           compact ? "h-11 min-w-11 justify-center px-3 text-sm md:h-7 md:min-w-0 md:px-2 md:text-xs" : "h-11 px-3 text-sm md:h-9",
         )}
       >

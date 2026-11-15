@@ -94,3 +94,20 @@ describe("lançamento rápido", () => {
     expect(withStoreOs).not.toContain("OS-2026-000010");
   });
 });
+
+
+describe("previsão com data da lente", () => {
+  it("considera a chegada informada e reserva a montagem", () => {
+    const forecast = forecastOrder({ status: "aguardando_lentes", dueAt: inHours(48), lensExpectedAt: inHours(40), now });
+    expect(forecast.risk).toBe("risco");
+    expect(forecast.projectedReadyAt?.toISOString()).toBe(inHours(64));
+  });
+  it("não usa uma previsão vencida para antecipar a conclusão", () => {
+    const forecast = forecastOrder({ status: "aguardando_lentes", dueAt: inHours(30), lensExpectedAt: inHours(-48), now });
+    expect(forecast.projectedReadyAt?.toISOString()).toBe(inHours(24));
+  });
+  it("ignora a antiga previsão da lente quando a montagem começou", () => {
+    const args = { status: "em_montagem" as const, dueAt: inHours(30), stepsDone: 2, now };
+    expect(forecastOrder({ ...args, lensExpectedAt: inHours(100) })).toEqual(forecastOrder(args));
+  });
+});

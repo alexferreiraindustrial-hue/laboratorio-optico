@@ -71,10 +71,14 @@ export async function quickCreateOrders(input: QuickCreateInput): Promise<{ ok: 
       results.push({ index, ok: false, message: actionError(error, "Não foi possível lançar.") ?? "Erro ao lançar." });
     } else {
       if (entry.lensExpectedAt || entry.lensSupplierRef) {
-        await supabase
+        const { error: lensError } = await supabase
           .from("service_orders")
           .update({ lens_expected_at: entry.lensExpectedAt || null, lens_supplier_ref: entry.lensSupplierRef?.trim() || null })
           .eq("id", data.id as string);
+        if (lensError) {
+          results.push({ index, ok: true, id: data.id as string, number: data.number as string, message: `${data.number} aberta, mas a previsão da lente não foi salva. Complete na fila de lentes.` });
+          continue;
+        }
       }
       results.push({ index, ok: true, id: data.id as string, number: data.number as string, message: `${data.number} aberta` });
     }

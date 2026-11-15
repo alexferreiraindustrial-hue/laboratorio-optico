@@ -215,6 +215,9 @@ export function EntryLaunch({
       const byKey = new Map(all.map((item) => [item.key, item.result]));
       setDrafts((current) => current.map((item) => (byKey.has(item.key) ? { ...item, result: byKey.get(item.key) } : item)));
       const opened = all.filter((item) => item.result?.ok);
+      for (const item of opened) {
+        if (item.result?.message.includes("não foi salva")) toast.warning(item.result.message, { duration: 10000 });
+      }
       if (opened.length === all.length) {
         const typed = targets.find((item) => item.key === opened[0]?.key)?.orderRef?.trim();
         toast.success(opened.length === 1 ? `${typed || opened[0]?.result?.number} aberta.` : `${opened.length} OS lançadas.`);
@@ -272,7 +275,7 @@ export function EntryLaunch({
   const createdIds = drafts.filter((item) => item.result?.ok && item.result.id).map((item) => item.result!.id!);
 
   if (activeLabs.length === 0) {
-    return <Panel className="px-5 py-8 text-center text-sm text-[#6b6358]">Cadastre um laboratório em Configurações antes de lançar OS.</Panel>;
+    return <Panel className="px-5 py-8 text-center text-sm text-[#60767b]">Cadastre um laboratório em Configurações antes de lançar OS.</Panel>;
   }
 
   return (
@@ -281,16 +284,16 @@ export function EntryLaunch({
         {/* 1. Para quem é o lote */}
         <Panel className="p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-[13px] font-semibold text-[#4a453d]">1 · Para quem são estas OS?</p>
-            <p className="text-xs text-[#6b6358]">
-              Atalho no campo: <kbd className="rounded border border-[#d5cbbb] bg-[#f8f3ea] px-1 font-mono">v2</kbd> vendedor 2 ·{" "}
-              <kbd className="rounded border border-[#d5cbbb] bg-[#f8f3ea] px-1 font-mono">l1</kbd> loja 1 ·{" "}
-              <kbd className="rounded border border-[#d5cbbb] bg-[#f8f3ea] px-1 font-mono">v0</kbd> sem vendedor
+            <p className="text-[13px] font-semibold text-[#425f65]">1 · Para quem são estas OS?</p>
+            <p className="hidden text-xs text-[#60767b] md:block">
+              Atalho no campo: <kbd className="rounded border border-[#cbdadd] bg-[#f6f9f9] px-1 font-mono">v2</kbd> vendedor 2 ·{" "}
+              <kbd className="rounded border border-[#cbdadd] bg-[#f6f9f9] px-1 font-mono">l1</kbd> loja 1 ·{" "}
+              <kbd className="rounded border border-[#cbdadd] bg-[#f6f9f9] px-1 font-mono">v0</kbd> sem vendedor
             </p>
           </div>
           <div className="mt-3 grid gap-3">
-            <div className="flex items-start gap-2">
-              <span className="mt-1.5 flex w-20 shrink-0 items-center gap-1 text-xs font-semibold text-[#6b6358]">Lab</span>
+            <div className={activeLabs.length < 2 ? "hidden" : "flex items-start gap-2"}>
+              <span className="mt-1.5 flex w-20 shrink-0 items-center gap-1 text-xs font-semibold text-[#60767b]">Lab</span>
               <div className="flex flex-wrap gap-1.5">
                 {activeLabs.map((lab) => (
                   <TargetChip key={lab.id} on={labId === lab.id} onClick={() => setLabId(lab.id)} code={lab.name.slice(0, 2).toUpperCase()}>
@@ -299,8 +302,8 @@ export function EntryLaunch({
                 ))}
               </div>
             </div>
-            <div className="flex items-start gap-2">
-              <span className="mt-1.5 flex w-20 shrink-0 items-center gap-1 text-xs font-semibold text-[#6b6358]">
+            <div className={activeStores.length === 0 ? "hidden" : "flex items-start gap-2"}>
+              <span className="mt-1.5 flex w-20 shrink-0 items-center gap-1 text-xs font-semibold text-[#60767b]">
                 <StoreIcon size={14} /> Loja
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -315,11 +318,11 @@ export function EntryLaunch({
               </div>
             </div>
             <div className="flex items-start gap-2">
-              <span className="mt-1.5 flex w-20 shrink-0 items-center gap-1 text-xs font-semibold text-[#6b6358]">
+              <span className="mt-1.5 flex w-20 shrink-0 items-center gap-1 text-xs font-semibold text-[#60767b]">
                 <User size={14} /> Vendedor
               </span>
               {externalStore ? (
-                <p className="rounded-lg bg-[#f2f7f6] px-3 py-1.5 text-[13px] text-[#0a4540]">
+                <p className="rounded-lg bg-[#f2f7f6] px-3 py-1.5 text-[13px] text-[#125d63]">
                   <strong>{store?.trade_name}</strong> é empresa externa (sem vendedores ligados): as OS ficam só com a loja.
                 </p>
               ) : (
@@ -334,7 +337,7 @@ export function EntryLaunch({
                   ))}
                   <button
                     type="button"
-                    className="h-11 rounded-lg border border-dashed border-[#d5cbbb] px-3 text-[13px] font-semibold text-[#0b5c54] md:h-8"
+                    className="h-11 rounded-lg border border-dashed border-[#cbdadd] px-3 text-[13px] font-semibold text-[#087e83] md:h-8"
                     onClick={() => {
                       pickSeller("");
                       toast("Próxima vendedora: escolha o lote seguinte.");
@@ -350,10 +353,10 @@ export function EntryLaunch({
 
         {/* 2. Datas */}
         <Panel className="p-4">
-          <p className="text-[13px] font-semibold text-[#4a453d]">2 · Prazos (valem para as próximas OS)</p>
-          <div className="mt-3 grid gap-4 lg:grid-cols-2">
+          <p className="text-[13px] font-semibold text-[#425f65]">2 · Prazos (valem para as próximas OS)</p>
+          <div className="mt-3 grid gap-4">
             <div className="grid gap-1.5">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-[#6b6358]">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-[#60767b]">
                 <CalendarClock size={14} /> Prometido ao cliente
               </span>
               <div className="flex flex-wrap items-center gap-1.5">
@@ -377,30 +380,30 @@ export function EntryLaunch({
                   value={dueDate}
                   onChange={(event) => setDueDate(event.target.value)}
                   aria-label="Data prometida ao cliente"
-                  className={cn("h-11 rounded-lg border px-2 text-base outline-none md:h-8 md:text-[13px]", dueDate ? "border-[#0b5c54] bg-[#d8ebe6] font-semibold" : "border-[#d5cbbb]")}
+                  className={cn("h-11 rounded-lg border px-2 text-base outline-none md:h-8 md:text-[13px]", dueDate ? "border-[#087e83] bg-[#e0f2f1] font-semibold" : "border-[#cbdadd]")}
                 />
               </div>
             </div>
-            <div className="grid gap-1.5">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-[#6b6358]">
-                <PackageSearch size={14} /> Previsão da lente (laboratório externo)
-              </span>
+            <details className="rounded-lg border border-dashed border-[var(--line)] bg-[var(--background)] p-3">
+              <summary className="flex min-h-8 items-center gap-2 text-xs font-semibold text-[var(--muted)]">
+                <PackageSearch size={14} /> Complementar pedido de lentes <span className="ml-auto text-[10px] font-normal">Opcional · pode preencher depois</span>
+              </summary>
               <div className="flex flex-wrap items-center gap-1.5">
                 <input
                   type="date"
                   value={lensDate}
                   onChange={(event) => setLensDate(event.target.value)}
                   aria-label="Previsão de chegada da lente"
-                  className={cn("h-11 rounded-lg border px-2 text-base outline-none md:h-8 md:text-[13px]", lensDate ? "border-[#0b5c54] bg-[#d8ebe6] font-semibold" : "border-[#d5cbbb]")}
+                  className={cn("h-11 rounded-lg border px-2 text-base outline-none md:h-8 md:text-[13px]", lensDate ? "border-[#087e83] bg-[#e0f2f1] font-semibold" : "border-[#cbdadd]")}
                 />
                 <input
                   value={lensRef}
                   onChange={(event) => setLensRef(event.target.value.slice(0, 60))}
                   placeholder="Nº do pedido no laboratório"
-                  className="h-11 min-w-0 flex-1 rounded-lg border border-[#d5cbbb] px-2 text-base outline-none focus:border-[#0b5c54] md:h-8 md:text-[13px]"
+                  className="h-11 min-w-0 flex-1 rounded-lg border border-[#cbdadd] px-2 text-base outline-none focus:border-[#087e83] md:h-8 md:text-[13px]"
                 />
                 {lensDate || lensRef ? (
-                  <button type="button" className="inline-flex h-11 items-center px-2 text-sm font-medium text-[#6b6358] hover:text-[#1a1714] md:h-8 md:text-xs" onClick={() => { setLensDate(""); setLensRef(""); }}>
+                  <button type="button" className="inline-flex h-11 items-center px-2 text-sm font-medium text-[#60767b] hover:text-[#172e32] md:h-8 md:text-xs" onClick={() => { setLensDate(""); setLensRef(""); }}>
                     limpar
                   </button>
                 ) : null}
@@ -414,18 +417,18 @@ export function EntryLaunch({
                       : LENS_RISK[previewRisk.risk].label}
                 </span>
               ) : null}
-            </div>
+            </details>
           </div>
         </Panel>
 
         {/* 3. Campo de lançamento */}
         <Panel className="p-4">
-          <label className="text-[13px] font-semibold text-[#4a453d]" htmlFor="quick-input">
-            3 · Digite ou bipe: <span className="font-normal text-[#6b6358]">“4521 Maria Souza”, só “4521” ou só “Maria Souza”</span>
+          <label className="text-[13px] font-semibold text-[#425f65]" htmlFor="quick-input">
+            3 · Digite ou bipe: <span className="font-normal text-[#60767b]">“4521 Maria Souza”, só “4521” ou só “Maria Souza”</span>
           </label>
           <div className="mt-2.5 flex flex-col items-stretch gap-2.5 sm:flex-row">
-            <div className="flex flex-1 items-start gap-2.5 rounded-xl border-2 border-[#0b5c54] bg-white px-3.5 py-3 shadow-[0_0_0_4px_rgba(14,107,98,0.10)]">
-              <ScanLine size={22} className="mt-0.5 shrink-0 text-[#0b5c54]" />
+            <div className="flex flex-1 items-start gap-2.5 rounded-xl border-2 border-[#087e83] bg-white px-3.5 py-3 shadow-[0_0_0_4px_rgba(14,107,98,0.10)]">
+              <ScanLine size={22} className="mt-0.5 shrink-0 text-[#087e83]" />
               <textarea
                 id="quick-input"
                 ref={inputRef}
@@ -453,22 +456,22 @@ export function EntryLaunch({
                   if (event.key === "Escape") setText("");
                 }}
                 placeholder="Número da OS e/ou nome do cliente"
-                className="min-h-7 flex-1 resize-none border-0 bg-transparent text-lg font-medium text-[#1a1714] shadow-none outline-none placeholder:font-normal placeholder:text-[#8a8173] focus:shadow-none"
+                className="min-h-7 flex-1 resize-none border-0 bg-transparent text-lg font-medium text-[#172e32] shadow-none outline-none placeholder:font-normal placeholder:text-[#74898e] focus:shadow-none"
               />
             </div>
             <Button type="button" className="h-12 px-5 sm:h-auto" disabled={!text.trim()} onClick={() => addFromText(text)}>
               {instant ? "Lançar" : "Adicionar"}
             </Button>
           </div>
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 text-xs text-[#6b6358]">
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 text-xs text-[#60767b]">
             <span className="flex items-center gap-1.5">
               <Keyboard size={14} /> Indo para:{" "}
-              <strong className="text-[#0a4540]">
+              <strong className="text-[#125d63]">
                 {[activeLabs.find((lab) => lab.id === labId)?.name, seller?.name, store?.trade_name].filter(Boolean).join(" · ") || "sem laboratório"}
               </strong>
             </span>
-            <label className="flex min-h-11 cursor-pointer items-center gap-2 font-medium text-[#4a453d]">
-              <input type="checkbox" checked={instant} onChange={(event) => setInstant(event.target.checked)} className="accent-[#0b5c54]" />
+            <label className="flex min-h-11 cursor-pointer items-center gap-2 font-medium text-[#425f65]">
+              <input type="checkbox" checked={instant} onChange={(event) => setInstant(event.target.checked)} className="accent-[#087e83]" />
               Lançar direto no Enter (modo leitor)
             </label>
           </div>
@@ -476,9 +479,9 @@ export function EntryLaunch({
 
         {/* Fila */}
         <Panel className="overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-[#e6dcce] px-5 py-3.5">
+          <div className="flex items-center justify-between gap-3 border-b border-[#dce5e7] px-5 py-3.5">
             <h2 className="text-[15px] font-semibold">
-              Lançadas nesta sessão <span className="ml-1 rounded-md bg-[#efe8dc] px-1.5 text-xs text-[#6b6358]">{drafts.length}</span>
+              Lançadas nesta sessão <span className="ml-1 rounded-md bg-[#edf2f3] px-1.5 text-xs text-[#60767b]">{drafts.length}</span>
             </h2>
             <div className="flex items-center gap-2">
               {drafts.length > 0 ? (
@@ -495,16 +498,16 @@ export function EntryLaunch({
             </div>
           </div>
           {drafts.length === 0 ? (
-            <div className="px-5 py-8 text-center text-sm text-[#8a8173]">
+            <div className="px-5 py-8 text-center text-sm text-[#74898e]">
               <p>Escolha o vendedor (ou a loja), bipe as OS uma a uma e troque o vendedor quando mudar o lote.</p>
               <p className="mt-1">Ex.: 10 OS da vendedora 1, depois digite <span className="font-mono">v2</span> e bipe as 10 da vendedora 2.</p>
             </div>
           ) : (
             groups.map((group) => (
               <div key={group.key}>
-                <div className="flex items-center justify-between gap-2 bg-[#f8f3ea] px-5 py-1.5 text-xs font-semibold text-[#4a453d]">
+                <div className="flex items-center justify-between gap-2 bg-[#f6f9f9] px-5 py-1.5 text-xs font-semibold text-[#425f65]">
                   <span>{group.title}</span>
-                  <span className="text-[#6b6358]">
+                  <span className="text-[#60767b]">
                     {group.items.length} {group.items.length === 1 ? "OS" : "OS"}
                   </span>
                 </div>
@@ -512,22 +515,22 @@ export function EntryLaunch({
                   {group.items.map((item) => {
                     const risk = lensRisk({ dueAt: item.dueAt, lensExpectedAt: item.lensExpectedAt, now: new Date(openedAt) });
                     return (
-                      <li key={item.key} className="grid grid-cols-[minmax(5.5rem,100px)_minmax(0,1fr)_auto] items-center gap-2 border-b border-[#efe8dc] px-3 py-2 last:border-b-0 sm:grid-cols-[100px_minmax(0,1fr)_150px_auto] sm:gap-3 sm:px-5">
+                      <li key={item.key} className="grid grid-cols-[minmax(5.5rem,100px)_minmax(0,1fr)_auto] items-center gap-2 border-b border-[#edf2f3] px-3 py-2 last:border-b-0 sm:grid-cols-[100px_minmax(0,1fr)_150px_auto] sm:gap-3 sm:px-5">
                         <input
                           value={item.orderRef ?? ""}
                           disabled={item.result?.ok}
                           placeholder="Sem nº"
                           onChange={(event) => setDrafts((current) => current.map((d) => (d.key === item.key ? { ...d, orderRef: event.target.value || null, result: undefined } : d)))}
-                          className="h-11 rounded-md border border-transparent bg-[#f8f3ea] px-2 font-mono text-[16px] outline-none focus:border-[#0b5c54] disabled:bg-transparent md:h-8 md:text-[13px]"
+                          className="h-11 rounded-md border border-transparent bg-[#f6f9f9] px-2 font-mono text-[16px] outline-none focus:border-[#087e83] disabled:bg-transparent md:h-8 md:text-[13px]"
                         />
                         <input
                           value={item.clientName ?? ""}
                           disabled={item.result?.ok}
                           placeholder={item.orderRef ? `OS ${item.orderRef} (completar nome depois)` : "Nome do cliente"}
                           onChange={(event) => setDrafts((current) => current.map((d) => (d.key === item.key ? { ...d, clientName: event.target.value || null, result: undefined } : d)))}
-                          className="h-11 min-w-0 rounded-md border border-transparent bg-[#f8f3ea] px-2 text-base font-medium outline-none focus:border-[#0b5c54] disabled:bg-transparent md:h-8 md:text-sm"
+                          className="h-11 min-w-0 rounded-md border border-transparent bg-[#f6f9f9] px-2 text-base font-medium outline-none focus:border-[#087e83] disabled:bg-transparent md:h-8 md:text-sm"
                         />
-                        <span className="hidden flex-col text-[11px] leading-tight text-[#6b6358] sm:flex">
+                        <span className="hidden flex-col text-[11px] leading-tight text-[#60767b] sm:flex">
                           <span>Cliente: {fmt(item.dueAt)}</span>
                           <span style={{ color: item.lensExpectedAt ? LENS_RISK[risk.risk].fg === "#ffffff" ? "#b42318" : LENS_RISK[risk.risk].fg : undefined }}>
                             Lente: {item.lensExpectedAt ? fmt(item.lensExpectedAt) : "sem previsão"}
@@ -545,10 +548,10 @@ export function EntryLaunch({
                               </span>
                             )
                           ) : (
-                            <span className="text-xs text-[#8a8173]">{pending ? "lançando…" : "na fila"}</span>
+                            <span className="text-xs text-[#74898e]">{pending ? "lançando…" : "na fila"}</span>
                           )}
                           {!item.result?.ok ? (
-                            <button type="button" aria-label="Remover" className="grid h-11 w-11 place-items-center rounded-md text-[#8a8173] hover:bg-[#f3ece1] hover:text-[#b42318] md:h-8 md:w-8" onClick={() => setDrafts((current) => current.filter((d) => d.key !== item.key))}>
+                            <button type="button" aria-label="Remover" className="grid h-11 w-11 place-items-center rounded-md text-[#74898e] hover:bg-[#edf4f4] hover:text-[#b42318] md:h-8 md:w-8" onClick={() => setDrafts((current) => current.filter((d) => d.key !== item.key))}>
                               <Trash2 size={15} />
                             </button>
                           ) : null}
@@ -561,8 +564,8 @@ export function EntryLaunch({
             ))
           )}
           {createdIds.length > 0 ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e6dcce] bg-[#f8f3ea] px-5 py-3 text-[13px]">
-              <span className="font-medium text-[#4a453d]">{createdIds.length} OS abertas nesta sessão</span>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#dce5e7] bg-[#f6f9f9] px-5 py-3 text-[13px]">
+              <span className="font-medium text-[#425f65]">{createdIds.length} OS abertas nesta sessão</span>
               <Button variant="secondary" size="sm" asChild>
                 <Link href={`/laboratorio/etiquetas?ids=${createdIds.join(",")}`}>
                   <Printer size={14} /> Imprimir etiquetas ({createdIds.length})
@@ -575,9 +578,9 @@ export function EntryLaunch({
 
       <Panel className="flex flex-col gap-4 p-5 xl:sticky xl:top-20">
         <h2 className="text-[15px] font-semibold">Padrões do lançamento</h2>
-        <label className="grid gap-1.5 text-[13px] font-medium text-[#4a453d]">
+        <label className="grid gap-1.5 text-[13px] font-medium text-[#425f65]">
           Laboratório
-          <select value={labId} onChange={(event) => setLabId(event.target.value)} className="h-11 rounded-lg border border-[#d5cbbb] bg-white px-2.5 text-base text-[#1a1714] outline-none focus:border-[#0b5c54] md:h-9 md:text-sm">
+          <select value={labId} onChange={(event) => setLabId(event.target.value)} className="h-11 rounded-lg border border-[#cbdadd] bg-white px-2.5 text-base text-[#172e32] outline-none focus:border-[#087e83] md:h-9 md:text-sm">
             {activeLabs.map((lab) => (
               <option key={lab.id} value={lab.id}>
                 {lab.name}
@@ -586,7 +589,7 @@ export function EntryLaunch({
           </select>
         </label>
         <div className="grid gap-1.5">
-          <span className="text-[13px] font-medium text-[#4a453d]">Situação ao entrar</span>
+          <span className="text-[13px] font-medium text-[#425f65]">Situação ao entrar</span>
           <div className="flex flex-wrap gap-1.5">
             <Chip on={status === "aguardando_lentes"} onClick={() => setStatus("aguardando_lentes")}>
               Aguardando lentes
@@ -596,11 +599,11 @@ export function EntryLaunch({
             </Chip>
           </div>
         </div>
-        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#e6dcce] px-3 py-2.5 text-[13px] font-medium">
+        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#dce5e7] px-3 py-2.5 text-[13px] font-medium">
           <input type="checkbox" checked={urgent} onChange={(event) => setUrgent(event.target.checked)} className="accent-[#b42318]" />
           Marcar como urgente
         </label>
-        <div className="grid gap-2 rounded-lg bg-[#f8f3ea] px-3 py-3 text-xs leading-relaxed text-[#4a453d]">
+        <div className="grid gap-2 rounded-lg bg-[#f6f9f9] px-3 py-3 text-xs leading-relaxed text-[#425f65]">
           <p className="font-semibold">Como lançar um lote misturado</p>
           <ol className="list-decimal space-y-1 pl-4">
             <li>Escolha o laboratório do lote (ZEISS, Mireeli…).</li>
@@ -610,7 +613,7 @@ export function EntryLaunch({
               Acabou o lote dela? <span className="font-mono">Próxima vendedora</span> ou <span className="font-mono">v2</span> e continue.
             </li>
           </ol>
-          <p className="text-[#6b6358]">Os códigos dos vendedores e lojas aparecem nos botões e podem ser alterados no cadastro.</p>
+          <p className="text-[#60767b]">Os códigos dos vendedores e lojas aparecem nos botões e podem ser alterados no cadastro.</p>
         </div>
       </Panel>
     </div>
@@ -624,10 +627,10 @@ function TargetChip({ on, onClick, code, children }: { on: boolean; onClick: () 
       onClick={onClick}
       className={cn(
         "flex min-h-11 items-center gap-1.5 rounded-lg border py-1 pl-1 pr-2.5 text-[13px] font-semibold transition-colors md:min-h-8 md:h-8",
-        on ? "border-[#0b5c54] bg-[#0b5c54] text-white shadow-sm" : "border-[#d5cbbb] bg-white text-[#4a453d] hover:bg-[#f8f3ea]",
+        on ? "border-[#087e83] bg-[#087e83] text-white shadow-sm" : "border-[#cbdadd] bg-white text-[#425f65] hover:bg-[#f6f9f9]",
       )}
     >
-      <span className={cn("grid h-6 min-w-6 place-items-center rounded-md px-1 font-mono text-[11px]", on ? "bg-white/20" : "bg-[#efe8dc] text-[#6b6358]")}>{code}</span>
+      <span className={cn("grid h-6 min-w-6 place-items-center rounded-md px-1 font-mono text-[11px]", on ? "bg-white/20" : "bg-[#edf2f3] text-[#60767b]")}>{code}</span>
       {children}
     </button>
   );
@@ -640,7 +643,7 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
       onClick={onClick}
       className={cn(
         "h-11 rounded-lg border px-3 text-[13px] font-semibold transition-colors md:h-8",
-        on ? "border-[#0b5c54] bg-[#0b5c54] text-white" : "border-[#d5cbbb] bg-white text-[#4a453d] hover:bg-[#f8f3ea]",
+        on ? "border-[#087e83] bg-[#087e83] text-white" : "border-[#cbdadd] bg-white text-[#425f65] hover:bg-[#f6f9f9]",
       )}
     >
       {children}

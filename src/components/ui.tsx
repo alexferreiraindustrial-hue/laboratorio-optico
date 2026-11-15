@@ -1,16 +1,16 @@
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, HTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-2xl border border-transparent text-sm font-semibold transition-[transform,background-color,box-shadow,border-color] duration-150 [transition-timing-function:var(--ease-out)] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)] active:scale-[0.97] md:min-h-9 md:min-w-0",
+  "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent text-sm font-semibold transition-[transform,background-color,box-shadow,border-color] duration-150 [transition-timing-function:var(--ease-out)] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)] active:scale-[0.97] md:min-h-9 md:min-w-0",
   {
     variants: {
       variant: {
         default: "border-[var(--accent)] bg-[var(--accent)] text-white shadow-[0_10px_24px_-16px_rgba(11,92,84,.9)] hover:bg-[var(--accent-strong)]",
-        secondary: "border-[var(--line)] bg-[var(--surface)] font-medium text-[var(--ink)] hover:bg-[#f3ece1]",
-        ghost: "font-medium text-[#4a453d] hover:bg-[#f3ece1]",
+        secondary: "border-[var(--line)] bg-[var(--surface)] font-medium text-[var(--ink)] hover:bg-[#edf4f4]",
+        ghost: "font-medium text-[#425f65] hover:bg-[#edf4f4]",
         danger: "border-[var(--danger)] bg-[var(--danger)] text-white hover:bg-[#912018]",
       },
       size: {
@@ -35,7 +35,7 @@ export function Button({
 }
 
 const fieldBase =
-  "w-full rounded-2xl border border-[#d5cbbb] bg-[var(--surface)] text-sm text-[var(--ink)] outline-none transition-[border-color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] placeholder:text-[#8a8173] focus:border-[var(--accent)]";
+  "w-full rounded-lg border border-[#cbdadd] bg-[var(--surface)] text-sm text-[var(--ink)] outline-none transition-[border-color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] placeholder:text-[#74898e] focus:border-[var(--accent)]";
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={cn(fieldBase, "h-11 px-3 md:h-9", props.className)} />;
@@ -51,19 +51,20 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
 
 export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
   return (
-    <label className="grid gap-1.5 text-sm">
-      <span className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">{label}</span>
+    <label className="grid min-w-0 gap-1.5 text-sm">
+      <span className="text-[12px] font-semibold text-[var(--muted)]">{label}</span>
       {children}
       {hint ? <span className="text-xs text-[var(--muted)]">{hint}</span> : null}
     </label>
   );
 }
 
-export function Panel({ className, children }: { className?: string; children: ReactNode }) {
+export function Panel({ className, children, ...props }: HTMLAttributes<HTMLElement>) {
   return (
     <section
+      {...props}
       className={cn(
-        "rounded-[22px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[var(--shadow-soft)]",
+        "min-w-0 rounded-xl border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[var(--shadow-soft)]",
         className,
       )}
     >
@@ -83,7 +84,7 @@ export function PanelHeader({ title, children }: { title: string; children?: Rea
 
 export function EmptyState({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-[22px] border border-dashed border-[#d5cbbb] bg-[var(--surface)] px-4 py-10 text-center">
+    <div className="rounded-xl border border-dashed border-[#cbdadd] bg-[var(--surface)] px-4 py-10 text-center">
       <p className="font-semibold">{title}</p>
       <p className="mx-auto mt-1 max-w-lg text-sm text-[var(--muted)]">{text}</p>
     </div>

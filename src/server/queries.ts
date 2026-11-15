@@ -14,6 +14,7 @@ export type OrderFilters = {
   page?: string;
   view?: string;
   tab?: string;
+  os?: string;
 };
 
 export const ORDER_TABS = ["andamento", "atrasadas", "ocorrencia", "prontas", "encerradas", "todas"] as const;
@@ -115,7 +116,7 @@ export async function loadOrders(filters: OrderFilters, options?: { statuses?: O
   const pageSize = options?.pageSize ?? (filters.status ? 400 : 20);
   const page = Math.max(1, Number(filters.page ?? "1") || 1);
   let query = supabase.from("orders_enriched").select(
-    "id, number, client_name, laboratory_id, laboratory_name, laboratory_color, seller_name, store_name, external_order_id, entered_at, due_at, status, urgency",
+    "id, number, client_name, laboratory_id, laboratory_name, laboratory_color, seller_name, store_name, external_order_id, entered_at, due_at, status, urgency, lens_expected_at",
     { count: "exact" },
   );
   const q = clean(filters.q);

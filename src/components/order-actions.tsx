@@ -57,7 +57,7 @@ export function OrderActions({
           value={note}
           onChange={(event) => setNote(event.target.value)}
           placeholder="Observação da movimentação"
-          className="h-11 min-w-0 flex-1 rounded-md border border-[#d5cbbb] px-3 text-base md:h-9 md:text-sm"
+          className="h-11 min-w-0 flex-1 rounded-md border border-[#cbdadd] px-3 text-base md:h-9 md:text-sm"
         />
         <Button type="submit" disabled={pending || !nextStatus} className="w-full sm:w-auto">
           {pending ? "Salvando..." : "Movimentar"}

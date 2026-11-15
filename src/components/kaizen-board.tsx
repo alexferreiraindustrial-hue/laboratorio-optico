@@ -15,20 +15,20 @@ import { Button, Field, Input, Select, TextArea } from "./ui";
 type Person = { id: string; full_name: string };
 
 const STAGE_COLOR: Record<string, string> = {
-  ideia: "#0b5c54",
+  ideia: "#087e83",
   em_teste: "#1e4d9b",
   verificacao: "#c8881a",
   padronizada: "#1c6b43",
-  descartada: "#8a8173",
+  descartada: "#74898e",
 };
 
 const CATEGORY_TONE: Record<KaizenCategory, string> = {
   qualidade: "bg-[#fdecea] text-[#a3261b]",
   fluxo: "bg-[#e8eefa] text-[#1e4d9b]",
-  "5s": "bg-[#d8ebe6] text-[#0a4540]",
+  "5s": "bg-[#e0f2f1] text-[#125d63]",
   seguranca: "bg-[#fdf3dc] text-[#8a5a00]",
   custo: "bg-[#efe9f7] text-[#5a3d86]",
-  ergonomia: "bg-[#efe8dc] text-[#3d4b5c]",
+  ergonomia: "bg-[#edf2f3] text-[#3d4b5c]",
 };
 
 const LEVEL = ["", "Baixo", "Médio", "Alto"];
@@ -53,22 +53,22 @@ function IdeaCard({ idea, people, canMove, onOpen, onAdvance }: { idea: KaizenId
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex flex-col gap-2 rounded-[10px] border border-[#e6dcce] bg-white p-3 shadow-[0_1px_2px_rgba(19,32,31,0.04)] transition-[box-shadow,border-color] hover:border-[#d5cbbb] hover:shadow-[0_6px_16px_-10px_rgba(19,32,31,0.3)]",
+        "group flex flex-col gap-2 rounded-[10px] border border-[#dce5e7] bg-white p-3 shadow-[0_1px_2px_rgba(19,32,31,0.04)] transition-[box-shadow,border-color] hover:border-[#cbdadd] hover:shadow-[0_6px_16px_-10px_rgba(19,32,31,0.3)]",
         isDragging && "z-10 rotate-1 opacity-90 shadow-lg",
       )}
     >
       <div {...listeners} {...attributes} className={cn("flex flex-col gap-2", canMove && "cursor-grab active:cursor-grabbing")}>
         <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-[11px] font-medium text-[#6b6358]">K-{String(idea.code).padStart(3, "0")}</span>
+          <span className="font-mono text-[11px] font-medium text-[#60767b]">K-{String(idea.code).padStart(3, "0")}</span>
           <span className={cn("rounded px-1.5 py-px text-[11px] font-semibold", CATEGORY_TONE[idea.category])}>{KAIZEN_CATEGORIES[idea.category]}</span>
         </div>
-        <button type="button" onClick={onOpen} onPointerDown={(event) => event.stopPropagation()} className="text-left text-sm font-semibold leading-snug hover:text-[#0b5c54]">
+        <button type="button" onClick={onOpen} onPointerDown={(event) => event.stopPropagation()} className="text-left text-sm font-semibold leading-snug hover:text-[#087e83]">
           {idea.title}
         </button>
-        <p className="line-clamp-2 text-xs text-[#6b6358]">{idea.problem}</p>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#6b6358]">
+        <p className="line-clamp-2 text-xs text-[#60767b]">{idea.problem}</p>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#60767b]">
           <span className="flex items-center gap-1">
-            Impacto <Dots value={idea.impact} color="#0b5c54" />
+            Impacto <Dots value={idea.impact} color="#087e83" />
           </span>
           <span className="flex items-center gap-1">
             Esforço <Dots value={idea.effort} color="#c8881a" />
@@ -76,8 +76,8 @@ function IdeaCard({ idea, people, canMove, onOpen, onAdvance }: { idea: KaizenId
           {idea.whys.length ? <span>{idea.whys.length}× por quê</span> : null}
         </div>
       </div>
-      <div className="flex items-center justify-between gap-2 border-t border-[#efe8dc] pt-2">
-        <span className="min-w-0 truncate text-xs text-[#6b6358]">
+      <div className="flex items-center justify-between gap-2 border-t border-[#edf2f3] pt-2">
+        <span className="min-w-0 truncate text-xs text-[#60767b]">
           {idea.area} · {people.get(idea.owner_id ?? "") ?? "Sem responsável"}
         </span>
         {idea.status === "padronizada" && idea.gain_minutes_day ? (
@@ -87,13 +87,13 @@ function IdeaCard({ idea, people, canMove, onOpen, onAdvance }: { idea: KaizenId
             type="button"
             onClick={onAdvance}
             onPointerDown={(event) => event.stopPropagation()}
-            className="flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2.5 text-sm font-semibold text-[#0b5c54] hover:bg-[#d8ebe6] md:min-h-0 md:px-1.5 md:py-0.5 md:text-xs"
+            className="flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2.5 text-sm font-semibold text-[#087e83] hover:bg-[#e0f2f1] md:min-h-0 md:px-1.5 md:py-0.5 md:text-xs"
             title={`Avançar para ${KAIZEN_STAGES.find((stage) => stage.key === next)?.label}`}
           >
             {KAIZEN_STAGES.find((stage) => stage.key === next)?.label} <ArrowRight size={13} />
           </button>
         ) : (
-          <span className="shrink-0 text-[11px] font-semibold text-[#6b6358]">{priority.label}</span>
+          <span className="shrink-0 text-[11px] font-semibold text-[#60767b]">{priority.label}</span>
         )}
       </div>
     </article>
@@ -103,26 +103,26 @@ function IdeaCard({ idea, people, canMove, onOpen, onAdvance }: { idea: KaizenId
 function Column({ stage, children, count }: { stage: (typeof KAIZEN_STAGES)[number]; children: React.ReactNode; count: number }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage.key });
   return (
-    <div ref={setNodeRef} className={cn("flex min-h-72 w-[280px] shrink-0 flex-col gap-2 rounded-xl bg-[#e9edef] p-2.5 transition-shadow lg:w-auto lg:flex-1", isOver && "ring-2 ring-[#0b5c54]")}>
+    <div ref={setNodeRef} className={cn("flex min-h-72 w-[280px] shrink-0 flex-col gap-2 rounded-xl bg-[#e9edef] p-2.5 transition-shadow lg:w-auto lg:flex-1", isOver && "ring-2 ring-[#087e83]")}>
       <div className="flex items-center gap-2 px-1 pb-1 pt-0.5">
         <span className="grid h-6 w-6 place-items-center rounded-md text-xs font-bold text-white" style={{ background: STAGE_COLOR[stage.key] }}>
           {stage.pdca}
         </span>
         <div className="flex min-w-0 flex-1 flex-col leading-tight">
           <span className="text-[13px] font-semibold">{stage.label}</span>
-          <span className="truncate text-[11px] text-[#6b6358]">{stage.hint}</span>
+          <span className="truncate text-[11px] text-[#60767b]">{stage.hint}</span>
         </div>
-        <span className="font-mono text-xs text-[#6b6358]">{count}</span>
+        <span className="font-mono text-xs text-[#60767b]">{count}</span>
       </div>
       {children}
-      {count === 0 ? <div className="rounded-[10px] border border-dashed border-[#d5cbbb] px-3 py-5 text-center text-xs text-[#8a8173]">Arraste uma ideia para cá</div> : null}
+      {count === 0 ? <div className="rounded-[10px] border border-dashed border-[#cbdadd] px-3 py-5 text-center text-xs text-[#74898e]">Arraste uma ideia para cá</div> : null}
     </div>
   );
 }
 
 function Segmented({ name, value, onChange, labels }: { name: string; value: number; onChange: (value: number) => void; labels: string[] }) {
   return (
-    <div className="flex gap-1 rounded-lg border border-[#d5cbbb] bg-white p-0.5" role="radiogroup">
+    <div className="flex gap-1 rounded-lg border border-[#cbdadd] bg-white p-0.5" role="radiogroup">
       <input type="hidden" name={name} value={value} />
       {[1, 2, 3].map((level) => (
         <button
@@ -131,7 +131,7 @@ function Segmented({ name, value, onChange, labels }: { name: string; value: num
           role="radio"
           aria-checked={value === level}
           onClick={() => onChange(level)}
-          className={cn("flex h-11 flex-1 items-center justify-center rounded-md px-2 text-sm font-medium transition-colors md:h-auto md:py-1.5 md:text-[13px]", value === level ? "bg-[#0b5c54] text-white" : "text-[#4a453d] hover:bg-[#f3ece1]")}
+          className={cn("flex h-11 flex-1 items-center justify-center rounded-md px-2 text-sm font-medium transition-colors md:h-auto md:py-1.5 md:text-[13px]", value === level ? "bg-[#087e83] text-white" : "text-[#425f65] hover:bg-[#edf4f4]")}
         >
           {labels[level]}
         </button>
@@ -212,15 +212,15 @@ function IdeaForm({ idea, people, areas, canDelete, currentUser, onDone }: { ide
           <Segmented name="effort" value={effort} onChange={setEffort} labels={LEVEL} />
         </Field>
       </div>
-      <p className="-mt-2 text-xs text-[#6b6358]">
-        Matriz impacto × esforço: <strong className="text-[#0b5c54]">{priority.label}</strong>
+      <p className="-mt-2 text-xs text-[#60767b]">
+        Matriz impacto × esforço: <strong className="text-[#087e83]">{priority.label}</strong>
       </p>
 
-      <fieldset className="grid gap-2 rounded-xl border border-[#e6dcce] bg-[#fafbfb] p-3">
+      <fieldset className="grid gap-2 rounded-xl border border-[#dce5e7] bg-[#fafbfb] p-3">
         <legend className="px-1 text-sm font-semibold">5 Porquês · análise de causa raiz</legend>
         {whys.map((why, index) => (
           <label key={index} className="flex items-center gap-2" style={{ paddingLeft: index * 10 }}>
-            <span className="w-16 shrink-0 text-xs font-semibold text-[#6b6358]">{index + 1}º por quê</span>
+            <span className="w-16 shrink-0 text-xs font-semibold text-[#60767b]">{index + 1}º por quê</span>
             <Input
               name="why"
               value={why}
@@ -338,9 +338,9 @@ export function KaizenBoard({
   return (
     <div className="grid gap-4 animate-[pagein_.35s_ease-out]">
       <div className="flex flex-wrap items-center gap-2.5">
-        <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-lg border border-[#e6dcce] bg-white px-2.5 text-[#6b6358] sm:max-w-xs md:h-9">
+        <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-lg border border-[#dce5e7] bg-white px-2.5 text-[#60767b] sm:max-w-xs md:h-9">
           <Search size={15} />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar ideia" className="min-w-0 flex-1 bg-transparent text-sm text-[#1a1714] outline-none" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar ideia" className="min-w-0 flex-1 bg-transparent text-sm text-[#172e32] outline-none" />
         </label>
         <Select value={category} onChange={(event) => setCategory(event.target.value)} className="w-40">
           <option value="">Todos os tipos</option>
@@ -350,11 +350,11 @@ export function KaizenBoard({
             </option>
           ))}
         </Select>
-        <div className="flex gap-1 rounded-lg border border-[#e6dcce] bg-white p-0.5">
-          <button type="button" onClick={() => setView("quadro")} className={cn("flex h-11 items-center gap-1.5 rounded-md px-3 text-sm font-medium md:h-auto md:px-2.5 md:py-1.5 md:text-[13px]", view === "quadro" ? "bg-[#d8ebe6] text-[#0a4540]" : "text-[#4a453d]")}>
+        <div className="flex gap-1 rounded-lg border border-[#dce5e7] bg-white p-0.5">
+          <button type="button" onClick={() => setView("quadro")} className={cn("flex h-11 items-center gap-1.5 rounded-md px-3 text-sm font-medium md:h-auto md:px-2.5 md:py-1.5 md:text-[13px]", view === "quadro" ? "bg-[#e0f2f1] text-[#125d63]" : "text-[#425f65]")}>
             <Columns3 size={15} /> PDCA
           </button>
-          <button type="button" onClick={() => setView("matriz")} className={cn("flex h-11 items-center gap-1.5 rounded-md px-3 text-sm font-medium md:h-auto md:px-2.5 md:py-1.5 md:text-[13px]", view === "matriz" ? "bg-[#d8ebe6] text-[#0a4540]" : "text-[#4a453d]")}>
+          <button type="button" onClick={() => setView("matriz")} className={cn("flex h-11 items-center gap-1.5 rounded-md px-3 text-sm font-medium md:h-auto md:px-2.5 md:py-1.5 md:text-[13px]", view === "matriz" ? "bg-[#e0f2f1] text-[#125d63]" : "text-[#425f65]")}>
             <Grid3x3 size={15} /> Impacto × esforço
           </button>
         </div>
@@ -398,22 +398,22 @@ export function KaizenBoard({
           <div className="grid min-w-[640px] grid-cols-[72px_repeat(3,1fr)] gap-2">
             <span />
             {[1, 2, 3].map((effort) => (
-              <span key={effort} className="text-center text-xs font-semibold text-[#6b6358]">
+              <span key={effort} className="text-center text-xs font-semibold text-[#60767b]">
                 Esforço {LEVEL[effort].toLowerCase()}
               </span>
             ))}
             {[3, 2, 1].map((impact) => (
               <div key={impact} className="contents">
-                <span className="self-center text-right text-xs font-semibold text-[#6b6358]">Impacto {LEVEL[impact].toLowerCase()}</span>
+                <span className="self-center text-right text-xs font-semibold text-[#60767b]">Impacto {LEVEL[impact].toLowerCase()}</span>
                 {[1, 2, 3].map((effort) => {
                   const cell = filtered.filter((idea) => idea.impact === impact && idea.effort === effort && idea.status !== "descartada" && idea.status !== "padronizada");
                   const label = kaizenPriority(impact, effort).label;
                   const strong = impact >= 2 && effort <= 2;
                   return (
-                    <div key={effort} className={cn("flex min-h-28 flex-col gap-1.5 rounded-xl border p-2.5", strong ? "border-[#bcd9d4] bg-[#f0f7f6]" : "border-[#e6dcce] bg-white")}>
-                      <span className={cn("text-[11px] font-semibold uppercase tracking-wide", strong ? "text-[#0b5c54]" : "text-[#8a8173]")}>{label}</span>
+                    <div key={effort} className={cn("flex min-h-28 flex-col gap-1.5 rounded-xl border p-2.5", strong ? "border-[#bcd9d4] bg-[#f0f7f6]" : "border-[#dce5e7] bg-white")}>
+                      <span className={cn("text-[11px] font-semibold uppercase tracking-wide", strong ? "text-[#087e83]" : "text-[#74898e]")}>{label}</span>
                       {cell.map((idea) => (
-                        <button key={idea.id} type="button" onClick={() => setOpen(idea.id)} className="truncate rounded-md bg-white px-2 py-1 text-left text-xs font-medium shadow-[0_0_0_1px_#e6dcce] hover:shadow-[0_0_0_1px_#0b5c54]">
+                        <button key={idea.id} type="button" onClick={() => setOpen(idea.id)} className="truncate rounded-md bg-white px-2 py-1 text-left text-xs font-medium shadow-[0_0_0_1px_#dce5e7] hover:shadow-[0_0_0_1px_#087e83]">
                           {idea.title}
                         </button>
                       ))}
@@ -428,15 +428,15 @@ export function KaizenBoard({
 
       {discarded.length ? (
         <div>
-          <button type="button" onClick={() => setShowDiscarded((value) => !value)} className="text-[13px] font-medium text-[#6b6358] hover:text-[#1a1714]">
+          <button type="button" onClick={() => setShowDiscarded((value) => !value)} className="text-[13px] font-medium text-[#60767b] hover:text-[#172e32]">
             {showDiscarded ? "Ocultar" : "Ver"} {discarded.length} {discarded.length === 1 ? "ideia descartada" : "ideias descartadas"}
           </button>
           {showDiscarded ? (
             <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
               {discarded.map((idea) => (
                 <li key={idea.id}>
-                  <button type="button" onClick={() => setOpen(idea.id)} className="w-full rounded-lg border border-dashed border-[#d5cbbb] bg-white px-3 py-2 text-left text-sm text-[#6b6358] hover:border-[#8a8173]">
-                    <span className="font-medium text-[#4a453d]">{idea.title}</span>
+                  <button type="button" onClick={() => setOpen(idea.id)} className="w-full rounded-lg border border-dashed border-[#cbdadd] bg-white px-3 py-2 text-left text-sm text-[#60767b] hover:border-[#74898e]">
+                    <span className="font-medium text-[#425f65]">{idea.title}</span>
                     {idea.result ? <span className="block text-xs">{idea.result}</span> : null}
                   </button>
                 </li>
@@ -448,24 +448,24 @@ export function KaizenBoard({
 
       <Dialog.Root open={open !== null} onOpenChange={(value) => !value && setOpen(null)}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-[#1a1714]/35 backdrop-blur-[2px] data-[state=open]:animate-[fadein_.15s_ease-out]" />
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-[#172e32]/35 backdrop-blur-[2px] data-[state=open]:animate-[fadein_.15s_ease-out]" />
           <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col bg-white shadow-2xl outline-none data-[state=open]:animate-[slidein_.22s_cubic-bezier(.2,.8,.2,1)]">
-            <div className="flex items-start justify-between gap-3 border-b border-[#e6dcce] px-5 py-4">
+            <div className="flex items-start justify-between gap-3 border-b border-[#dce5e7] px-5 py-4">
               <div>
                 <Dialog.Title className="flex items-center gap-2 text-lg font-semibold">
                   <Lightbulb size={18} className="text-[#c8881a]" />
                   {editing ? `K-${String(editing.code).padStart(3, "0")} · ${editing.title}` : "Nova ideia de melhoria"}
                 </Dialog.Title>
-                <Dialog.Description className="mt-0.5 text-[13px] text-[#6b6358]">
+                <Dialog.Description className="mt-0.5 text-[13px] text-[#60767b]">
                   {editing ? "Atualize a análise e o resultado. Mova pelo PDCA no quadro." : "Kaizen: pequenas melhorias, feitas por quem executa o trabalho."}
                 </Dialog.Description>
               </div>
-              <Dialog.Close className="rounded-md p-1.5 text-[#4a453d] hover:bg-[#f3ece1]" aria-label="Fechar">
+              <Dialog.Close className="rounded-md p-1.5 text-[#425f65] hover:bg-[#edf4f4]" aria-label="Fechar">
                 <X size={18} />
               </Dialog.Close>
             </div>
             {editing ? (
-              <div className="flex flex-wrap gap-1.5 border-b border-[#efe8dc] px-5 py-3">
+              <div className="flex flex-wrap gap-1.5 border-b border-[#edf2f3] px-5 py-3">
                 {[...KAIZEN_STAGES.map((stage) => ({ key: stage.key as KaizenStatus, label: `${stage.pdca} · ${stage.label}` })), { key: "descartada" as KaizenStatus, label: "Descartar" }].map((stage) => (
                   <button
                     key={stage.key}
@@ -474,7 +474,7 @@ export function KaizenBoard({
                     onClick={() => move(editing.id, stage.key)}
                     className={cn(
                       "rounded-md border px-2.5 py-1 text-xs font-semibold transition-colors disabled:opacity-50",
-                      editing.status === stage.key ? "border-transparent text-white" : "border-[#e6dcce] text-[#4a453d] hover:bg-[#f3ece1]",
+                      editing.status === stage.key ? "border-transparent text-white" : "border-[#dce5e7] text-[#425f65] hover:bg-[#edf4f4]",
                     )}
                     style={editing.status === stage.key ? { background: STAGE_COLOR[stage.key] } : undefined}
                   >

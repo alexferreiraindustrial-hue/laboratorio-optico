@@ -48,12 +48,12 @@ function Labels() {
       </div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         {items.map((item) => (
-          <article key={item.id} className="rounded border border-[#e6dcce] bg-white p-3 text-center">
+          <article key={item.id} className="rounded border border-[#dce5e7] bg-white p-3 text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={item.src} alt="" className="mx-auto h-28 w-28" />
             <p className="mt-2 font-mono text-sm">{item.public_code}</p>
             <p className="text-sm">{formatDiopter(item.sphere_cents)} / {formatDiopter(item.cylinder_cents)}</p>
-            <p className="text-xs text-[#6b6358]">{item.location || "Sem localização"}</p>
+            <p className="text-xs text-[#60767b]">{item.location || "Sem localização"}</p>
           </article>
         ))}
       </div>

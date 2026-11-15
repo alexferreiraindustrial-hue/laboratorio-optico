@@ -21,31 +21,31 @@ import { Feedback } from "./ui";
 const URGENCY: Record<Urgency, { label: string; fg: string; dot: string }> = {
   vermelho: { label: "Urgente", fg: "#a3261b", dot: "#d2382b" },
   amarelo: { label: "Atenção", fg: "#8a5a00", dot: "#d99a0b" },
-  verde: { label: "No prazo", fg: "#4a453d", dot: "#23955a" },
-  cinza: { label: "Sem prazo", fg: "#8a8173", dot: "#c9d0d4" },
+  verde: { label: "No prazo", fg: "#425f65", dot: "#23955a" },
+  cinza: { label: "Sem prazo", fg: "#74898e", dot: "#c9d0d4" },
 };
 
 function deadlineStyle(order: OrderRow) {
-  if (!order.due_at || order.status === "pronto") return { color: "#6b6358", fontWeight: 400 };
+  if (!order.due_at || order.status === "pronto") return { color: "#60767b", fontWeight: 400 };
   if (new Date(order.due_at).getTime() < Date.now()) return { color: "#b42318", fontWeight: 600 };
   if (order.urgency === "amarelo") return { color: "#8a5a00", fontWeight: 600 };
-  return { color: "#6b6358", fontWeight: 400 };
+  return { color: "#60767b", fontWeight: 400 };
 }
 
 function Card({ order, href }: { order: OrderRow; href: string }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: order.id });
   const style = transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined;
   const urgency = URGENCY[order.urgency];
-  const forecast = forecastOrder({ status: order.status, dueAt: order.due_at, stepsDone: order.steps_done });
+  const forecast = forecastOrder({ status: order.status, dueAt: order.due_at, lensExpectedAt: order.lens_expected_at, stepsDone: order.steps_done });
   return (
     <article
       ref={setNodeRef}
       style={style}
-      className={`flex flex-col gap-2 rounded-[10px] border border-[#e6dcce] bg-white px-3 pb-2.5 pt-3 shadow-[0_1px_2px_rgba(19,32,31,0.04)] transition-shadow hover:border-[#d5cbbb] hover:shadow-[0_4px_12px_-6px_rgba(19,32,31,0.18)] ${isDragging ? "z-10 opacity-80 shadow-lg" : ""}`}
+      className={`flex flex-col gap-2 rounded-[10px] border border-[#dce5e7] bg-white px-3 pb-2.5 pt-3 shadow-[0_1px_2px_rgba(19,32,31,0.04)] transition-shadow hover:border-[#cbdadd] hover:shadow-[0_4px_12px_-6px_rgba(19,32,31,0.18)] ${isDragging ? "z-10 opacity-80 shadow-lg" : ""}`}
     >
       <div className="flex cursor-grab flex-col gap-2 active:cursor-grabbing" {...listeners} {...attributes}>
         <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-xs font-medium text-[#0b5c54]">{visibleOrderNumber(order)}</span>
+          <span className="font-mono text-xs font-medium text-[#087e83]">{visibleOrderNumber(order)}</span>
           <span className="flex items-center gap-[5px] text-[11px] font-semibold" style={{ color: urgency.fg }}>
             <span className="h-1.5 w-1.5 rounded-full" style={{ background: urgency.dot }} />
             {urgency.label}
@@ -54,7 +54,7 @@ function Card({ order, href }: { order: OrderRow; href: string }) {
         <div className="flex items-center gap-2.5">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="truncate text-sm font-semibold">{order.client_name}</span>
-            <span className="truncate text-xs text-[#6b6358]">
+            <span className="truncate text-xs text-[#60767b]">
               {order.laboratory_name || "Sem laboratório"} · {order.seller_name || "Sem vendedor"}
               {order.store_name ? ` · ${order.store_name}` : ""}
             </span>
@@ -70,12 +70,12 @@ function Card({ order, href }: { order: OrderRow; href: string }) {
           </div>
         ) : null}
       </div>
-      <div className="flex items-center justify-between border-t border-[#efe8dc] pt-2 text-xs">
+      <div className="flex items-center justify-between border-t border-[#edf2f3] pt-2 text-xs">
         <span className="flex items-center gap-[5px]" style={deadlineStyle(order)}>
           <Clock size={13} />
           {dueDeltaLabel(order.due_at, new Date(), order.status)}
         </span>
-        <Link href={href} className="inline-flex min-h-11 items-center px-1 font-semibold text-[#0b5c54] hover:underline md:min-h-0" onPointerDown={(event) => event.stopPropagation()}>
+        <Link href={href} className="inline-flex min-h-11 items-center px-1 font-semibold text-[#087e83] hover:underline md:min-h-0" onPointerDown={(event) => event.stopPropagation()}>
           Abrir
         </Link>
       </div>
@@ -83,7 +83,7 @@ function Card({ order, href }: { order: OrderRow; href: string }) {
   );
 }
 
-function Column({ status, orders, hrefBase, limit }: { status: OrderStatus; orders: OrderRow[]; hrefBase: string; limit?: number }) {
+function Column({ status, orders, hrefBase, drawerBase, limit }: { status: OrderStatus; orders: OrderRow[]; hrefBase: string; drawerBase?: string; limit?: number }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const wip = wipState(orders.length, limit);
   const tone =
@@ -95,7 +95,7 @@ function Column({ status, orders, hrefBase, limit }: { status: OrderStatus; orde
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-h-60 w-[min(86vw,280px)] shrink-0 snap-start flex-col gap-2 rounded-xl p-2.5 transition-[box-shadow,background-color] duration-300 md:w-[264px] ${tone} ${isOver ? "ring-2 ring-[#0b5c54]" : ""}`}
+      className={`flex min-h-60 w-[min(86vw,280px)] shrink-0 snap-start flex-col gap-2 rounded-xl p-2.5 transition-[box-shadow,background-color] duration-300 md:w-[264px] ${tone} ${isOver ? "ring-2 ring-[#087e83]" : ""}`}
     >
       <div className="flex items-center gap-2 px-1 pb-1.5 pt-1">
         <span className="h-2 w-2 rounded-[2px]" style={{ background: STATUS_TONE[status].dot }} />
@@ -104,24 +104,24 @@ function Column({ status, orders, hrefBase, limit }: { status: OrderStatus; orde
           <span
             title="Limite WIP (trabalho em processo) desta coluna"
             className={`flex items-center gap-1 rounded-md px-1.5 py-px font-mono text-xs font-semibold ${
-              wip === "estourado" ? "bg-[#d2382b] text-white" : wip === "no_limite" ? "bg-[#d99a0b] text-white" : "bg-white text-[#4a453d]"
+              wip === "estourado" ? "bg-[#d2382b] text-white" : wip === "no_limite" ? "bg-[#d99a0b] text-white" : "bg-white text-[#425f65]"
             }`}
           >
             <Gauge size={12} />
             {orders.length}/{limit}
           </span>
         ) : (
-          <span className="font-mono text-xs text-[#6b6358]">{orders.length}</span>
+          <span className="font-mono text-xs text-[#60767b]">{orders.length}</span>
         )}
       </div>
       {wip === "estourado" ? (
         <div className="rounded-md bg-[#d2382b] px-2 py-1 text-[11px] font-semibold text-white">Acima do limite WIP: termine antes de puxar mais</div>
       ) : null}
       {orders.map((order) => (
-        <Card key={order.id} order={order} href={`${hrefBase}/${order.id}`} />
+        <Card key={order.id} order={order} href={drawerBase ? `${drawerBase}${drawerBase.includes("?") ? "&" : "?"}os=${order.id}` : `${hrefBase}/${order.id}`} />
       ))}
       {orders.length === 0 ? (
-        <div className="rounded-[10px] border border-dashed border-[#d5cbbb] px-3 py-[18px] text-center text-xs text-[#8a8173]">Nenhuma OS</div>
+        <div className="rounded-[10px] border border-dashed border-[#cbdadd] px-3 py-[18px] text-center text-xs text-[#74898e]">Nenhuma OS</div>
       ) : null}
     </div>
   );
@@ -131,11 +131,13 @@ export function OrderKanban({
   orders,
   role,
   hrefBase,
+  drawerBase,
   wipLimits,
 }: {
   orders: OrderRow[];
   role: AppRole;
   hrefBase: string;
+  drawerBase?: string;
   wipLimits?: Record<string, number>;
 }) {
   const router = useRouter();
@@ -176,7 +178,7 @@ export function OrderKanban({
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
         <div className="-mx-3 flex items-start gap-3.5 overflow-x-auto px-3 pb-2 snap-x snap-mandatory md:mx-0 md:px-0 md:snap-none">
           {QUEUE_STATUSES.map((status) => (
-            <Column key={status} status={status} hrefBase={hrefBase} limit={wipLimits?.[status]} orders={board.filter((order) => order.status === status)} />
+            <Column key={status} status={status} hrefBase={hrefBase} drawerBase={drawerBase} limit={wipLimits?.[status]} orders={board.filter((order) => order.status === status)} />
           ))}
         </div>
       </DndContext>

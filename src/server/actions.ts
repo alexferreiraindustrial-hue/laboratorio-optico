@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { loginErrorMessage } from "@/lib/domain/auth";
+import { isSupabaseConfigured } from "@/lib/env";
 import { dateTimeLocalToIso } from "@/lib/domain/calendar";
 import { can } from "@/lib/domain/permissions";
 import { parseDiopterToCents } from "@/lib/domain/powers";
@@ -40,14 +42,18 @@ function emptyToNull(value?: string | null) {
 }
 
 export async function signIn(formData: FormData) {
+  if (!isSupabaseConfigured()) return { ok: false as const, message: "O acesso deste ambiente ainda não foi configurado. Fale com o administrador do laboratório." };
   const { supabase } = await (async () => {
     const { createClient } = await import("@/lib/supabase/server");
     return { supabase: await createClient() };
   })();
-  const email = String(formData.get("email") ?? "");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { ok: false as const, message: "E-mail ou senha inválidos." };
+  if (error) {
+    console.warn("lab_sign_in_failed", { code: error.code ?? "unknown", status: error.status ?? 0 });
+    return { ok: false as const, message: loginErrorMessage(error) };
+  }
   redirect("/dashboard");
 }
 

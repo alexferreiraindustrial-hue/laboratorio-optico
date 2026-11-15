@@ -41,19 +41,19 @@ export function LabelSheet({ cards, empty }: { cards: LabelCard[]; empty: string
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {cards.map((card) => (
-          <article key={card.id} className="label-ticket flex gap-3 rounded border border-[#e6dcce] bg-white p-3">
+          <article key={card.id} className="label-ticket flex gap-3 rounded border border-[#dce5e7] bg-white p-3">
             <div className="min-w-0 flex-1">
               <p className="font-mono text-base font-semibold">{card.code}</p>
               <p className="text-sm font-medium">{card.title}</p>
               {card.lines.map((line) => (
-                <p key={line} className="text-xs text-[#4a453d]">{line}</p>
+                <p key={line} className="text-xs text-[#425f65]">{line}</p>
               ))}
             </div>
             {images[card.id] ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={images[card.id]} alt="" className="h-24 w-24 shrink-0" />
             ) : (
-              <p className="w-24 text-xs text-[#6b6358]">Gerando QR...</p>
+              <p className="w-24 text-xs text-[#60767b]">Gerando QR...</p>
             )}
           </article>
         ))}

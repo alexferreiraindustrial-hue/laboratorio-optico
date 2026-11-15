@@ -38,6 +38,8 @@ type OpenOrder = {
   status: OrderStatus;
   urgency: Urgency;
   laboratory_id: string | null;
+  laboratory_name: string | null;
+  lens_expected_at: string | null;
 };
 
 export default async function DashboardPage({
@@ -71,7 +73,7 @@ export default async function DashboardPage({
     supabase.from("service_orders").select("id, status, entered_at, completed_at, due_at, laboratory_id"),
     supabase
       .from("orders_enriched")
-      .select("id, number, client_name, external_order_id, store_name, seller_id, seller_name, due_at, status, urgency, laboratory_id")
+      .select("id, number, client_name, external_order_id, store_name, seller_id, seller_name, due_at, status, urgency, laboratory_id, laboratory_name, lens_expected_at")
       .in("status", QUEUE_STATUSES)
       .order("due_at", { ascending: true, nullsFirst: false }),
     supabase.from("production_goals").select("*").order("valid_from", { ascending: false }),
@@ -137,7 +139,7 @@ export default async function DashboardPage({
   const sellerById = new Map(catalogs.sellers.map((seller) => [seller.id, seller]));
   const RISK_ORDER: Record<string, number> = { atrasada: 0, risco: 1, atencao: 2 };
   const radar = open
-    .map((order) => ({ order, forecast: forecastOrder({ status: order.status, dueAt: order.due_at, stepsDone: stepsDone.get(order.id) ?? 0, now }) }))
+    .map((order) => ({ order, forecast: forecastOrder({ status: order.status, dueAt: order.due_at, lensExpectedAt: order.lens_expected_at, stepsDone: stepsDone.get(order.id) ?? 0, now }) }))
     .filter(({ order, forecast }) => forecast.risk in RISK_ORDER || openQualityOrders.has(order.id) || isToday(order))
     .sort((a, b) => (RISK_ORDER[a.forecast.risk] ?? 3) - (RISK_ORDER[b.forecast.risk] ?? 3) || (a.forecast.slackHours ?? 0) - (b.forecast.slackHours ?? 0));
   const riskCount = radar.filter(({ forecast }) => forecast.risk === "risco").length;
@@ -227,14 +229,14 @@ export default async function DashboardPage({
               <Link
                 key={item.key}
                 href={periodHref(item.key)}
-                className={`flex h-11 min-w-0 flex-1 items-center justify-center rounded-[7px] px-3 text-[13px] font-semibold sm:flex-none md:h-[30px] ${on ? "bg-white text-[#1a1714] shadow-[0_1px_2px_rgba(19,32,31,0.12)]" : "text-[#6b6358] hover:text-[#1a1714]"}`}
+                className={`flex h-11 min-w-0 flex-1 items-center justify-center rounded-[7px] px-3 text-[13px] font-semibold sm:flex-none md:h-[30px] ${on ? "bg-white text-[#172e32] shadow-[0_1px_2px_rgba(19,32,31,0.12)]" : "text-[#60767b] hover:text-[#172e32]"}`}
               >
                 {item.label}
               </Link>
             );
           })}
         </div>
-        <span className="font-mono text-[13px] text-[#4a453d]">{rangeLabel}</span>
+        <span className="font-mono text-[13px] text-[#425f65]">{rangeLabel}</span>
       </PageHeading>
 
       {period === "periodo" || catalogs.laboratories.length > 1 ? (
@@ -242,8 +244,8 @@ export default async function DashboardPage({
           <input type="hidden" name="period" value={period} />
           {period === "periodo" ? (
             <>
-              <input type="date" name="from" defaultValue={filters.from ?? month.startYmd} aria-label="Período inicial" className="h-11 rounded-lg border border-[#d5cbbb] bg-white px-3 text-base outline-none focus:border-[#0b5c54] md:h-9 md:text-sm" />
-              <input type="date" name="to" defaultValue={filters.to ?? zonedYmd(new Date(month.end.getTime() - 1))} aria-label="Período final" className="h-11 rounded-lg border border-[#d5cbbb] bg-white px-3 text-base outline-none focus:border-[#0b5c54] md:h-9 md:text-sm" />
+              <input type="date" name="from" defaultValue={filters.from ?? month.startYmd} aria-label="Período inicial" className="h-11 rounded-lg border border-[#cbdadd] bg-white px-3 text-base outline-none focus:border-[#087e83] md:h-9 md:text-sm" />
+              <input type="date" name="to" defaultValue={filters.to ?? zonedYmd(new Date(month.end.getTime() - 1))} aria-label="Período final" className="h-11 rounded-lg border border-[#cbdadd] bg-white px-3 text-base outline-none focus:border-[#087e83] md:h-9 md:text-sm" />
             </>
           ) : null}
           {catalogs.laboratories.length > 1 ? (
@@ -285,19 +287,19 @@ export default async function DashboardPage({
         <PanelHeader title="Fila agora">
           {open.length} OS em andamento · clique para abrir no Laboratório
         </PanelHeader>
-        <div className="grid grid-cols-2 gap-px bg-[#e6dcce] sm:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-px bg-[#dce5e7] sm:grid-cols-3 xl:grid-cols-6">
           {pipeline.map((stage) => (
             <Link
               key={stage.status}
               href={`/laboratorio/fila/${stage.status}`}
-              className="flex flex-col gap-2.5 bg-white px-5 pb-5 pt-[18px] hover:bg-[#f8f3ea]"
+              className="flex flex-col gap-2.5 bg-white px-5 pb-5 pt-[18px] hover:bg-[#f6f9f9]"
             >
-              <span className="flex items-center gap-[7px] text-[13px] font-medium text-[#4a453d]">
+              <span className="flex items-center gap-[7px] text-[13px] font-medium text-[#425f65]">
                 <span className="h-2 w-2 shrink-0 rounded-[2px]" style={{ background: STATUS_TONE[stage.status].dot }} />
                 {stage.status === "em_conferencia" ? "Em conferência" : STATUS_LABEL[stage.status]}
               </span>
               <span className="tabular text-[34px] font-semibold leading-none tracking-[-0.03em]">{stage.count}</span>
-              <span className={`text-xs ${stage.alert ? "font-semibold text-[#b42318]" : "text-[#6b6358]"}`}>{stage.note}</span>
+              <span className={`text-xs ${stage.alert ? "font-semibold text-[#b42318]" : "text-[#60767b]"}`}>{stage.note}</span>
             </Link>
           ))}
         </div>
@@ -305,63 +307,63 @@ export default async function DashboardPage({
 
       <Panel className="overflow-hidden">
         <PanelHeader title="Produção">Conta a data de conclusão da montagem</PanelHeader>
-        <div className="grid grid-cols-1 gap-px bg-[#e6dcce] sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-px bg-[#dce5e7] sm:grid-cols-2 xl:grid-cols-4">
           <Stat label="Concluídas hoje" value={doneToday} suffix={dailyGoal ? `/ meta ${dailyGoal}` : undefined}>
             {todayPct != null ? (
               <>
                 <div className="h-1.5 overflow-hidden rounded-[3px] bg-[#e7ebed]">
-                  <div className="h-full bg-[#0b5c54]" style={{ width: `${Math.min(100, todayPct * 100)}%` }} />
+                  <div className="h-full bg-[#087e83]" style={{ width: `${Math.min(100, todayPct * 100)}%` }} />
                 </div>
-                <span className="text-xs text-[#6b6358]">{formatPercent(todayPct)} da meta diária</span>
+                <span className="text-xs text-[#60767b]">{formatPercent(todayPct)} da meta diária</span>
               </>
             ) : (
               <GoalHint />
             )}
           </Stat>
           <Stat label="Na semana" value={doneWeek} suffix={weeklyGoal ? `/ meta ${weeklyGoal}` : undefined}>
-            {weeklyGoal ? <span className="text-xs text-[#6b6358]">{formatPercent(goalPercent(doneWeek, weeklyGoal))} da meta semanal</span> : <GoalHint scope="semanal" />}
+            {weeklyGoal ? <span className="text-xs text-[#60767b]">{formatPercent(goalPercent(doneWeek, weeklyGoal))} da meta semanal</span> : <GoalHint scope="semanal" />}
           </Stat>
           <Stat label="No mês" value={doneMonth} suffix={monthlyGoal ? `/ meta ${monthlyGoal}` : undefined}>
-            {monthlyGoal ? <span className="text-xs text-[#6b6358]">{formatPercent(goalPercent(doneMonth, monthlyGoal))} da meta mensal</span> : <GoalHint scope="mensal" />}
+            {monthlyGoal ? <span className="text-xs text-[#60767b]">{formatPercent(goalPercent(doneMonth, monthlyGoal))} da meta mensal</span> : <GoalHint scope="mensal" />}
           </Stat>
           <Stat
             label="Projeção do período"
             value={projection.projected == null ? "—" : formatNumber(projection.projected, 1)}
             suffix={projection.projected == null ? undefined : "montagens"}
           >
-            <span className="text-pretty text-xs text-[#6b6358]">
+            <span className="text-pretty text-xs text-[#60767b]">
               {projection.dailyAverage == null
                 ? projection.note
                 : `Média diária ${formatNumber(projection.dailyAverage, 1)} · ${projection.remainingWorkingDays} dias de funcionamento restantes. Estimativa, não garantia.`}
             </span>
           </Stat>
         </div>
-        <div className="border-t border-[#e6dcce] px-5 pb-4 pt-[18px]">
-          <div className="mb-2 flex justify-between text-xs text-[#6b6358]">
+        <div className="border-t border-[#dce5e7] px-5 pb-4 pt-[18px]">
+          <div className="mb-2 flex justify-between text-xs text-[#60767b]">
             <span>Montagens concluídas por dia · últimos 14 dias</span>
             {dailyGoal ? (
               <span className="flex items-center gap-1.5">
-                <span className="w-3.5 border-t border-dashed border-[#0b5c54]" />
+                <span className="w-3.5 border-t border-dashed border-[#087e83]" />
                 Meta diária {dailyGoal}
               </span>
             ) : null}
           </div>
-          <div className="relative grid h-[120px] grid-cols-[repeat(14,minmax(0,1fr))] items-end gap-2 border-b border-[#e6dcce]">
+          <div className="relative grid h-[120px] grid-cols-[repeat(14,minmax(0,1fr))] items-end gap-2 border-b border-[#dce5e7]">
             {dailyGoal ? (
-              <div className="absolute inset-x-0 border-t border-dashed border-[#0b5c54] opacity-60" style={{ bottom: `${(dailyGoal / barMax) * 100}%` }} />
+              <div className="absolute inset-x-0 border-t border-dashed border-[#087e83] opacity-60" style={{ bottom: `${(dailyGoal / barMax) * 100}%` }} />
             ) : null}
             {bars.map((bar, index) => (
               <div
                 key={bar.day + index}
                 title={`${bar.produced} montagem(ns)`}
                 className="min-h-[2px] rounded-t-[3px]"
-                style={{ height: `${(bar.produced / barMax) * 100}%`, background: index === bars.length - 1 ? "#0b5c54" : "#9cc9c3" }}
+                style={{ height: `${(bar.produced / barMax) * 100}%`, background: index === bars.length - 1 ? "#087e83" : "#9cc9c3" }}
               />
             ))}
           </div>
           <div className="mt-1.5 grid grid-cols-[repeat(14,minmax(0,1fr))] gap-2">
             {bars.map((bar, index) => (
-              <span key={bar.day + index} className="text-center font-mono text-[10px] text-[#8a8173]">{bar.day}</span>
+              <span key={bar.day + index} className="text-center font-mono text-[10px] text-[#74898e]">{bar.day}</span>
             ))}
           </div>
         </div>
@@ -374,13 +376,13 @@ export default async function DashboardPage({
             <span>Avisa antes do atraso · {radar.length} OS</span>
           </PanelHeader>
           {attention.length === 0 ? (
-            <p className="px-5 py-6 text-sm text-[#6b6358]">Nada atrasado, em risco ou vencendo hoje. Tudo no prazo.</p>
+            <p className="px-5 py-6 text-sm text-[#60767b]">Nada atrasado, em risco ou vencendo hoje. Tudo no prazo.</p>
           ) : (
             attention.map((order) => (
-              <div key={order.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[#efe8dc] px-5 py-3.5 last:border-b-0 hover:bg-[#f8f3ea]">
+              <div key={order.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[#edf2f3] px-5 py-3.5 last:border-b-0 hover:bg-[#f6f9f9]">
                 <Link href={`/laboratorio/${order.id}`} className="flex min-w-0 flex-col gap-1.5">
                   <span className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-[13px] font-medium text-[#0b5c54]">{visibleOrderNumber(order)}</span>
+                    <span className="font-mono text-[13px] font-medium text-[#087e83]">{visibleOrderNumber(order)}</span>
                     <span className="truncate text-[13px] font-semibold">{order.client_name}</span>
                     <RiskChip risk={order.forecast.risk} />
                   </span>
@@ -389,7 +391,7 @@ export default async function DashboardPage({
                   </span>
                   <span className="flex items-center gap-3">
                     <ProgressBar value={order.forecast.progress} risk={order.forecast.risk} className="w-36" />
-                    <span className="truncate text-xs text-[#6b6358]">
+                    <span className="truncate text-xs text-[#60767b]">
                       {STATUS_LABEL[order.status]} · {order.laboratory_name || "Sem laboratório"} · {order.sellerName || "Sem vendedor"}
                     </span>
                   </span>
@@ -399,37 +401,37 @@ export default async function DashboardPage({
             ))
           )}
           {lowStock.length > 0 ? (
-            <Link href="/estoque" className="flex items-center justify-between border-t border-[#e6dcce] bg-[#fdf3dc]/50 px-5 py-3 text-[13px] hover:bg-[#fdf3dc]">
+            <Link href="/estoque" className="flex items-center justify-between border-t border-[#dce5e7] bg-[#fdf3dc]/50 px-5 py-3 text-[13px] hover:bg-[#fdf3dc]">
               <span className="font-semibold text-[#8a5a00]">{lowStock.length} lente(s) com estoque baixo ou zerado</span>
-              <span className="font-medium text-[#0b5c54]">Ver estoque</span>
+              <span className="font-medium text-[#087e83]">Ver estoque</span>
             </Link>
           ) : null}
         </Panel>
 
         <Panel className="overflow-hidden">
           <PanelHeader title="Qualidade no período">
-            <Link href="/relatorios" className="font-medium text-[#0b5c54] hover:underline">Relatório</Link>
+            <Link href="/relatorios" className="font-medium text-[#087e83] hover:underline">Relatório</Link>
           </PanelHeader>
-          <div className="grid grid-cols-2 gap-px border-b border-[#e6dcce] bg-[#e6dcce]">
+          <div className="grid grid-cols-2 gap-px border-b border-[#dce5e7] bg-[#dce5e7]">
             <div className="flex flex-col gap-1.5 bg-white px-5 py-4">
-              <span className="text-[13px] font-medium text-[#4a453d]">OS com ocorrência</span>
+              <span className="text-[13px] font-medium text-[#425f65]">OS com ocorrência</span>
               <span className="tabular text-[28px] font-semibold leading-none tracking-[-0.03em]">
                 {rate.percent == null ? "—" : formatPercent(rate.percent)}
               </span>
-              <span className="text-xs text-[#6b6358]">{rate.affected} de {rate.orders} OS</span>
+              <span className="text-xs text-[#60767b]">{rate.affected} de {rate.orders} OS</span>
             </div>
             <div className="flex flex-col gap-1.5 bg-white px-5 py-4">
-              <span className="text-[13px] font-medium text-[#4a453d]">Ocorrências abertas</span>
+              <span className="text-[13px] font-medium text-[#425f65]">Ocorrências abertas</span>
               <span className={`tabular text-[28px] font-semibold leading-none tracking-[-0.03em] ${openQuality.length ? "text-[#b42318]" : ""}`}>
                 {openQuality.length}
               </span>
-              <span className="text-xs text-[#6b6358]">Bloqueia “Pronto”</span>
+              <span className="text-xs text-[#60767b]">Bloqueia “Pronto”</span>
             </div>
           </div>
           <div className="flex flex-col gap-2.5 px-5 pb-[18px] pt-3.5">
-            <span className="text-xs font-semibold text-[#8a8173]">Por categoria</span>
+            <span className="text-xs font-semibold text-[#74898e]">Por categoria</span>
             {byCategory.length === 0 ? (
-              <span className="text-[13px] text-[#6b6358]">Nenhuma ocorrência no período.</span>
+              <span className="text-[13px] text-[#60767b]">Nenhuma ocorrência no período.</span>
             ) : (
               byCategory.slice(0, 6).map((item) => (
                 <div key={item.key} className="grid grid-cols-[minmax(0,1fr)_120px_24px] items-center gap-3 text-[13px]">
@@ -461,10 +463,10 @@ function Stat({
 }) {
   return (
     <div className="flex flex-col gap-2 bg-white px-5 py-[18px]">
-      <span className="text-[13px] font-medium text-[#4a453d]">{label}</span>
+      <span className="text-[13px] font-medium text-[#425f65]">{label}</span>
       <div className="flex items-baseline gap-1.5">
         <span className="tabular text-[34px] font-semibold leading-none tracking-[-0.03em]">{value}</span>
-        {suffix ? <span className="text-sm text-[#6b6358]">{suffix}</span> : null}
+        {suffix ? <span className="text-sm text-[#60767b]">{suffix}</span> : null}
       </div>
       {children}
     </div>
@@ -473,9 +475,9 @@ function Stat({
 
 function GoalHint({ scope = "diária" }: { scope?: string }) {
   return (
-    <span className="text-xs text-[#6b6358]">
+    <span className="text-xs text-[#60767b]">
       Meta {scope} não definida ·{" "}
-      <Link href="/configuracoes" className="text-[#0b5c54] hover:underline">Definir</Link>
+      <Link href="/configuracoes" className="text-[#087e83] hover:underline">Definir</Link>
     </span>
   );
 }

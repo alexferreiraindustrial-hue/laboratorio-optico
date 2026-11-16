@@ -29,7 +29,10 @@ class LaFlowList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 6, 14, 6),
-      decoration: const BoxDecoration(color: LaColors.branco, borderRadius: LaRadius.rCartao),
+      decoration: const BoxDecoration(
+        color: LaColors.branco,
+        borderRadius: LaRadius.rCartao,
+      ),
       child: Stack(
         children: [
           // Trilho amarelo atrás dos símbolos (centro da coluna de 44 px).
@@ -38,7 +41,10 @@ class LaFlowList extends StatelessWidget {
             top: LaSize.linhaFluxo / 2,
             bottom: LaSize.linhaFluxo / 2,
             child: DecoratedBox(
-              decoration: BoxDecoration(color: LaColors.faixa, borderRadius: BorderRadius.all(Radius.circular(2))),
+              decoration: BoxDecoration(
+                color: LaColors.faixa,
+                borderRadius: BorderRadius.all(Radius.circular(2)),
+              ),
               child: SizedBox(width: 4),
             ),
           ),
@@ -69,23 +75,28 @@ class _Linha extends StatelessWidget {
       child: InkWell(
         onTap: step.onTap,
         borderRadius: LaRadius.rBotao,
-        child: SizedBox(
-          height: LaSize.linhaFluxo,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 72),
           child: Row(
             children: [
-              SizedBox(width: 44, child: Center(child: LaFlowSymbol(kind: step.kind))),
+              SizedBox(
+                width: 44,
+                child: Center(child: LaFlowSymbol(kind: step.kind)),
+              ),
               const SizedBox(width: LaSpace.m),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(step.rotulo, style: LaType.corpoForte, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(step.rotulo, style: LaType.corpoForte),
                     Text(
                       step.subtitulo,
                       style: LaType.apoio.copyWith(
                         color: retrabalho ? LaColors.alerta : LaColors.regua,
-                        fontWeight: retrabalho ? FontWeight.w600 : FontWeight.w400,
+                        fontWeight: retrabalho
+                            ? FontWeight.w600
+                            : FontWeight.w400,
                       ),
                     ),
                   ],

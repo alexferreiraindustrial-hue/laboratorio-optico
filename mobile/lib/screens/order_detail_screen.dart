@@ -197,7 +197,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         children: [
                           Text(
                             visibleOrderNumber(order!),
-                            style: LaType.numeroOs.copyWith(fontSize: 64),
+                            style: LaType.numeroOs,
                           ),
                           Text(
                             '${order['client_name']}',

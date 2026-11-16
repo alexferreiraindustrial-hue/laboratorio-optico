@@ -6,9 +6,15 @@ import '../la_tokens.dart';
 class LaBadge extends StatelessWidget {
   const LaBadge._(this.texto, this.fundo, this.cor, this.borda);
 
-  factory LaBadge.urgente() => const LaBadge._('Urgente', LaColors.perigo, LaColors.branco, null);
+  factory LaBadge.urgente() =>
+      const LaBadge._('Urgente', LaColors.perigo, LaColors.branco, null);
 
-  factory LaBadge.emCorrecao() => const LaBadge._('Em correção', LaColors.alertaFundo, LaColors.alerta, LaColors.alertaBorda);
+  factory LaBadge.emCorrecao() => const LaBadge._(
+    'Em correção',
+    LaColors.alertaFundo,
+    LaColors.alerta,
+    LaColors.alertaBorda,
+  );
 
   final String texto;
   final Color fundo;
@@ -24,7 +30,14 @@ class LaBadge extends StatelessWidget {
         borderRadius: LaRadius.rChip,
         border: borda == null ? null : Border.all(color: borda!, width: 1.5),
       ),
-      child: Text(texto, style: LaType.rotulo.copyWith(fontSize: 13, fontWeight: FontWeight.w700, color: cor)),
+      child: Text(
+        texto,
+        style: LaType.rotulo.copyWith(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: cor,
+        ),
+      ),
     );
   }
 }
@@ -33,7 +46,12 @@ enum LaPrazo { atrasada, proximo, noPrazo }
 
 /// Prazo com ponto colorido + texto. Nunca só cor.
 class LaPrazoTag extends StatelessWidget {
-  const LaPrazoTag({super.key, required this.status, required this.texto, this.tamanho = 13});
+  const LaPrazoTag({
+    super.key,
+    required this.status,
+    required this.texto,
+    this.tamanho = 13,
+  });
 
   final LaPrazo status;
 
@@ -42,10 +60,10 @@ class LaPrazoTag extends StatelessWidget {
   final double tamanho;
 
   static (Color ponto, Color texto) cores(LaPrazo s) => switch (s) {
-        LaPrazo.atrasada => (LaColors.pontoAtrasada, LaColors.perigo),
-        LaPrazo.proximo => (LaColors.pontoProximo, LaColors.alerta),
-        LaPrazo.noPrazo => (LaColors.pontoNoPrazo, LaColors.noPrazo),
-      };
+    LaPrazo.atrasada => (LaColors.pontoAtrasada, LaColors.perigo),
+    LaPrazo.proximo => (LaColors.pontoProximo, LaColors.alerta),
+    LaPrazo.noPrazo => (LaColors.pontoNoPrazo, LaColors.noPrazo),
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -53,9 +71,22 @@ class LaPrazoTag extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 10, height: 10, decoration: BoxDecoration(color: ponto, shape: BoxShape.circle)),
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: ponto, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 6),
-        Text(texto, style: LaType.rotulo.copyWith(fontSize: tamanho, fontWeight: FontWeight.w700, color: cor)),
+        Flexible(
+          child: Text(
+            texto,
+            style: LaType.rotulo.copyWith(
+              fontSize: tamanho,
+              fontWeight: FontWeight.w700,
+              color: cor,
+            ),
+          ),
+        ),
       ],
     );
   }

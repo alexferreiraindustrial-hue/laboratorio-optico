@@ -34,7 +34,7 @@ class LaOsCard extends StatelessWidget {
   final bool urgente;
   final bool emCorrecao;
 
-  /// true quando a próxima etapa é Pronto: botão amarelo.
+  /// true quando a próxima etapa é Pronto: ação principal em destaque.
   final bool acaoFinal;
   final bool carregando;
 
@@ -42,13 +42,17 @@ class LaOsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-      decoration: const BoxDecoration(color: LaColors.branco, borderRadius: LaRadius.rCartao),
+      decoration: const BoxDecoration(
+        color: LaColors.branco,
+        borderRadius: LaRadius.rCartao,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Semantics(
             button: true,
-            label: 'OS $numero, $cliente${urgente ? ', urgente' : ''}${emCorrecao ? ', em correção' : ''}',
+            label:
+                'OS $numero, $cliente${urgente ? ', urgente' : ''}${emCorrecao ? ', em correção' : ''}',
             onTap: onAbrir,
             excludeSemantics: true,
             child: InkWell(
@@ -56,22 +60,23 @@ class LaOsCard extends StatelessWidget {
               borderRadius: LaRadius.rBotao,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: LaSize.toque),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(numero, style: LaType.numeroCartao),
-                    const SizedBox(width: LaSpace.m),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(cliente, style: LaType.corpo.copyWith(fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
-                          Text(detalhe, style: LaType.apoio, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        ],
-                      ),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(numero, style: LaType.numeroCartao),
+                        if (urgente) LaBadge.urgente(),
+                        if (emCorrecao) LaBadge.emCorrecao(),
+                      ],
                     ),
-                    if (urgente) LaBadge.urgente(),
-                    if (emCorrecao) ...[const SizedBox(width: 6), LaBadge.emCorrecao()],
+                    const SizedBox(height: 8),
+                    Text(cliente, style: LaType.corpoForte),
+                    const SizedBox(height: 4),
+                    Text(detalhe, style: LaType.apoio),
                   ],
                 ),
               ),
@@ -82,7 +87,9 @@ class LaOsCard extends StatelessWidget {
             LaButton(
               label: acaoLabel,
               height: LaSize.toque,
-              variant: acaoFinal ? LaButtonVariant.principal : LaButtonVariant.escuro,
+              variant: acaoFinal
+                  ? LaButtonVariant.principal
+                  : LaButtonVariant.escuro,
               loading: carregando,
               onPressed: onAcao,
             ),

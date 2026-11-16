@@ -175,13 +175,8 @@ class _BenchScreenState extends State<BenchScreen> {
             ),
             const SizedBox(height: LaSpace.item),
           ],
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: LaSpace.item,
-            crossAxisSpacing: LaSpace.item,
-            childAspectRatio: 2.4,
+          LaAdaptiveGrid(
+            minWidth: 150,
             children: [
               for (final station in _stations)
                 _Station(
@@ -258,7 +253,7 @@ class _Station extends StatelessWidget {
     final fg = selected
         ? LaColors.branco
         : (alert ? LaColors.alerta : LaColors.grafite);
-    final number = selected ? LaColors.faixa : fg;
+    final number = selected ? LaColors.branco : fg;
     return Semantics(
       button: true,
       selected: selected,
@@ -285,8 +280,7 @@ class _Station extends StatelessWidget {
                 ),
                 Text(
                   label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                   style: LaType.apoio.copyWith(
                     color: fg,
                     fontWeight: FontWeight.w600,

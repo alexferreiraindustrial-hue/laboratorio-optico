@@ -1,5 +1,6 @@
 // Laboratório ALEX: importe só este arquivo nas telas.
 export 'la_tokens.dart';
+export 'widgets/la_responsive.dart';
 export 'la_theme.dart';
 export 'widgets/la_monogram.dart';
 export 'widgets/la_button.dart';

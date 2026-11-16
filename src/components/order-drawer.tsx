@@ -7,11 +7,12 @@ import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 /** The URL owns selection, so back, refresh and copied links preserve the queue. */
-export function OrderDrawer({ title, closeHref, detailHref, editor, workspace }: {
+export function OrderDrawer({ title, closeHref, detailHref, editor, workspace, description = "Complemente os dados sem perder sua posição na fila." }: {
   title: string;
   closeHref: string;
   detailHref: string;
   editor?: ReactNode;
+  description?: string;
   workspace: ReactNode;
 }) {
   const router = useRouter();
@@ -25,7 +26,7 @@ export function OrderDrawer({ title, closeHref, detailHref, editor, workspace }:
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]"><ClipboardList size={20} /></span>
             <div className="min-w-0 flex-1">
               <Dialog.Title className="truncate text-lg font-bold">{title}</Dialog.Title>
-              <Dialog.Description className="mt-1 text-xs text-[var(--muted)]">Complemente os dados sem perder sua posição na fila.</Dialog.Description>
+              <Dialog.Description className="mt-1 text-xs text-[var(--muted)]">{description}</Dialog.Description>
             </div>
             <Dialog.Close aria-label="Fechar ordem de serviço" className="grid h-10 w-10 shrink-0 place-items-center rounded-lg hover:bg-[var(--background)]"><X size={20} /></Dialog.Close>
           </header>

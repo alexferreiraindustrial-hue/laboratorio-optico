@@ -108,8 +108,8 @@ abstract final class AppSpace {
 }
 
 abstract final class AppRadius {
-  static const control = 18.0;
-  static const card = 22.0;
+  static const control = 12.0;
+  static const card = 16.0;
   static const sheet = 28.0;
   static const pill = 999.0;
 }
@@ -124,14 +124,14 @@ abstract final class AppAssets {
 }
 
 const _lightColors = AppColors(
-  ink: Color(0xFF1C1E1F),
-  muted: Color(0xFF5C6166),
-  accent: Color(0xFF1C1E1F),
-  accentStrong: Color(0xFF1C1E1F),
-  glow: Color(0xFFE9EAE6),
+  ink: Color(0xFF172E32),
+  muted: Color(0xFF60767B),
+  accent: Color(0xFF087E83),
+  accentStrong: Color(0xFF066369),
+  glow: Color(0xFFE0F2F1),
   paper: Color(0xFFFFFFFF),
-  canvas: Color(0xFFE9EAE6),
-  hairline: Color(0xFFC9CCC6),
+  canvas: Color(0xFFF3F6F6),
+  hairline: Color(0xFFCBDADD),
   danger: Color(0xFFB42318),
   warn: Color(0xFFB54708),
   ok: Color(0xFF2B7A3B),

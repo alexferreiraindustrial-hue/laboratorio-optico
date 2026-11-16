@@ -11,7 +11,7 @@ class LaMonogram extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Laboratório ALEX',
+      label: 'ÓticaHub Lab',
       excludeSemantics: true,
       child: Container(
         width: size,
@@ -21,7 +21,11 @@ class LaMonogram extends StatelessWidget {
           color: LaColors.faixa,
           borderRadius: BorderRadius.circular(size * 0.25),
         ),
-        child: Text('LA', style: LaType.numeroLista.copyWith(fontSize: size * 0.5, letterSpacing: -0.5)),
+        child: Icon(
+          Icons.blur_circular,
+          color: LaColors.branco,
+          size: size * 0.62,
+        ),
       ),
     );
   }

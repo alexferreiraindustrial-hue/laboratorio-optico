@@ -335,7 +335,7 @@ class _SummaryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final bg = selected ? LaColors.grafite : LaColors.branco;
     final fg = selected ? LaColors.branco : LaColors.grafite;
-    final number = selected ? LaColors.faixa : tone;
+    final number = selected ? LaColors.branco : tone;
     return Expanded(
       child: Semantics(
         button: true,

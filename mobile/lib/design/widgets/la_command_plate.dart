@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import '../la_tokens.dart';
 import 'la_button.dart';
 
-/// Placa de comando amarela do Painel.
-/// Linha 1: Lançar OS (escuro) | OS completa (contorno).
-/// Linha 2: Rotina + engrenagem.
 class LaCommandPlate extends StatelessWidget {
   const LaCommandPlate({
     super.key,
@@ -14,90 +11,70 @@ class LaCommandPlate extends StatelessWidget {
     required this.onRotina,
     required this.onConfigurarRotina,
   });
-
   final VoidCallback onLancarOs;
   final VoidCallback onOsCompleta;
   final VoidCallback onRotina;
   final VoidCallback onConfigurarRotina;
-
   @override
-  Widget build(BuildContext context) {
-    final suave = LaColors.grafite.withValues(alpha: 0.08);
-    return Container(
-      padding: const EdgeInsets.all(LaSpace.m),
-      decoration: const BoxDecoration(color: LaColors.faixa, borderRadius: LaRadius.rCartao),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: LaButton(
-                  label: 'Lançar OS',
-                  height: LaSize.botaoGrande,
-                  leading: const Icon(Icons.add, color: LaColors.faixa, size: 22),
-                  onPressed: onLancarOs,
-                ),
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: LaColors.branco,
+      borderRadius: LaRadius.rCartao,
+      border: Border.all(color: LaColors.filete),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Começar um serviço', style: LaType.corpoForte),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, box) {
+            final primary = LaButton(
+              label: 'Entrada rápida',
+              variant: LaButtonVariant.principal,
+              leading: const Icon(Icons.add, color: LaColors.branco),
+              onPressed: onLancarOs,
+            );
+            final secondary = LaButton(
+              label: 'OS completa',
+              variant: LaButtonVariant.contorno,
+              onPressed: onOsCompleta,
+            );
+            if (box.maxWidth < 420 ||
+                MediaQuery.textScalerOf(context).scale(16) > 22) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [primary, const SizedBox(height: 8), secondary],
+              );
+            }
+            return Row(
+              children: [
+                Expanded(child: primary),
+                const SizedBox(width: 8),
+                Expanded(child: secondary),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: TextButton.icon(
+                onPressed: onRotina,
+                icon: const Icon(Icons.checklist),
+                label: const Text('Rotina do dia'),
               ),
-              const SizedBox(width: LaSpace.item),
-              Expanded(
-                flex: 2,
-                child: Material(
-                  color: Colors.transparent,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: LaRadius.rBotao,
-                    side: BorderSide(color: LaColors.grafite, width: 2),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: onOsCompleta,
-                    child: SizedBox(
-                      height: LaSize.botaoGrande,
-                      child: Center(child: Text('OS completa', style: LaType.botao.copyWith(fontSize: 17))),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: LaSpace.item),
-          Row(
-            children: [
-              Expanded(
-                child: Material(
-                  color: suave,
-                  borderRadius: LaRadius.rBotao,
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: onRotina,
-                    child: SizedBox(
-                      height: LaSize.toque,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: LaSpace.secao),
-                        child: Align(alignment: Alignment.centerLeft, child: Text('Rotina', style: LaType.botao)),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: LaSpace.item),
-              Material(
-                color: suave,
-                borderRadius: LaRadius.rBotao,
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: onConfigurarRotina,
-                  child: const SizedBox(
-                    width: LaSize.toque,
-                    height: LaSize.toque,
-                    child: Icon(Icons.settings_outlined, color: LaColors.grafite, semanticLabel: 'Configurar rotina'),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+            ),
+            IconButton(
+              tooltip: 'Configurar rotina',
+              onPressed: onConfigurarRotina,
+              icon: const Icon(Icons.settings_outlined),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
 }

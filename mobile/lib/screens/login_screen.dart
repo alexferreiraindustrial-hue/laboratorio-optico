@@ -35,6 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> submitLab() async {
+    if (pending) return;
     setState(() {
       pending = true;
       error = null;
@@ -42,6 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await widget.session.signIn(email.text, password.text);
     } catch (_) {
+      if (!mounted) return;
       setState(
         () => error = widget.session.error ?? 'Não foi possível entrar.',
       );
@@ -51,6 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> submitSellerPin() async {
+    if (pending) return;
     if (sellerLogin.text.trim().isEmpty || sellerPin.text.trim().length < 4) {
       setState(
         () => error =
@@ -75,6 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
         name: access.name,
       );
     } catch (e) {
+      if (!mounted) return;
       setState(() => error = friendlyError(e));
     } finally {
       if (mounted) setState(() => pending = false);
@@ -82,6 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> submitPortal() async {
+    if (pending) return;
     final parsed = parsePortalLogin(portal.text);
     if (parsed == null) {
       setState(() => error = 'Cole o link do PWA que o laboratório enviou.');
@@ -103,176 +108,178 @@ class _LoginScreenState extends State<LoginScreen> {
         name: identity.name,
       );
     } catch (e) {
+      if (!mounted) return;
       setState(() => error = friendlyError(e));
     } finally {
       if (mounted) setState(() => pending = false);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: LaColors.piso,
-      body: Column(
-        children: [
-          Expanded(
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  LaSpace.tela,
-                  28,
-                  LaSpace.tela,
-                  12,
-                ),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.topLeft,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const LaMonogram(size: 64),
-                      const SizedBox(height: LaSpace.l),
-                      Text('Laboratório', style: LaType.marca),
-                      Text('ALEX', style: LaType.marca),
-                      Text(
-                        'Montagem óptica',
-                        style: LaType.corpo.copyWith(
-                          color: LaColors.regua,
-                          fontSize: 17,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+  Widget _form() => AutofillGroup(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        LaSegmented(
+          opcoes: const ['Laboratório', 'Vendedor'],
+          selecionado: sellerMode ? 1 : 0,
+          onChanged: (index) => setState(() {
+            sellerMode = index == 1;
+            error = null;
+          }),
+        ),
+        const SizedBox(height: LaSpace.secao),
+        if (!sellerMode) ...[
+          TextField(
+            controller: email,
+            keyboardType: TextInputType.emailAddress,
+            autofillHints: const [AutofillHints.username, AutofillHints.email],
+            decoration: const InputDecoration(labelText: 'E-mail'),
+            textInputAction: TextInputAction.next,
           ),
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.sizeOf(context).height * 0.72,
+          const SizedBox(height: LaSpace.item),
+          TextField(
+            controller: password,
+            obscureText: true,
+            autofillHints: const [AutofillHints.password],
+            decoration: const InputDecoration(labelText: 'Senha'),
+            onSubmitted: (_) => submitLab(),
+          ),
+        ] else ...[
+          TextField(
+            controller: sellerLogin,
+            textCapitalization: TextCapitalization.none,
+            autofillHints: const [AutofillHints.username],
+            style: LaType.tituloSecao,
+            decoration: const InputDecoration(
+              labelText: 'Código',
+              hintText: 'v3',
             ),
-            child: Material(
-              color: LaColors.branco,
-              borderRadius: LaRadius.rFolhaTopo,
-              child: SafeArea(
-                top: false,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(
-                    LaSpace.tela,
-                    LaSpace.xl,
-                    LaSpace.tela,
-                    LaSpace.tela,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      LaSegmented(
-                        opcoes: const ['Laboratório', 'Vendedor'],
-                        selecionado: sellerMode ? 1 : 0,
-                        onChanged: (index) => setState(() {
-                          sellerMode = index == 1;
-                          error = null;
-                        }),
-                      ),
-                      const SizedBox(height: LaSpace.secao),
-                      if (!sellerMode) ...[
-                        TextField(
-                          controller: email,
-                          keyboardType: TextInputType.emailAddress,
-                          autofillHints: const [
-                            AutofillHints.username,
-                            AutofillHints.email,
-                          ],
-                          decoration: const InputDecoration(
-                            labelText: 'E-mail',
-                          ),
-                          textInputAction: TextInputAction.next,
-                        ),
-                        const SizedBox(height: LaSpace.item),
-                        TextField(
-                          controller: password,
-                          obscureText: true,
-                          autofillHints: const [AutofillHints.password],
-                          decoration: const InputDecoration(labelText: 'Senha'),
-                          onSubmitted: (_) => submitLab(),
-                        ),
-                      ] else ...[
-                        TextField(
-                          controller: sellerLogin,
-                          textCapitalization: TextCapitalization.none,
-                          autofillHints: const [AutofillHints.username],
-                          style: LaType.tituloSecao,
-                          decoration: const InputDecoration(
-                            labelText: 'Código',
-                            hintText: 'v3',
-                          ),
-                          textInputAction: TextInputAction.next,
-                        ),
-                        const SizedBox(height: LaSpace.item),
-                        TextField(
-                          controller: sellerPin,
-                          obscureText: true,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(8),
-                          ],
-                          autofillHints: const [AutofillHints.password],
-                          decoration: const InputDecoration(
-                            labelText: 'PIN',
-                            helperText: 'O PIN tem de 4 a 8 dígitos.',
-                          ),
-                          onSubmitted: (_) => submitSellerPin(),
-                        ),
-                        ExpansionTile(
-                          tilePadding: EdgeInsets.zero,
-                          title: Text('Já tenho o link', style: LaType.rotulo),
-                          children: [
-                            TextField(
-                              controller: portal,
-                              minLines: 2,
-                              maxLines: 4,
-                              decoration: const InputDecoration(
-                                labelText: 'Cole o link',
-                              ),
-                            ),
-                            const SizedBox(height: LaSpace.item),
-                            LaButton(
-                              label: 'Abrir pelo link',
-                              variant: LaButtonVariant.contorno,
-                              onPressed: pending ? null : submitPortal,
-                            ),
-                          ],
-                        ),
-                      ],
-                      if (error != null) ...[
-                        const SizedBox(height: LaSpace.item),
-                        Text(
-                          error!,
-                          style: LaType.rotulo.copyWith(color: LaColors.perigo),
-                        ),
-                      ],
-                      const SizedBox(height: LaSpace.secao),
-                      LaButton(
-                        key: const ValueKey('entrar'),
-                        label: 'Entrar',
-                        height: 58,
-                        loading: pending,
-                        onPressed: pending
-                            ? null
-                            : () =>
-                                  sellerMode ? submitSellerPin() : submitLab(),
-                      ),
-                    ],
-                  ),
-                ),
+            textInputAction: TextInputAction.next,
+          ),
+          const SizedBox(height: LaSpace.item),
+          TextField(
+            controller: sellerPin,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(8),
+            ],
+            autofillHints: const [AutofillHints.password],
+            decoration: const InputDecoration(
+              labelText: 'PIN',
+              helperText: 'O PIN tem de 4 a 8 dígitos.',
+            ),
+            onSubmitted: (_) => submitSellerPin(),
+          ),
+          ExpansionTile(
+            tilePadding: EdgeInsets.zero,
+            title: Text('Já tenho o link', style: LaType.rotulo),
+            children: [
+              TextField(
+                controller: portal,
+                minLines: 2,
+                maxLines: 4,
+                decoration: const InputDecoration(labelText: 'Cole o link'),
               ),
-            ),
+              const SizedBox(height: LaSpace.item),
+              LaButton(
+                label: 'Abrir pelo link',
+                variant: LaButtonVariant.contorno,
+                onPressed: pending ? null : submitPortal,
+              ),
+            ],
           ),
         ],
+        if (error != null) ...[
+          const SizedBox(height: LaSpace.item),
+          Text(error!, style: LaType.rotulo.copyWith(color: LaColors.perigo)),
+        ],
+        const SizedBox(height: LaSpace.secao),
+        LaButton(
+          key: const ValueKey('entrar'),
+          label: 'Entrar',
+          height: 58,
+          loading: pending,
+          onPressed: pending
+              ? null
+              : () => sellerMode ? submitSellerPin() : submitLab(),
+        ),
+      ],
+    ),
+  );
+
+  Widget _brand() => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const LaMonogram(size: 48),
+      const SizedBox(height: 20),
+      Text('ÓticaHub Lab', style: LaType.tituloTela),
+      const SizedBox(height: 8),
+      Text(
+        'Cada OS no lugar. Cada etapa no tempo.',
+        style: LaType.corpoForte.copyWith(color: LaColors.acento),
       ),
-    );
-  }
+      const SizedBox(height: 8),
+      Text(
+        'Entre para continuar a produção do laboratório.',
+        style: LaType.corpo.copyWith(color: LaColors.regua),
+      ),
+    ],
+  );
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    resizeToAvoidBottomInset: true,
+    body: SafeArea(
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final wide = box.maxWidth >= 760;
+          return SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: EdgeInsets.all(wide ? 32 : 20),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 920),
+                child: wide
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: 40,
+                                right: 40,
+                              ),
+                              child: _brand(),
+                            ),
+                          ),
+                          Expanded(child: _loginCard()),
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _brand(),
+                          const SizedBox(height: 24),
+                          _loginCard(),
+                        ],
+                      ),
+              ),
+            ),
+          );
+        },
+      ),
+    ),
+  );
+
+  Widget _loginCard() => Material(
+    color: LaColors.branco,
+    shape: const RoundedRectangleBorder(
+      borderRadius: LaRadius.rCartao,
+      side: BorderSide(color: LaColors.filete),
+    ),
+    child: Padding(padding: const EdgeInsets.all(20), child: _form()),
+  );
 }

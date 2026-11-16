@@ -104,7 +104,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Laboratório ALEX',
+                        'ÓticaHub Lab',
                         style: LaType.corpoForte.copyWith(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,

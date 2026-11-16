@@ -263,8 +263,8 @@ class _LaunchScreenState extends State<LaunchScreen> {
                 controller: line,
                 focusNode: focus,
                 enabled: !pending,
-                minLines: 6,
-                maxLines: 8,
+                minLines: 3,
+                maxLines: 6,
                 style: LaType.corpoForte.copyWith(fontSize: 19, height: 1.5),
                 decoration: InputDecoration(
                   hintText: 'Número, nome ou lista colada',

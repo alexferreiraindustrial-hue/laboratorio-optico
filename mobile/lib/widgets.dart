@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'lens_field.dart';
+import 'design/widgets/la_responsive.dart';
 import 'theme.dart';
 
 class LabHeader extends StatelessWidget {
@@ -13,14 +13,23 @@ class LabHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpace.md, AppSpace.sm, AppSpace.md, AppSpace.md),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpace.md,
+        AppSpace.sm,
+        AppSpace.md,
+        AppSpace.md,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title, style: Theme.of(context).textTheme.headlineMedium),
           if (subtitle != null) ...[
             const SizedBox(height: AppSpace.sm),
-            Text(subtitle!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.muted)),
+            Text(
+              subtitle!,
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: colors.muted),
+            ),
           ],
         ],
       ),
@@ -40,7 +49,10 @@ class LabError extends StatelessWidget {
       liveRegion: true,
       child: Container(
         width: double.infinity,
-        margin: const EdgeInsets.symmetric(horizontal: AppSpace.md, vertical: AppSpace.sm),
+        margin: const EdgeInsets.symmetric(
+          horizontal: AppSpace.md,
+          vertical: AppSpace.sm,
+        ),
         padding: const EdgeInsets.all(AppSpace.md),
         decoration: BoxDecoration(
           color: colors.dangerFill,
@@ -49,10 +61,19 @@ class LabError extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(message, style: TextStyle(color: colors.danger, fontWeight: FontWeight.w700)),
+            Text(
+              message,
+              style: TextStyle(
+                color: colors.danger,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             if (onRetry != null) ...[
               const SizedBox(height: AppSpace.sm),
-              FilledButton(onPressed: onRetry, child: const Text('Tentar de novo')),
+              FilledButton(
+                onPressed: onRetry,
+                child: const Text('Tentar de novo'),
+              ),
             ],
           ],
         ),
@@ -62,7 +83,12 @@ class LabError extends StatelessWidget {
 }
 
 class LabEmpty extends StatelessWidget {
-  const LabEmpty({super.key, required this.title, this.actionLabel, this.onAction});
+  const LabEmpty({
+    super.key,
+    required this.title,
+    this.actionLabel,
+    this.onAction,
+  });
   final String title;
   final String? actionLabel;
   final VoidCallback? onAction;
@@ -76,7 +102,11 @@ class LabEmpty extends StatelessWidget {
         children: [
           Icon(Icons.inbox_outlined, size: 36, color: colors.muted),
           const SizedBox(height: AppSpace.sm),
-          Text(title, textAlign: TextAlign.center, style: TextStyle(color: colors.muted)),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: colors.muted),
+          ),
           if (onAction != null && actionLabel != null) ...[
             const SizedBox(height: AppSpace.md),
             FilledButton(onPressed: onAction, child: Text(actionLabel!)),
@@ -88,7 +118,13 @@ class LabEmpty extends StatelessWidget {
 }
 
 class LabChoice extends StatelessWidget {
-  const LabChoice({super.key, required this.label, required this.selected, required this.onTap, this.code});
+  const LabChoice({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.code,
+  });
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -105,7 +141,9 @@ class LabChoice extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: AppTouch.min),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? colors.accent : colors.paper.withValues(alpha: 0.82),
+          color: selected
+              ? colors.accent
+              : colors.paper.withValues(alpha: 0.82),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: selected ? colors.accent : colors.hairline),
         ),
@@ -113,10 +151,25 @@ class LabChoice extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (code != null) ...[
-              Text(code!, style: TextStyle(fontFamily: 'Manrope', fontWeight: FontWeight.w800, color: selected ? colors.ink : colors.muted)),
+              Text(
+                code!,
+                style: TextStyle(
+                  fontFamily: 'Manrope',
+                  fontWeight: FontWeight.w800,
+                  color: selected ? Colors.white : colors.muted,
+                ),
+              ),
               const SizedBox(width: 6),
             ],
-            Text(label, style: TextStyle(fontWeight: FontWeight.w700, color: colors.ink)),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: selected ? Colors.white : colors.ink,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -125,7 +178,12 @@ class LabChoice extends StatelessWidget {
 }
 
 class LabPressable extends StatefulWidget {
-  const LabPressable({super.key, required this.onTap, required this.child, this.semanticLabel});
+  const LabPressable({
+    super.key,
+    required this.onTap,
+    required this.child,
+    this.semanticLabel,
+  });
   final VoidCallback? onTap;
   final Widget child;
   final String? semanticLabel;
@@ -144,7 +202,9 @@ class _LabPressableState extends State<LabPressable> {
       button: true,
       label: widget.semanticLabel,
       child: GestureDetector(
-        onTapDown: widget.onTap == null ? null : (_) => setState(() => down = true),
+        onTapDown: widget.onTap == null
+            ? null
+            : (_) => setState(() => down = true),
         onTapCancel: () => setState(() => down = false),
         onTapUp: (_) => setState(() => down = false),
         onTap: widget.onTap == null
@@ -165,7 +225,12 @@ class _LabPressableState extends State<LabPressable> {
 }
 
 class GoldPlate extends StatelessWidget {
-  const GoldPlate({super.key, required this.child, this.radius = 22, this.center = const Alignment(0.15, 0)});
+  const GoldPlate({
+    super.key,
+    required this.child,
+    this.radius = 22,
+    this.center = const Alignment(0.15, 0),
+  });
   final Widget child;
   final double radius;
   final Alignment center;
@@ -178,7 +243,11 @@ class GoldPlate extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
         boxShadow: const [
-          BoxShadow(color: Color(0x55000000), blurRadius: 16, offset: Offset(0, 8)),
+          BoxShadow(
+            color: Color(0x55000000),
+            blurRadius: 16,
+            offset: Offset(0, 8),
+          ),
         ],
       ),
       child: ClipRRect(
@@ -186,7 +255,9 @@ class GoldPlate extends StatelessWidget {
         child: Stack(
           fit: StackFit.passthrough,
           children: [
-            Positioned.fill(child: CustomPaint(painter: _BrushedGoldPainter(center: center))),
+            Positioned.fill(
+              child: CustomPaint(painter: _BrushedGoldPainter(center: center)),
+            ),
             child,
           ],
         ),
@@ -201,7 +272,10 @@ class _BrushedGoldPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final origin = Offset(size.width * (center.x + 1) / 2, size.height * (center.y + 1) / 2);
+    final origin = Offset(
+      size.width * (center.x + 1) / 2,
+      size.height * (center.y + 1) / 2,
+    );
     final radius = size.longestSide * 1.15;
     canvas.drawRect(
       Offset.zero & size,
@@ -234,7 +308,8 @@ class _BrushedGoldPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _BrushedGoldPainter oldDelegate) => oldDelegate.center != center;
+  bool shouldRepaint(covariant _BrushedGoldPainter oldDelegate) =>
+      oldDelegate.center != center;
 }
 
 class LabDock extends StatelessWidget {
@@ -254,14 +329,23 @@ class LabDock extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     return SafeArea(
-      minimum: const EdgeInsets.fromLTRB(AppSpace.md, 0, AppSpace.md, AppSpace.sm),
+      minimum: const EdgeInsets.fromLTRB(
+        AppSpace.md,
+        0,
+        AppSpace.md,
+        AppSpace.sm,
+      ),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: const Color(0xF2141615),
           borderRadius: BorderRadius.circular(AppRadius.sheet),
           border: Border.all(color: colors.accent.withValues(alpha: 0.28)),
           boxShadow: const [
-            BoxShadow(color: Color(0x66000000), blurRadius: 24, offset: Offset(0, 10)),
+            BoxShadow(
+              color: Color(0x66000000),
+              blurRadius: 24,
+              offset: Offset(0, 10),
+            ),
           ],
         ),
         child: Padding(
@@ -286,7 +370,12 @@ class LabDock extends StatelessWidget {
 }
 
 class _DockItem extends StatelessWidget {
-  const _DockItem({required this.selected, required this.icon, required this.label, required this.onTap});
+  const _DockItem({
+    required this.selected,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
   final bool selected;
   final IconData icon;
   final String label;
@@ -298,7 +387,9 @@ class _DockItem extends StatelessWidget {
       semanticLabel: label,
       onTap: onTap,
       child: AnimatedContainer(
-        duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 160),
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : const Duration(milliseconds: 160),
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
@@ -308,7 +399,13 @@ class _DockItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 22, color: selected ? const Color(0xFFE4C56A) : const Color(0xFF9A7A3C)),
+            Icon(
+              icon,
+              size: 22,
+              color: selected
+                  ? const Color(0xFFE4C56A)
+                  : const Color(0xFF9A7A3C),
+            ),
             const SizedBox(height: 4),
             Text(
               label,
@@ -316,7 +413,9 @@ class _DockItem extends StatelessWidget {
                 fontFamily: 'Manrope',
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: selected ? const Color(0xFFE4C56A) : const Color(0xFF9A7A3C),
+                color: selected
+                    ? const Color(0xFFE4C56A)
+                    : const Color(0xFF9A7A3C),
               ),
             ),
           ],
@@ -347,18 +446,23 @@ class LensSafeBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        const IgnorePointer(child: LensField(intensity: 0.55)),
-        child,
-      ],
+    return ColoredBox(
+      color: AppColors.of(context).canvas,
+      child: SafeArea(
+        top: false,
+        bottom: false,
+        child: LaContent(child: child),
+      ),
     );
   }
 }
 
 class LabSheet extends StatelessWidget {
-  const LabSheet({super.key, required this.child, this.padding = const EdgeInsets.all(AppSpace.md)});
+  const LabSheet({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(AppSpace.md),
+  });
   final Widget child;
   final EdgeInsets padding;
 
@@ -414,9 +518,15 @@ class LabMeta extends StatelessWidget {
         children: [
           SizedBox(
             width: 118,
-            child: Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.muted)),
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: colors.muted),
+            ),
           ),
-          Expanded(child: Text(value, style: Theme.of(context).textTheme.titleMedium)),
+          Expanded(
+            child: Text(value, style: Theme.of(context).textTheme.titleMedium),
+          ),
         ],
       ),
     );

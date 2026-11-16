@@ -1,20 +1,22 @@
 // Laboratório ALEX: tokens de design.
 // Fonte da verdade: design-handoff/HANDOFF.md §2.
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Cores. Use sempre o token, nunca o hex solto.
 abstract final class LaColors {
-  static const piso = Color(0xFFE9EAE6);
+  static const acento = Color(0xFF087E83);
+  static const acentoSuave = Color(0xFFE0F2F1);
+  static const navegacao = Color(0xFF102E34);
+  static const piso = Color(0xFFF3F6F6);
   static const branco = Color(0xFFFFFFFF);
-  static const grafite = Color(0xFF1C1E1F);
-  static const regua = Color(0xFF5C6166);
-  static const borda = Color(0xFFC9CCC6);
-  static const filete = Color(0xFFDCDDD8);
-  static const linha = Color(0xFFECEDEA);
+  static const grafite = Color(0xFF172E32);
+  static const regua = Color(0xFF60767B);
+  static const borda = Color(0xFFCBDADD);
+  static const filete = Color(0xFFDCE5E7);
+  static const linha = Color(0xFFEDF2F3);
 
   /// Amarelo de faixa de piso: só ação principal e "você está aqui".
-  static const faixa = Color(0xFFFFCC00);
+  static const faixa = Color(0xFF087E83);
   static const abaInativa = Color(0xFFB4B8B3);
 
   static const perigo = Color(0xFFB42318);
@@ -51,7 +53,9 @@ abstract final class LaRadius {
   static const BorderRadius rChip = BorderRadius.all(Radius.circular(chip));
   static const BorderRadius rBotao = BorderRadius.all(Radius.circular(botao));
   static const BorderRadius rCartao = BorderRadius.all(Radius.circular(cartao));
-  static const BorderRadius rFolhaTopo = BorderRadius.vertical(top: Radius.circular(folha));
+  static const BorderRadius rFolhaTopo = BorderRadius.vertical(
+    top: Radius.circular(folha),
+  );
 }
 
 abstract final class LaSize {
@@ -65,20 +69,42 @@ abstract final class LaSize {
 
 /// Tipografia. Barlow Condensed para números e títulos; Barlow para interface.
 abstract final class LaType {
-  static TextStyle _cd(double size, {FontWeight w = FontWeight.w700, double? h, double? ls, Color c = LaColors.grafite}) =>
-      GoogleFonts.barlowCondensed(fontSize: size, fontWeight: w, height: h, letterSpacing: ls, color: c);
+  static TextStyle _cd(
+    double size, {
+    FontWeight w = FontWeight.w700,
+    double? h,
+    double? ls,
+    Color c = LaColors.grafite,
+  }) => TextStyle(
+    fontFamily: 'Manrope',
+    fontSize: size,
+    fontWeight: w,
+    height: h,
+    letterSpacing: ls,
+    color: c,
+  );
 
-  static TextStyle _ui(double size, {FontWeight w = FontWeight.w500, double? h, Color c = LaColors.grafite}) =>
-      GoogleFonts.barlow(fontSize: size, fontWeight: w, height: h, color: c);
+  static TextStyle _ui(
+    double size, {
+    FontWeight w = FontWeight.w500,
+    double? h,
+    Color c = LaColors.grafite,
+  }) => TextStyle(
+    fontFamily: 'Manrope',
+    fontSize: size,
+    fontWeight: w,
+    height: h,
+    color: c,
+  );
 
   // Condensed
-  static TextStyle get numeroOs => _cd(84, h: 0.82, ls: -1);
-  static TextStyle get marca => _cd(72, h: 0.86, ls: -1.5);
-  static TextStyle get tituloTela => _cd(48, h: 1.0, ls: -0.5);
-  static TextStyle get contagem => _cd(44, h: 1.0);
-  static TextStyle get numeroCartao => _cd(36, h: 1.0);
-  static TextStyle get tituloSecao => _cd(26);
-  static TextStyle get numeroLista => _cd(24);
+  static TextStyle get numeroOs => _cd(40, h: 1.15, ls: -1);
+  static TextStyle get marca => _cd(40, h: 1.15, ls: -1);
+  static TextStyle get tituloTela => _cd(30, h: 1.2, ls: -0.5);
+  static TextStyle get contagem => _cd(32, h: 1.15);
+  static TextStyle get numeroCartao => _cd(24, h: 1.2);
+  static TextStyle get tituloSecao => _cd(22);
+  static TextStyle get numeroLista => _cd(20);
   static TextStyle get grau => _cd(26, w: FontWeight.w600);
 
   // Barlow
@@ -88,6 +114,8 @@ abstract final class LaType {
   static TextStyle get botaoGrande => _ui(18, w: FontWeight.w700);
   static TextStyle get rotulo => _ui(14, w: FontWeight.w600);
   static TextStyle get apoio => _ui(13, w: FontWeight.w400, c: LaColors.regua);
-  static TextStyle get aba => _ui(12, w: FontWeight.w600, c: LaColors.abaInativa);
-  static TextStyle get abaAtiva => _ui(12, w: FontWeight.w700, c: LaColors.branco);
+  static TextStyle get aba =>
+      _ui(12, w: FontWeight.w600, c: LaColors.abaInativa);
+  static TextStyle get abaAtiva =>
+      _ui(12, w: FontWeight.w700, c: LaColors.branco);
 }

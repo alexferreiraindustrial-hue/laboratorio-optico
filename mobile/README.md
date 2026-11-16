@@ -1,5 +1,13 @@
 # Laboratório ALEX
 
+## APK de teste 1.1.0 (3)
+
+Interface alinhada ao ÓticaHub Lab: superfícies claras, ações em verde-petróleo e alertas com cores e texto. Login em uma única área rolável para funcionar com teclado aberto e em paisagem. Fontes Manrope incluídas no app, sem carregamento pela rede.
+
+Celulares usam navegação inferior; a partir de 720 pixels lógicos o menu passa para a lateral. O conteúdo tem largura máxima, os cartões respeitam nomes longos e fontes ampliadas e a bancada usa grades de altura natural. A navegação lateral pode rolar em janelas baixas.
+
+Validação: `flutter test`, `flutter analyze --no-fatal-infos` e `flutter build apk --release`. Os testes incluem 320px, paisagem, tablet, fonte ampliada e teclado aberto. O APK mantém o identificador Android existente e usa a assinatura de teste já configurada. Não foram alterados banco, usuários, permissões ou regras de produção.
+
 Aplicativo Flutter do chão de fábrica. Faz parte do [Laboratório Óptico](../README.md) e usa o mesmo Supabase de [lab.oticahub.com](https://lab.oticahub.com): login, lançamento, bancada, pedido de lentes e conversa da ordem de serviço.
 
 A chave de serviço do banco não entra neste app. Use só a chave anônima. A permissão fica no PostgreSQL (RLS e funções).

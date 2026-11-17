@@ -1,5 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { sessionCookieOptions } from "./cookie-options";
+
+function redirectWithSession(request: NextRequest, response: NextResponse, pathname: string) {
+  const redirectUrl = request.nextUrl.clone();
+  redirectUrl.pathname = pathname;
+  const redirect = NextResponse.redirect(redirectUrl);
+  response.cookies.getAll().forEach(cookie => redirect.cookies.set(cookie));
+  return redirect;
+}
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -8,6 +17,7 @@ export async function updateSession(request: NextRequest) {
   if (!url || !key) return response;
 
   const supabase = createServerClient(url, key, {
+    cookieOptions: sessionCookieOptions(),
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -31,15 +41,11 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/acompanhar");
 
   if (!data.user && !isPublic) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/login";
-    return NextResponse.redirect(redirectUrl);
+    return redirectWithSession(request, response, "/login");
   }
 
   if (data.user && (path === "/login" || path === "/acesso-inicial")) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/dashboard";
-    return NextResponse.redirect(redirectUrl);
+    return redirectWithSession(request, response, "/dashboard");
   }
 
   return response;

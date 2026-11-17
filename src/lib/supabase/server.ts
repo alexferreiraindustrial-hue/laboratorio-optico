@@ -2,10 +2,12 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { cache } from "react";
 import { supabaseAnonKey, supabaseUrl } from "@/lib/env";
+import { sessionCookieOptions } from "./cookie-options";
 
 export const createClient = cache(async function createClient() {
   const cookieStore = await cookies();
   return createServerClient(supabaseUrl(), supabaseAnonKey(), {
+    cookieOptions: sessionCookieOptions(),
     cookies: {
       getAll() {
         return cookieStore.getAll();

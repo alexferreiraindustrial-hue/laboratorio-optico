@@ -47,7 +47,7 @@ function StoreLabels() {
       });
   }, [idList]);
 
-  if (error) return <p className="text-sm text-[#b42318]">{error}</p>;
+  if (error) return <p className="text-sm text-[#b83a3a]">{error}</p>;
   return <LabelSheet cards={cards} empty="Selecione uma loja para imprimir a etiqueta." />;
 }
 

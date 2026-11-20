@@ -63,7 +63,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (error != null) Padding(padding: const EdgeInsets.all(12), child: Text(error!, style: const TextStyle(color: Color(0xFFB42318)))),
+        if (error != null) Padding(padding: const EdgeInsets.all(12), child: Text(error!, style: const TextStyle(color: Color(0xFFB83A3A)))),
         Expanded(
           child: RefreshIndicator(
             onRefresh: load,

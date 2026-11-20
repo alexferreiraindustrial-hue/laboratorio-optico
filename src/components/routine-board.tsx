@@ -30,12 +30,12 @@ function Checklist({
 }) {
   const count = items.filter((item) => done.has(item.key)).length;
   return (
-    <section className="rounded-xl border border-[#dce5e7] bg-white">
-      <header className="flex items-center justify-between gap-2 border-b border-[#edf2f3] px-4 py-3">
+    <section className="rounded-xl border border-[#e2ddd5] bg-white">
+      <header className="flex items-center justify-between gap-2 border-b border-[#efece6] px-4 py-3">
         <h2 className="flex items-center gap-2 text-[15px] font-semibold">
-          <Icon size={17} className="text-[#c8881a]" /> {title}
+          <Icon size={17} className="text-[#87601f]" /> {title}
         </h2>
-        <span className={cn("rounded-md px-2 py-0.5 text-xs font-semibold", count === items.length ? "bg-[#e6f4ec] text-[#1c6b43]" : "bg-[#edf2f3] text-[#425f65]")}>
+        <span className={cn("rounded-md px-2 py-0.5 text-xs font-semibold", count === items.length ? "bg-[#e8f3ee] text-[#286f51]" : "bg-[#efece6] text-[#6e6a63]")}>
           {count}/{items.length}
         </span>
       </header>
@@ -48,13 +48,13 @@ function Checklist({
                 type="button"
                 disabled={!canEdit}
                 onClick={() => onToggle(item.key, item.label, !log)}
-                className={cn("flex min-h-12 w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-left transition-colors", log ? "bg-[#f0f7f3]" : "hover:bg-[#f6f9f9]")}
+                className={cn("flex min-h-12 w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-left transition-colors", log ? "bg-[#f0f7f3]" : "hover:bg-[#f7f6f3]")}
               >
-                <span className={cn("grid h-6 w-6 shrink-0 place-items-center rounded-md border-2 transition-colors", log ? "border-[#1c6b43] bg-[#1c6b43] text-white" : "border-[#cbdadd] bg-white")}>
+                <span className={cn("grid h-6 w-6 shrink-0 place-items-center rounded-md border-2 transition-colors", log ? "border-[#2e7d5b] bg-[#2e7d5b] text-white" : "border-[#e2ddd5] bg-white")}>
                   {log ? <Check size={14} strokeWidth={3} /> : null}
                 </span>
-                <span className={cn("flex-1 text-sm", log ? "text-[#425f65] line-through decoration-[#9fb3b0]" : "font-medium")}>{item.label}</span>
-                {log ? <span className="text-[11px] text-[#60767b]">{time.format(new Date(log.done_at))}</span> : null}
+                <span className={cn("flex-1 text-sm", log ? "text-[#6e6a63] line-through decoration-[#9fb3b0]" : "font-medium")}>{item.label}</span>
+                {log ? <span className="text-[11px] text-[#6e6a63]">{time.format(new Date(log.done_at))}</span> : null}
               </button>
             </li>
           );
@@ -117,19 +117,19 @@ export function RoutineBoard({ logs, canEdit, stats }: { logs: RoutineLog[]; can
   return (
     <div className="grid gap-5">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <div className="flex items-center gap-3 rounded-xl border border-[#dce5e7] bg-white p-4">
+        <div className="flex items-center gap-3 rounded-xl border border-[#e2ddd5] bg-white p-4">
           <svg viewBox="0 0 36 36" className="h-12 w-12 -rotate-90">
-            <circle cx="18" cy="18" r="15" fill="none" stroke="#edf2f3" strokeWidth="4" />
-            <circle cx="18" cy="18" r="15" fill="none" stroke="#1c6b43" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${progress * 94.2} 94.2`} className="transition-[stroke-dasharray] duration-500" />
+            <circle cx="18" cy="18" r="15" fill="none" stroke="#efece6" strokeWidth="4" />
+            <circle cx="18" cy="18" r="15" fill="none" stroke="#2e7d5b" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${progress * 94.2} 94.2`} className="transition-[stroke-dasharray] duration-500" />
           </svg>
           <div>
-            <p className="text-[13px] font-medium text-[#60767b]">Rotina do dia</p>
+            <p className="text-[13px] font-medium text-[#6e6a63]">Rotina do dia</p>
             <p className="tabular text-2xl font-semibold">{Math.round(progress * 100)}%</p>
           </div>
         </div>
         {stats.map((stat) => (
-          <Link key={stat.label} href={stat.href} className="rounded-xl border border-[#dce5e7] bg-white p-4 transition-shadow hover:shadow-[0_8px_24px_-16px_rgba(19,32,31,0.35)]">
-            <p className="text-[13px] font-medium text-[#60767b]">{stat.label}</p>
+          <Link key={stat.label} href={stat.href} className="rounded-xl border border-[#e2ddd5] bg-white p-4 transition-shadow hover:shadow-[0_8px_24px_-16px_rgba(19,32,31,0.35)]">
+            <p className="text-[13px] font-medium text-[#6e6a63]">{stat.label}</p>
             <p className="tabular mt-1 text-2xl font-semibold">{stat.value}</p>
           </Link>
         ))}
@@ -138,15 +138,15 @@ export function RoutineBoard({ logs, canEdit, stats }: { logs: RoutineLog[]; can
       <div className="grid items-start gap-5 xl:grid-cols-3">
         <Checklist title="Abertura" icon={Sun} items={ROUTINE_OPEN} done={done} canEdit={canEdit} onToggle={onToggle} />
 
-        <section className="rounded-xl border border-[#dce5e7] bg-white">
-          <header className="flex items-center justify-between gap-2 border-b border-[#edf2f3] px-4 py-3">
+        <section className="rounded-xl border border-[#e2ddd5] bg-white">
+          <header className="flex items-center justify-between gap-2 border-b border-[#efece6] px-4 py-3">
             <h2 className="flex items-center gap-2 text-[15px] font-semibold">
-              <Bike size={17} className="text-[#1e4d9b]" /> Durante o dia
+              <Bike size={17} className="text-[#6e4b2a]" /> Durante o dia
             </h2>
-            <span className="text-xs text-[#60767b]">{lensesToday} lentes recebidas</span>
+            <span className="text-xs text-[#6e6a63]">{lensesToday} lentes recebidas</span>
           </header>
           {canEdit ? (
-            <div className="grid gap-2 border-b border-[#edf2f3] p-4">
+            <div className="grid gap-2 border-b border-[#efece6] p-4">
               <p className="text-[13px] font-semibold">Chegou o motoboy?</p>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Input value={lenses} onChange={(event) => setLenses(event.target.value.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" placeholder="Qtd. de lentes" className="sm:w-32" />
@@ -171,21 +171,21 @@ export function RoutineBoard({ logs, canEdit, stats }: { logs: RoutineLog[]; can
             </div>
           ) : null}
           <ol className="grid gap-0 p-2">
-            {timeline.length === 0 ? <li className="px-3 py-6 text-center text-xs text-[#74898e]">Nenhuma chegada registrada hoje.</li> : null}
+            {timeline.length === 0 ? <li className="px-3 py-6 text-center text-xs text-[#6e6a63]">Nenhuma chegada registrada hoje.</li> : null}
             {timeline.map((log) => (
-              <li key={log.id} className="group flex items-start gap-3 rounded-lg px-2.5 py-2 hover:bg-[#f6f9f9]">
-                <span className="tabular mt-0.5 w-11 shrink-0 text-xs font-semibold text-[#60767b]">{time.format(new Date(log.done_at))}</span>
-                <span className={cn("mt-1 h-2.5 w-2.5 shrink-0 rounded-full", log.kind === "motoboy" ? "bg-[#1e4d9b]" : "bg-[#c8881a]")} />
+              <li key={log.id} className="group flex items-start gap-3 rounded-lg px-2.5 py-2 hover:bg-[#f7f6f3]">
+                <span className="tabular mt-0.5 w-11 shrink-0 text-xs font-semibold text-[#6e6a63]">{time.format(new Date(log.done_at))}</span>
+                <span className={cn("mt-1 h-2.5 w-2.5 shrink-0 rounded-full", log.kind === "motoboy" ? "bg-[#6e4b2a]" : "bg-[#87601f]")} />
                 <span className="flex-1 text-sm">
                   <span className="font-medium">{log.label}</span>
-                  {log.lenses_count != null ? <span className="text-[#60767b]"> · {log.lenses_count} lentes</span> : null}
-                  {log.notes ? <span className="block text-xs text-[#60767b]">{log.notes}</span> : null}
+                  {log.lenses_count != null ? <span className="text-[#6e6a63]"> · {log.lenses_count} lentes</span> : null}
+                  {log.notes ? <span className="block text-xs text-[#6e6a63]">{log.notes}</span> : null}
                 </span>
                 {canEdit ? (
                   <button
                     type="button"
                     aria-label="Remover"
-                    className="grid h-11 w-11 place-items-center rounded-lg text-[#74898e] hover:text-[#b42318] sm:h-8 sm:w-8 sm:opacity-0 sm:group-hover:opacity-100"
+                    className="grid h-11 w-11 place-items-center rounded-lg text-[#6e6a63] hover:text-[#b83a3a] sm:h-8 sm:w-8 sm:opacity-0 sm:group-hover:opacity-100"
                     onClick={() =>
                       start(async () => {
                         const result = await removeRoutineLog(log.id);

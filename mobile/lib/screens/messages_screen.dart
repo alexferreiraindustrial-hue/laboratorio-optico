@@ -40,7 +40,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            if (error != null) Text(error!, style: const TextStyle(color: Color(0xFFB42318))),
+            if (error != null) Text(error!, style: const TextStyle(color: Color(0xFFB83A3A))),
             if (rows.isEmpty) const Text('Nenhum recado.'),
             for (final row in rows)
               Card(

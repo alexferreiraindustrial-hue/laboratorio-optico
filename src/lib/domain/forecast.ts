@@ -40,9 +40,9 @@ export const RISK_LABEL: Record<Risk, string> = {
 export const RISK_TONE: Record<Risk, { fg: string; bg: string; dot: string }> = {
   no_prazo: { fg: "#1c6b43", bg: "#e3f4ea", dot: "#23955a" },
   atencao: { fg: "#8a5a00", bg: "#fdf3dc", dot: "#d99a0b" },
-  risco: { fg: "#a3261b", bg: "#fdecea", dot: "#d2382b" },
-  atrasada: { fg: "#ffffff", bg: "#b42318", dot: "#ffffff" },
-  sem_prazo: { fg: "#60767b", bg: "#edf2f3", dot: "#c9d0d4" },
+  risco: { fg: "#b83a3a", bg: "#fdecea", dot: "#d2382b" },
+  atrasada: { fg: "#ffffff", bg: "#b83a3a", dot: "#ffffff" },
+  sem_prazo: { fg: "#6e6a63", bg: "#efece6", dot: "#c9d0d4" },
   pronta: { fg: "#1c6b43", bg: "#e3f4ea", dot: "#23955a" },
   entregue: { fg: "#3b4650", bg: "#e6e9ec", dot: "#3b4650" },
   cancelada: { fg: "#6b7680", bg: "#f3f4f6", dot: "#a0a8b0" },

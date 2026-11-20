@@ -10,8 +10,8 @@ export default async function StockCodePage({ params }: { params: Promise<{ code
     return (
       <div>
         <h1 className="text-xl font-semibold">Código não reconhecido</h1>
-        <p className="mt-2 text-sm text-[#60767b]">O valor lido não é um identificador de estoque deste laboratório. Nenhuma lente foi identificada.</p>
-        <Link className="mt-4 inline-block text-sm text-[#087e83] underline" href="/estoque/leitura">Tentar novamente</Link>
+        <p className="mt-2 text-sm text-[#6e6a63]">O valor lido não é um identificador de estoque deste laboratório. Nenhuma lente foi identificada.</p>
+        <Link className="mt-4 inline-block text-sm text-[#8c6239] underline" href="/estoque/leitura">Tentar novamente</Link>
       </div>
     );
   }
@@ -21,8 +21,8 @@ export default async function StockCodePage({ params }: { params: Promise<{ code
     return (
       <div>
         <h1 className="text-xl font-semibold">Código sem cadastro</h1>
-        <p className="mt-2 text-sm text-[#60767b]">O identificador {normalized} é válido no formato, mas não existe no estoque. Nenhuma lente foi identificada.</p>
-        <Link className="mt-4 inline-block text-sm text-[#087e83] underline" href="/estoque/leitura">Nova leitura</Link>
+        <p className="mt-2 text-sm text-[#6e6a63]">O identificador {normalized} é válido no formato, mas não existe no estoque. Nenhuma lente foi identificada.</p>
+        <Link className="mt-4 inline-block text-sm text-[#8c6239] underline" href="/estoque/leitura">Nova leitura</Link>
       </div>
     );
   }

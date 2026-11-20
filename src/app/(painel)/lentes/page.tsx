@@ -31,7 +31,7 @@ export default async function LentesPage() {
         </Button>
       </PageHeading>
       {error ? (
-        <p className="rounded-lg border border-[#f3c9c4] bg-[#fdecea] px-3 py-2 text-sm text-[#a3261b]">Não foi possível carregar as previsões. Verifique se a migração do fluxo de produção foi aplicada.</p>
+        <p className="rounded-lg border border-[#f3c9c4] bg-[#f9eaea] px-3 py-2 text-sm text-[#b83a3a]">Não foi possível carregar as previsões. Verifique se a migração do fluxo de produção foi aplicada.</p>
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi label="Aguardando lente" value={String(rows.length)} hint="OS paradas esperando o laboratório" tool="Fila" />

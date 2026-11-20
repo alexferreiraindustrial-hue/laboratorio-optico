@@ -13,7 +13,7 @@ export function MovementForm({ stockId, role }: { stockId: string; role: AppRole
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   if (!can(role, "stock.write")) {
-    return <p className="mt-2 text-sm text-[#60767b]">Seu perfil consulta o saldo, mas não movimenta o estoque.</p>;
+    return <p className="mt-2 text-sm text-[#6e6a63]">Seu perfil consulta o saldo, mas não movimenta o estoque.</p>;
   }
 
   return (

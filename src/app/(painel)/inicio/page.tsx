@@ -54,7 +54,7 @@ export default async function InicioPage() {
       icon: Zap,
       count: -1,
       countText: () => "",
-      tone: "bg-[#087e83] text-white",
+      tone: "bg-[#8c6239] text-white",
     },
     {
       step: "2",
@@ -85,7 +85,7 @@ export default async function InicioPage() {
       icon: PackageCheck,
       count: ready.count ?? 0,
       countText: (n) => (n === 0 ? "Nada para entregar" : `${n} OS ${n === 1 ? "pronta" : "prontas"} para entregar`),
-      tone: "bg-[#e6f4ec] text-[#1a6b4a]",
+      tone: "bg-[#e8f3ee] text-[#286f51]",
     },
   ];
   const cards = allCards.filter((card) => simpleAllowed(role, card.href));
@@ -99,7 +99,7 @@ export default async function InicioPage() {
         <p className="mt-2 text-base text-[var(--muted)] md:text-lg">O que você vai fazer agora? Toque em um dos botões.</p>
       </div>
 
-      {countError ? <p role="alert" className="rounded-xl border border-[#f1c4be] bg-[#fdecea] p-4 text-[#a3261b]">Não foi possível conferir todos os números. Atualize a página antes de conferir a fila.</p> : (late.count ?? 0) > 0 ? <Link href="/laboratorio?tab=atrasadas" className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-[#f1c4be] bg-[#fdecea] p-4 font-semibold text-[#a3261b]"><span>{late.count} serviço(s) com prazo vencido · conferir primeiro</span><ChevronRight size={22} /></Link> : null}
+      {countError ? <p role="alert" className="rounded-xl border border-[#f1c4be] bg-[#f9eaea] p-4 text-[#b83a3a]">Não foi possível conferir todos os números. Atualize a página antes de conferir a fila.</p> : (late.count ?? 0) > 0 ? <Link href="/laboratorio?tab=atrasadas" className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-[#f1c4be] bg-[#f9eaea] p-4 font-semibold text-[#b83a3a]"><span>{late.count} serviço(s) com prazo vencido · conferir primeiro</span><ChevronRight size={22} /></Link> : null}
 
       <form action="/laboratorio" method="get" role="search">
         <label className="flex h-14 w-full items-center gap-3 rounded-2xl border-2 border-[var(--line)] bg-white px-4 focus-within:border-[var(--accent)]">
@@ -109,7 +109,7 @@ export default async function InicioPage() {
             name="q"
             inputMode="search"
             placeholder="Procurar OS pelo número ou nome do cliente"
-            className="min-w-0 flex-1 border-0 bg-transparent text-base text-[var(--ink)] shadow-none outline-none placeholder:text-[#74898e] focus:shadow-none md:text-lg"
+            className="min-w-0 flex-1 border-0 bg-transparent text-base text-[var(--ink)] shadow-none outline-none placeholder:text-[#6e6a63] focus:shadow-none md:text-lg"
           />
           <button type="submit" className="hidden h-10 rounded-xl bg-[var(--accent)] px-4 text-base font-semibold text-white sm:block">
             Procurar
@@ -136,14 +136,14 @@ export default async function InicioPage() {
                   </span>
                   <span className="text-[22px] font-bold leading-tight md:text-2xl">{card.title}</span>
                 </span>
-                <span className="text-[15px] leading-snug text-[#425f65] md:text-base">{card.when}</span>
+                <span className="text-[15px] leading-snug text-[#6e6a63] md:text-base">{card.when}</span>
                 {card.count >= 0 && !countError ? (
                   <span className="mt-1 flex flex-wrap gap-1.5">
-                    <span className="rounded-full bg-[#edf2f3] px-3 py-1 text-sm font-semibold text-[#2d4a50]">
+                    <span className="rounded-full bg-[#efece6] px-3 py-1 text-sm font-semibold text-[#2d4a50]">
                       {card.countText(card.count)}
                     </span>
                     {card.alert ? (
-                      <span className="rounded-full bg-[#fdecea] px-3 py-1 text-sm font-semibold text-[#a3261b]">
+                      <span className="rounded-full bg-[#f9eaea] px-3 py-1 text-sm font-semibold text-[#b83a3a]">
                         {card.alert === 1 ? "1 lente atrasada" : `${card.alert} lentes atrasadas`}
                       </span>
                     ) : null}
@@ -156,9 +156,9 @@ export default async function InicioPage() {
         })}
       </div>
 
-      <details className="rounded-xl border border-[#dce5e7] bg-white p-4"><summary className="cursor-pointer text-base font-semibold">Como funciona o laboratório?</summary><ol className="mt-3 list-inside list-decimal space-y-2 text-sm leading-relaxed text-[#425f65]"><li>Cadastre a OS e coloque o material na gaveta do vendedor.</li><li>Complete o pedido e a previsão de chegada na tela Lentes.</li><li>Quando as lentes chegarem, confirme o recebimento.</li><li>Na montagem, registre cada etapa e qualquer problema encontrado.</li><li>Após a conferência final, libere e registre a retirada.</li></ol><p className="mt-3 text-sm text-[#60767b]">Precisa de relatórios ou atalhos? Escolha “Ver menu completo”.</p></details>
+      <details className="rounded-xl border border-[#e2ddd5] bg-white p-4"><summary className="cursor-pointer text-base font-semibold">Como funciona o laboratório?</summary><ol className="mt-3 list-inside list-decimal space-y-2 text-sm leading-relaxed text-[#6e6a63]"><li>Cadastre a OS e coloque o material na gaveta do vendedor.</li><li>Complete o pedido e a previsão de chegada na tela Lentes.</li><li>Quando as lentes chegarem, confirme o recebimento.</li><li>Na montagem, registre cada etapa e qualquer problema encontrado.</li><li>Após a conferência final, libere e registre a retirada.</li></ol><p className="mt-3 text-sm text-[#6e6a63]">Precisa de relatórios ou atalhos? Escolha “Ver menu completo”.</p></details>
 
-      <p className="rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-[15px] leading-snug text-[#125d63]">
+      <p className="rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-[15px] leading-snug text-[#6e4b2a]">
         <strong>Dica:</strong> os números 1, 2, 3 e 4 mostram o caminho do óculos no laboratório: chega a OS, chega a lente, monta e entrega.
       </p>
     </div>

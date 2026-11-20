@@ -256,7 +256,7 @@ class _LabAppState extends State<LabApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'ÓticaHub Lab',
+      title: 'Lab Gold',
       theme: labTheme(),
       locale: const Locale('pt', 'BR'),
       supportedLocales: const [Locale('pt', 'BR')],

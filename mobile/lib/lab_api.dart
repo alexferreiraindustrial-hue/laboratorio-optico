@@ -1030,7 +1030,7 @@ class LabApi {
       'seller_app_login',
       params: {
         'p_login': login.trim(),
-        'p_pin': pin.trim(),
+        'p_pin': pin,
         'p_ip_hash': ipHash,
       },
     );

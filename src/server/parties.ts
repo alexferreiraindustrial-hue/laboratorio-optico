@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { sellerPasswordError } from "@/lib/domain/seller-password";
 import { can } from "@/lib/domain/permissions";
 import type { ActionResult } from "@/lib/types";
 import { requireProfile } from "./session";
@@ -62,6 +63,9 @@ export async function saveStore(formData: FormData): Promise<ActionResult> {
 export async function saveSeller(formData: FormData): Promise<ActionResult> {
   const { supabase, role } = await requireProfile();
   if (!can(role, "parties.write")) return { ok: false, message: "Sem permissão para cadastrar vendedores." };
+  const pin = String(formData.get("appPin") ?? "");
+  if (pin && !can(role, "portal.manage")) return { ok: false, message: "Sem permissão para alterar a senha do vendedor." };
+  if (pin && sellerPasswordError(pin)) return { ok: false, message: sellerPasswordError(pin)! };
   const name = clean(formData.get("name"));
   if (!name || name.length < 2) return { ok: false, message: "Informe o nome completo do vendedor." };
   const storeIds = formData.getAll("storeId").map(String).filter(Boolean);
@@ -93,30 +97,26 @@ export async function saveSeller(formData: FormData): Promise<ActionResult> {
     }
   }
 
-  const pin = clean(formData.get("appPin"));
   if (pin) {
-    if (!/^[0-9]{4,8}$/.test(pin)) {
-      return { ok: false, message: "O PIN de acesso deve ter de 4 a 8 dígitos." };
-    }
     const { data: access, error: pinError } = await supabase.rpc("set_seller_app_access", {
       p_seller_id: data.id,
       p_pin: pin,
     });
     if (pinError) return { ok: false, message: pinError.message };
     const login = access && typeof access === "object" && "login" in access ? String((access as { login?: string }).login ?? "") : "";
-    revalidatePath("/vendedores");
+    revalidatePath("/vendedores", "layout");
     revalidatePath("/lojas");
     revalidatePath("/laboratorio");
     return {
       ok: true,
       id: data.id,
       message: id
-        ? `Vendedor atualizado. Acesso no site e no app: código ${login}. Entregue o PIN só para esta pessoa.`
-        : `Vendedor cadastrado. Acesso no site e no app: código ${login}. Entregue o PIN só para esta pessoa.`,
+        ? `Vendedor atualizado. Acesso no site e no app: código ${login}. Entregue a senha só para esta pessoa.`
+        : `Vendedor cadastrado. Acesso no site e no app: código ${login}. Entregue a senha só para esta pessoa.`,
     };
   }
 
-  revalidatePath("/vendedores");
+  revalidatePath("/vendedores", "layout");
   revalidatePath("/lojas");
   revalidatePath("/laboratorio");
   return { ok: true, id: data.id, message: id ? "Vendedor atualizado." : "Vendedor cadastrado." };
@@ -126,17 +126,17 @@ export async function setSellerAppAccess(formData: FormData): Promise<ActionResu
   const { supabase, role } = await requireProfile();
   if (!can(role, "portal.manage")) return { ok: false, message: "Sem permissão para criar o acesso do vendedor." };
   const sellerId = clean(formData.get("sellerId"));
-  const pin = clean(formData.get("appPin"));
+  const pin = String(formData.get("appPin") ?? "");
   if (!sellerId) return { ok: false, message: "Vendedor não informado." };
-  if (!pin || !/^[0-9]{4,8}$/.test(pin)) return { ok: false, message: "O PIN de acesso deve ter de 4 a 8 dígitos." };
+  if (sellerPasswordError(pin)) return { ok: false, message: sellerPasswordError(pin)! };
   const { data, error } = await supabase.rpc("set_seller_app_access", {
     p_seller_id: sellerId,
     p_pin: pin,
   });
   if (error) return { ok: false, message: error.message };
   const login = data && typeof data === "object" && "login" in data ? String((data as { login?: string }).login ?? "") : "";
-  revalidatePath("/vendedores");
-  return { ok: true, message: `Acesso no site e no app criado. Código: ${login}. Entregue o PIN só para este vendedor.` };
+  revalidatePath("/vendedores", "layout");
+  return { ok: true, message: `Senha do vendedor atualizada no site e no app. Código: ${login}. Entregue a senha só para este vendedor.` };
 }
 
 export async function issuePortalLink(subjectType: "store" | "seller", subjectId: string): Promise<ActionResult & { token?: string }> {
@@ -148,7 +148,7 @@ export async function issuePortalLink(subjectType: "store" | "seller", subjectId
   });
   if (error || typeof data !== "string") return { ok: false, message: error?.message ?? "Não foi possível gerar o link." };
   revalidatePath("/lojas");
-  revalidatePath("/vendedores");
+  revalidatePath("/vendedores", "layout");
   return { ok: true, token: data, message: "Link gerado. Copie agora; ele não será mostrado de novo." };
 }
 
@@ -158,7 +158,7 @@ export async function revokePortalLink(credentialId: string): Promise<ActionResu
   const { error } = await supabase.rpc("revoke_portal_credential", { p_credential_id: credentialId });
   if (error) return { ok: false, message: error.message };
   revalidatePath("/lojas");
-  revalidatePath("/vendedores");
+  revalidatePath("/vendedores", "layout");
   return { ok: true, message: "Link revogado." };
 }
 

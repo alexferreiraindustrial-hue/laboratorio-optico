@@ -65,7 +65,7 @@ export function RankingBoard({
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <div>
           <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.02em]">Ranking</h1>
-          <p className="mt-1.5 max-w-2xl text-sm text-[#60767b]">
+          <p className="mt-1.5 max-w-2xl text-sm text-[#6e6a63]">
             Quem mais produziu no período, calculado sozinho a partir das etapas, das OS e das ocorrências. Ponha no modo TV na parede da bancada.
           </p>
         </div>
@@ -84,28 +84,28 @@ export function RankingBoard({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <nav className="inline-flex rounded-xl border border-[#dce5e7] bg-white p-1" aria-label="Quadro">
+        <nav className="inline-flex rounded-xl border border-[#e2ddd5] bg-white p-1" aria-label="Quadro">
           {boards.map((item) => (
             <Link
               key={item.key}
               href={`/ranking?quadro=${item.key}&periodo=${period}`}
               className={cn(
                 "rounded-lg px-3.5 py-1.5 text-sm font-semibold transition-colors",
-                item.key === current.key ? "bg-[#087e83] text-white" : "text-[#425f65] hover:bg-[#edf4f4]",
+                item.key === current.key ? "bg-[#8c6239] text-white" : "text-[#6e6a63] hover:bg-[#f3ece2]",
               )}
             >
               {item.label}
             </Link>
           ))}
         </nav>
-        <nav className="inline-flex rounded-xl border border-[#dce5e7] bg-white p-1" aria-label="Período">
+        <nav className="inline-flex rounded-xl border border-[#e2ddd5] bg-white p-1" aria-label="Período">
           {(Object.keys(PERIOD_LABEL) as RankPeriod[]).map((key) => (
             <Link
               key={key}
               href={`/ranking?quadro=${current.key}&periodo=${key}`}
               className={cn(
                 "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                key === period ? "bg-[#e0f2f1] font-semibold text-[#125d63]" : "text-[#425f65] hover:bg-[#edf4f4]",
+                key === period ? "bg-[#f3ece2] font-semibold text-[#6e4b2a]" : "text-[#6e6a63] hover:bg-[#f3ece2]",
               )}
             >
               {PERIOD_LABEL[key]}
@@ -119,12 +119,12 @@ export function RankingBoard({
       <Arena board={current} prizes={settings.premios ?? []} period={period} />
 
       {current.key === "montadores" ? (
-        <p className="text-xs text-[#60767b]">
+        <p className="text-xs text-[#6e6a63]">
           Pontos: {RANK_POINTS.montagem} por montagem (Facetadora concluída), +{RANK_POINTS.noPrazo} se saiu no prazo, {RANK_POINTS.etapa} por
           outra etapa concluída e {RANK_POINTS.ocorrencia} por ocorrência de qualidade na etapa feita pela pessoa.
         </p>
       ) : (
-        <p className="text-xs text-[#60767b]">Conta as OS enviadas ao laboratório no período. OS canceladas ficam de fora.</p>
+        <p className="text-xs text-[#6e6a63]">Conta as OS enviadas ao laboratório no período. OS canceladas ficam de fora.</p>
       )}
 
       {tv ? (
@@ -147,7 +147,7 @@ function Arena({ board, prizes, period, tv = false }: { board: RankBoard; prizes
   return (
     <section
       className={cn(
-        "relative grid overflow-hidden rounded-2xl border border-[#d5e3e1] text-[#172e32] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]",
+        "relative grid overflow-hidden rounded-2xl border border-[#d5e3e1] text-[#222222] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]",
         tv ? "h-full gap-6 p-6" : "gap-4 p-3 sm:p-4",
       )}
       style={{ background: "radial-gradient(120% 100% at 22% 18%, #ffffff 0%, #f1f8f6 42%, #dcece8 100%)" }}
@@ -155,7 +155,7 @@ function Arena({ board, prizes, period, tv = false }: { board: RankBoard; prizes
       <Podium entries={board.entries.slice(0, 3)} prizes={prizes} board={board} empty={!anyScore} period={period} tv={tv} />
       <ol className={cn("grid content-start gap-2", tv ? "overflow-hidden" : "")}>
         {board.entries.length === 0 ? (
-          <li className="rounded-xl border border-dashed border-[#c5d6d3] bg-white/70 px-4 py-8 text-center text-sm text-[#60767b]">
+          <li className="rounded-xl border border-dashed border-[#c5d6d3] bg-white/70 px-4 py-8 text-center text-sm text-[#6e6a63]">
             Nenhum participante cadastrado neste quadro.
           </li>
         ) : null}
@@ -189,22 +189,22 @@ function Podium({
       <svg aria-hidden viewBox="0 0 600 220" className="pointer-events-none absolute inset-x-0 bottom-0 w-full" preserveAspectRatio="none">
         <defs>
           <radialGradient id="arena-floor" cx="50%" cy="60%" r="55%">
-            <stop offset="0%" stopColor="#3fb58f" stopOpacity="0.28" />
-            <stop offset="100%" stopColor="#3fb58f" stopOpacity="0" />
+            <stop offset="0%" stopColor="#2e7d5b" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="#2e7d5b" stopOpacity="0" />
           </radialGradient>
         </defs>
         <ellipse cx="300" cy="150" rx="300" ry="70" fill="url(#arena-floor)" />
         {[60, 110, 165, 225].map((rx, index) => (
-          <ellipse key={rx} cx="300" cy="150" rx={rx} ry={rx * 0.24} fill="none" stroke="#087e83" strokeOpacity={0.22 - index * 0.045} />
+          <ellipse key={rx} cx="300" cy="150" rx={rx} ry={rx * 0.24} fill="none" stroke="#8c6239" strokeOpacity={0.22 - index * 0.045} />
         ))}
-        <line x1="40" y1="150" x2="560" y2="150" stroke="#087e83" strokeOpacity="0.1" />
+        <line x1="40" y1="150" x2="560" y2="150" stroke="#8c6239" strokeOpacity="0.1" />
       </svg>
 
       <div className="relative z-10 px-3 pt-3 text-center">
-        <p className="text-sm font-medium text-[#425f65]">
+        <p className="text-sm font-medium text-[#6e6a63]">
           {board.label} · {PERIOD_LABEL[period].toLowerCase()}
         </p>
-        {empty ? <p className="mt-1 text-xs text-[#60767b]">Ninguém pontuou ainda. O primeiro registro já vale lugar no pódio.</p> : null}
+        {empty ? <p className="mt-1 text-xs text-[#6e6a63]">Ninguém pontuou ainda. O primeiro registro já vale lugar no pódio.</p> : null}
       </div>
 
       <div className={cn("relative z-10 mt-auto grid grid-cols-3 items-end gap-2 px-2 sm:gap-4 sm:px-6", tv ? "pb-6" : "pb-5")}>
@@ -268,7 +268,7 @@ function Medal({
             style={{ background: "radial-gradient(circle at 36% 30%, #ffffff 0%, #e4f3ef 50%, #bfe0d8 100%)" }}
           >
             <svg aria-hidden viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
-              <g stroke="#087e83" strokeOpacity="0.16" strokeWidth="0.8" fill="none">
+              <g stroke="#8c6239" strokeOpacity="0.16" strokeWidth="0.8" fill="none">
                 <line x1="8" y1="50" x2="92" y2="50" />
                 <line x1="50" y1="8" x2="50" y2="92" />
                 <circle cx="50" cy="50" r="30" />
@@ -277,7 +277,7 @@ function Medal({
             </svg>
             <span
               className="relative font-bold tracking-[-0.03em]"
-              style={{ fontSize: size * 0.3, color: entry ? "#125d63" : "rgba(14,107,98,0.25)" }}
+              style={{ fontSize: size * 0.3, color: entry ? "#6e4b2a" : "rgba(14,107,98,0.25)" }}
             >
               {entry ? initialsOf(entry.name) : "—"}
             </span>
@@ -301,7 +301,7 @@ function Medal({
         <span className={cn("max-w-full truncate font-semibold", tv ? "text-lg" : "text-[13px] sm:text-sm")}>{entry?.name ?? "Vago"}</span>
         <span className={cn("tabular font-bold", tv ? "text-2xl" : "text-base sm:text-lg")} style={{ color: rim.to }}>
           {entry ? fmt(entry.score) : "0"}
-          <span className="ml-1 text-[11px] font-medium text-[#60767b]">{board.scoreLabel}</span>
+          <span className="ml-1 text-[11px] font-medium text-[#6e6a63]">{board.scoreLabel}</span>
         </span>
       </div>
     </div>
@@ -321,12 +321,12 @@ function RankRow({ entry, position, board, tv }: { entry: RankEntry; position: n
     >
       <span
         className={cn("tabular w-8 text-center font-black", tv ? "text-3xl" : "text-2xl")}
-        style={{ color: rim ? rim.to : "#74898e" }}
+        style={{ color: rim ? rim.to : "#6e6a63" }}
       >
         {position}
       </span>
       <span
-        className={cn("grid place-items-center rounded-full font-bold text-[#125d63]", tv ? "h-12 w-12 text-base" : "h-10 w-10 text-sm")}
+        className={cn("grid place-items-center rounded-full font-bold text-[#6e4b2a]", tv ? "h-12 w-12 text-base" : "h-10 w-10 text-sm")}
         style={{
           background: `hsl(${hue} 42% 89%)`,
           boxShadow: rim ? `0 0 0 2px ${rim.mid}` : "0 0 0 1px rgba(14,107,98,0.15)",
@@ -342,29 +342,29 @@ function RankRow({ entry, position, board, tv }: { entry: RankEntry; position: n
               <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#e3ecec]">
                 <div
                   className="h-full rounded-full"
-                  style={{ width: `${Math.max(2, progress.percent)}%`, background: "linear-gradient(90deg, #087e83, #3fb58f)" }}
+                  style={{ width: `${Math.max(2, progress.percent)}%`, background: "linear-gradient(90deg, #8c6239, #2e7d5b)" }}
                 />
               </div>
-              <span className="tabular w-12 text-right text-xs font-semibold text-[#425f65]">{progress.percent}%</span>
+              <span className="tabular w-12 text-right text-xs font-semibold text-[#6e6a63]">{progress.percent}%</span>
             </div>
-            <p className="mt-0.5 text-xs text-[#60767b]">
+            <p className="mt-0.5 text-xs text-[#6e6a63]">
               Meta {fmt(entry.goal ?? 0)} {board.doneLabel} · feitas {fmt(entry.done)}
               {progress.missing > 0 ? (
                 <span className="font-semibold text-[#a86e00]"> · faltam {fmt(progress.missing)}</span>
               ) : (
-                <span className="font-semibold text-[#1f8a52]"> · meta batida</span>
+                <span className="font-semibold text-[#286f51]"> · meta batida</span>
               )}
             </p>
           </>
         ) : (
-          <p className="mt-0.5 truncate text-xs text-[#60767b]">
+          <p className="mt-0.5 truncate text-xs text-[#6e6a63]">
             {entry.stats.map((stat) => `${stat.label} ${stat.value}`).join("   ")}
           </p>
         )}
       </div>
       <div className="text-right">
         <p className={cn("tabular font-bold leading-none", tv ? "text-2xl" : "text-xl")}>{fmt(entry.score)}</p>
-        <p className="mt-1 text-[11px] text-[#60767b]">{board.scoreLabel}</p>
+        <p className="mt-1 text-[11px] text-[#6e6a63]">{board.scoreLabel}</p>
       </div>
     </li>
   );
@@ -445,15 +445,15 @@ function TvMode({
   );
 
   return (
-    <div ref={ref} className="fixed inset-0 z-[70] flex flex-col bg-[#f3f6f6] text-[#172e32]">
+    <div ref={ref} className="fixed inset-0 z-[70] flex flex-col bg-[#f7f6f3] text-[#222222]">
       <header className="flex items-center gap-4 px-6 py-4">
         <LensMark size={34} />
         <div className="leading-tight">
           <p className="text-lg font-bold">Ranking · {board.label}</p>
-          <p className="text-sm text-[#60767b]">{PERIOD_LABEL[period]} · atualizado às {updated}</p>
+          <p className="text-sm text-[#6e6a63]">{PERIOD_LABEL[period]} · atualizado às {updated}</p>
         </div>
         <div className="flex-1" />
-        <div className="hidden items-center gap-1 rounded-xl border border-[#dce5e7] bg-white p-1 md:flex">
+        <div className="hidden items-center gap-1 rounded-xl border border-[#e2ddd5] bg-white p-1 md:flex">
           {boards.map((item, position) => (
             <button
               key={item.key}
@@ -465,14 +465,14 @@ function TvMode({
               }}
               className={cn(
                 "rounded-lg px-3 py-1.5 text-sm font-semibold",
-                position === index ? "bg-[#087e83] text-white" : "text-[#425f65] hover:bg-[#edf4f4]",
+                position === index ? "bg-[#8c6239] text-white" : "text-[#6e6a63] hover:bg-[#f3ece2]",
               )}
             >
               {item.label}
             </button>
           ))}
         </div>
-        <label className="flex items-center gap-2 text-sm text-[#425f65]">
+        <label className="flex items-center gap-2 text-sm text-[#6e6a63]">
           Trocar a cada
           <select
             value={seconds}
@@ -481,10 +481,10 @@ function TvMode({
               tick.current = 0;
                 setElapsed(0);
             }}
-            className="h-11 rounded-lg border border-[#cbdadd] bg-white px-2 text-base text-[#172e32] md:h-8 md:text-sm"
+            className="h-11 rounded-lg border border-[#e2ddd5] bg-white px-2 text-base text-[#222222] md:h-8 md:text-sm"
           >
             {ROTATIONS.map((value) => (
-              <option key={value} value={value} className="text-[#172e32]">
+              <option key={value} value={value} className="text-[#222222]">
                 {value < 60 ? `${value}s` : `${value / 60} min`}
               </option>
             ))}
@@ -495,7 +495,7 @@ function TvMode({
           type="button"
           onClick={exit}
           aria-label="Sair do modo TV"
-          className="grid h-11 w-11 place-items-center rounded-lg border border-[#cbdadd] bg-white hover:bg-[#edf4f4]"
+          className="grid h-11 w-11 place-items-center rounded-lg border border-[#e2ddd5] bg-white hover:bg-[#f3ece2]"
         >
           <X size={18} />
         </button>
@@ -506,11 +506,11 @@ function TvMode({
       <footer className="px-6 py-4">
         <div className="h-1 overflow-hidden rounded-full bg-[#dfe8e8]">
           <div
-            className="h-full rounded-full bg-[#087e83] transition-[width] duration-1000 ease-linear"
+            className="h-full rounded-full bg-[#8c6239] transition-[width] duration-1000 ease-linear"
             style={{ width: `${(elapsed / seconds) * 100}%` }}
           />
         </div>
-        <p className="mt-2 text-xs text-[#60767b]">Setas trocam o quadro · Esc sai do modo TV</p>
+        <p className="mt-2 text-xs text-[#6e6a63]">Setas trocam o quadro · Esc sai do modo TV</p>
       </footer>
     </div>
   );
@@ -531,7 +531,7 @@ function RankingSettingsForm({ settings, period, onDone }: { settings: RankingSe
 
   return (
     <form
-      className="grid gap-4 rounded-xl border border-[#dce5e7] bg-white p-4"
+      className="grid gap-4 rounded-xl border border-[#e2ddd5] bg-white p-4"
       onSubmit={(event) => {
         event.preventDefault();
         const value: RankingSettings = { premios: prizes.map((item) => item.trim()), metas, rotacao: rotation };
@@ -546,17 +546,17 @@ function RankingSettingsForm({ settings, period, onDone }: { settings: RankingSe
     >
       <div>
         <h2 className="text-[15px] font-semibold">Prêmios do pódio</h2>
-        <p className="text-xs text-[#60767b]">Aparecem em cima de cada lugar. Deixe em branco para não mostrar.</p>
+        <p className="text-xs text-[#6e6a63]">Aparecem em cima de cada lugar. Deixe em branco para não mostrar.</p>
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
           {prizes.map((prize, index) => (
             <label key={index} className="grid gap-1 text-sm">
-              <span className="font-medium text-[#425f65]">{index + 1}º lugar</span>
+              <span className="font-medium text-[#6e6a63]">{index + 1}º lugar</span>
               <input
                 value={prize}
                 maxLength={40}
                 onChange={(event) => setPrizes((list) => list.map((item, position) => (position === index ? event.target.value : item)))}
                 placeholder={["Ex.: folga no sábado", "Ex.: vale-lanche", "Ex.: R$ 50"][index]}
-                className="h-9 rounded-lg border border-[#cbdadd] px-3 outline-none focus:border-[#087e83]"
+                className="h-9 rounded-lg border border-[#e2ddd5] px-3 outline-none focus:border-[#8c6239]"
               />
             </label>
           ))}
@@ -564,11 +564,11 @@ function RankingSettingsForm({ settings, period, onDone }: { settings: RankingSe
       </div>
       <div>
         <h2 className="text-[15px] font-semibold">Metas de {PERIOD_LABEL[period].toLowerCase()}</h2>
-        <p className="text-xs text-[#60767b]">Com meta, cada linha mostra a barra de progresso e quanto falta. Troque o período acima para definir as outras metas.</p>
+        <p className="text-xs text-[#6e6a63]">Com meta, cada linha mostra a barra de progresso e quanto falta. Troque o período acima para definir as outras metas.</p>
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
           {boardsForGoal.map((item) => (
             <label key={item.key} className="grid gap-1 text-sm">
-              <span className="font-medium text-[#425f65]">{item.label}</span>
+              <span className="font-medium text-[#6e6a63]">{item.label}</span>
               <input
                 type="number"
                 min={0}
@@ -578,19 +578,19 @@ function RankingSettingsForm({ settings, period, onDone }: { settings: RankingSe
                   setMetas((current) => ({ ...current, [item.key]: { ...(current[item.key] ?? {}), [period]: number } }));
                 }}
                 placeholder="Sem meta"
-                className="tabular h-9 rounded-lg border border-[#cbdadd] px-3 outline-none focus:border-[#087e83]"
+                className="tabular h-9 rounded-lg border border-[#e2ddd5] px-3 outline-none focus:border-[#8c6239]"
               />
-              <span className="text-xs text-[#60767b]">{item.unit}</span>
+              <span className="text-xs text-[#6e6a63]">{item.unit}</span>
             </label>
           ))}
         </div>
       </div>
       <label className="grid max-w-xs gap-1 text-sm">
-        <span className="font-medium text-[#425f65]">Modo TV troca de quadro a cada</span>
+        <span className="font-medium text-[#6e6a63]">Modo TV troca de quadro a cada</span>
         <select
           value={rotation}
           onChange={(event) => setRotation(Number(event.target.value))}
-          className="h-9 rounded-lg border border-[#cbdadd] px-2.5"
+          className="h-9 rounded-lg border border-[#e2ddd5] px-2.5"
         >
           {ROTATIONS.map((value) => (
             <option key={value} value={value}>

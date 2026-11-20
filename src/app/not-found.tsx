@@ -4,8 +4,8 @@ export default function NotFound() {
   return (
     <main className="mx-auto max-w-lg px-5 py-16">
       <h1 className="text-xl font-semibold">Registro não encontrado</h1>
-      <p className="mt-2 text-sm text-[#60767b]">O item não existe ou seu perfil não pode vê-lo.</p>
-      <Link className="mt-4 inline-block text-sm text-[#087e83] underline" href="/dashboard">Voltar ao dashboard</Link>
+      <p className="mt-2 text-sm text-[#6e6a63]">O item não existe ou seu perfil não pode vê-lo.</p>
+      <Link className="mt-4 inline-block text-sm text-[#8c6239] underline" href="/dashboard">Voltar ao dashboard</Link>
     </main>
   );
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../design/la_design.dart';
 import '../domain.dart';
@@ -61,10 +60,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> submitSellerPin() async {
     if (pending) return;
-    if (sellerLogin.text.trim().isEmpty || sellerPin.text.trim().length < 4) {
+    if (sellerLogin.text.trim().isEmpty || sellerPin.text.runes.length < 4) {
       setState(
         () => error =
-            'Informe o código (v3) e o PIN que o laboratório criou para você.',
+            'Informe o código (v3) e a senha que o laboratório criou para você.',
       );
       return;
     }
@@ -153,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ] else ...[
           Text(
-            'Acompanhe somente os seus serviços. Use o código e o PIN criados pelo laboratório.',
+            'Acompanhe somente os seus serviços. Use o código e a senha criados pelo laboratório.',
             style: LaType.corpo,
           ),
           const SizedBox(height: LaSpace.item),
@@ -174,15 +173,13 @@ class _LoginScreenState extends State<LoginScreen> {
           TextField(
             controller: sellerPin,
             obscureText: true,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(8),
-            ],
+            keyboardType: TextInputType.visiblePassword,
+            autocorrect: false,
+            enableSuggestions: false,
             autofillHints: const [AutofillHints.password],
             decoration: const InputDecoration(
-              labelText: 'PIN',
-              helperText: 'O PIN tem de 4 a 8 dígitos.',
+              labelText: 'Senha do vendedor',
+              helperText: 'Use a senha definida pelo laboratório.',
             ),
             onSubmitted: (_) => submitSellerPin(),
           ),
@@ -228,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
     children: [
       const LaMonogram(size: 48),
       const SizedBox(height: 20),
-      Text('ÓticaHub Lab', style: LaType.tituloTela),
+      Text('Lab Gold', style: LaType.tituloTela),
       const SizedBox(height: 8),
       Text(
         'Cada OS no lugar. Cada etapa no tempo.',

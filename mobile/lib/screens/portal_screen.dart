@@ -118,7 +118,7 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                                         style: LaType.tituloSecao,
                                       ),
                                       Text(
-                                        'Suas OS no Laboratório ALEX',
+                                        'Suas OS no Lab Gold',
                                         style: LaType.apoio,
                                       ),
                                     ],

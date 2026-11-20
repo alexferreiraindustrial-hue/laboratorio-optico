@@ -28,7 +28,7 @@ export default async function RotinaPage() {
         description={`${today.charAt(0).toUpperCase()}${today.slice(1)} · checklist de abertura e fechamento, chegadas do motoboy com as lentes e anotações do turno.`}
       />
       {error ? (
-        <p className="rounded-lg border border-[#f3c9c4] bg-[#fdecea] px-3 py-2 text-sm text-[#a3261b]">A rotina ainda não foi ativada no banco. Execute a migração do fluxo de produção no Supabase.</p>
+        <p className="rounded-lg border border-[#f3c9c4] bg-[#f9eaea] px-3 py-2 text-sm text-[#b83a3a]">A rotina ainda não foi ativada no banco. Execute a migração do fluxo de produção no Supabase.</p>
       ) : null}
       <RoutineBoard
         logs={logs}

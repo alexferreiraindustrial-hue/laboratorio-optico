@@ -16,21 +16,21 @@ import { cn } from "@/lib/utils";
 import { ORDER_TABS, ORDER_TAB_LABEL, type OrderTab } from "@/server/queries";
 
 function deadlineTone(order: OrderRow) {
-  if (order.status === "entregue" || order.status === "pronto") return "text-[#1c6b43] font-medium";
-  if (!order.due_at || order.status === "cancelado") return "text-[#74898e]";
-  if (new Date(order.due_at).getTime() < Date.now()) return "text-[#b42318] font-semibold";
-  if (order.urgency === "amarelo") return "text-[#8a5a00] font-semibold";
-  return "text-[#60767b]";
+  if (order.status === "entregue" || order.status === "pronto") return "text-[#286f51] font-medium";
+  if (!order.due_at || order.status === "cancelado") return "text-[#6e6a63]";
+  if (new Date(order.due_at).getTime() < Date.now()) return "text-[#b83a3a] font-semibold";
+  if (order.urgency === "amarelo") return "text-[#87601f] font-semibold";
+  return "text-[#6e6a63]";
 }
 
 function FilterSelect({ name, defaultValue, children, label }: { name: string; defaultValue?: string; children: React.ReactNode; label: string }) {
   return (
-    <label className="relative flex text-[#60767b]">
+    <label className="relative flex text-[#6e6a63]">
       <span className="sr-only">{label}</span>
       <select
         name={name}
         defaultValue={defaultValue ?? ""}
-        className="h-11 cursor-pointer appearance-none rounded-lg border border-[#cbdadd] bg-white pl-3 pr-8 text-base text-[#172e32] outline-none focus:border-[#087e83] md:h-9 md:text-sm"
+        className="h-11 cursor-pointer appearance-none rounded-lg border border-[#e2ddd5] bg-white pl-3 pr-8 text-base text-[#222222] outline-none focus:border-[#8c6239] md:h-9 md:text-sm"
       >
         {children}
       </select>
@@ -95,7 +95,7 @@ export function OrderScreen({
   const segment = (on: boolean) =>
     cn(
       "flex h-10 items-center rounded-[7px] px-3 text-[13px] font-semibold md:h-7",
-      on ? "bg-white text-[#172e32] shadow-[0_1px_2px_rgba(19,32,31,0.12)]" : "text-[#60767b] hover:text-[#172e32]",
+      on ? "bg-white text-[#222222] shadow-[0_1px_2px_rgba(19,32,31,0.12)]" : "text-[#6e6a63] hover:text-[#222222]",
     );
 
   return (
@@ -144,13 +144,13 @@ export function OrderScreen({
       {/* Busca e filtros */}
       <form className="flex flex-wrap items-center gap-2 rounded-xl border border-[var(--line)] bg-white p-3" method="get" action={basePath}>
         <ListFilter size={17} className="hidden text-[var(--muted)] md:block" />
-        <label className="flex h-11 flex-[1_1_220px] items-center gap-2 rounded-lg border border-[#cbdadd] bg-white px-2.5 text-[#60767b] focus-within:border-[#087e83] md:h-9">
+        <label className="flex h-11 flex-[1_1_220px] items-center gap-2 rounded-lg border border-[#e2ddd5] bg-white px-2.5 text-[#6e6a63] focus-within:border-[#8c6239] md:h-9">
           <Search size={16} className="shrink-0" />
           <input
             name="q"
             defaultValue={filters.q}
             placeholder="OS, cliente ou vendedor"
-            className="min-w-0 flex-1 border-0 bg-transparent text-sm text-[#172e32] shadow-none outline-none placeholder:text-[#74898e] focus:shadow-none"
+            className="min-w-0 flex-1 border-0 bg-transparent text-sm text-[#222222] shadow-none outline-none placeholder:text-[#6e6a63] focus:shadow-none"
           />
         </label>
         <FilterSelect name="status" defaultValue={filters.status} label="Status">
@@ -177,17 +177,17 @@ export function OrderScreen({
         {filters.tab ? <input type="hidden" name="tab" value={filters.tab} /> : null}
         <Button type="submit" variant="secondary">Filtrar</Button>
         {hasFilters ? (
-          <Link href={query({ q: undefined, status: undefined, urgency: undefined, laboratory: undefined, page: undefined })} className="inline-flex h-11 items-center px-2 text-[13px] font-semibold text-[#087e83] hover:underline md:h-auto md:px-1.5">
+          <Link href={query({ q: undefined, status: undefined, urgency: undefined, laboratory: undefined, page: undefined })} className="inline-flex h-11 items-center px-2 text-[13px] font-semibold text-[#8c6239] hover:underline md:h-auto md:px-1.5">
             Limpar
           </Link>
         ) : null}
       </form>
 
       {/* Abas de situação + toggle lista/kanban */}
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#dce5e7]">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#e2ddd5]">
         <div className="flex flex-wrap gap-0.5">
           {filters.status ? (
-            <p className="mb-2 text-sm font-semibold text-[#125d63]">
+            <p className="mb-2 text-sm font-semibold text-[#6e4b2a]">
               {count} OS neste status. Outras etapas ficam no Painel.
             </p>
           ) : tabCounts
@@ -199,11 +199,11 @@ export function OrderScreen({
                     href={query({ tab, status: undefined, page: undefined })}
                     className={cn(
                       "-mb-px flex h-11 min-w-0 items-center gap-2 border-b-2 px-3 text-sm md:h-10",
-                      on ? "border-[#087e83] font-semibold text-[#172e32]" : "border-transparent font-medium text-[#60767b] hover:text-[#172e32]",
+                      on ? "border-[#8c6239] font-semibold text-[#222222]" : "border-transparent font-medium text-[#6e6a63] hover:text-[#222222]",
                     )}
                   >
                     {ORDER_TAB_LABEL[tab]}
-                    <span className={cn("rounded-[5px] px-1.5 text-xs font-semibold", on ? "bg-[#e0f2f1] text-[#125d63]" : "bg-[#edf2f3] text-[#60767b]")}>
+                    <span className={cn("rounded-[5px] px-1.5 text-xs font-semibold", on ? "bg-[#f3ece2] text-[#6e4b2a]" : "bg-[#efece6] text-[#6e6a63]")}>
                       {tabCounts[tab]}
                     </span>
                   </Link>
@@ -211,13 +211,13 @@ export function OrderScreen({
               })
             : null}
         </div>
-        <div className="mb-1.5 flex gap-0.5 rounded-[9px] bg-[#e7ebed] p-[3px]">
+        <div className="mb-1.5 flex gap-0.5 rounded-[9px] bg-[#efece6] p-[3px]">
           <Link className={segment(view === "lista")} href={query({ view: "lista", page: "1" })}>Lista</Link>
           <Link className={segment(view === "kanban")} href={query({ view: "kanban", page: undefined })}>Kanban</Link>
         </div>
       </div>
 
-      {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
+      {error ? <p className="text-sm text-[#b83a3a]">{error}</p> : null}
 
       {orders.length === 0 ? (
         <EmptyState
@@ -229,7 +229,7 @@ export function OrderScreen({
       ) : (
         <>
         <div className="grid gap-2 md:hidden">
-          <p className="px-1 text-[11px] font-semibold text-[#60767b]">Atrasada · prazo próximo · no prazo — toque na loja e na vendedora para abrir</p>
+          <p className="px-1 text-[11px] font-semibold text-[#6e6a63]">Atrasada · prazo próximo · no prazo — toque na loja e na vendedora para abrir</p>
           {groupByStoreThenSeller(orders).map((storeGroup) => (
             <details open key={storeGroup.store} className="grid gap-2 rounded-xl">
               <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl px-3.5 py-2.5 text-white" style={{ background: storeColor(storeGroup.store) }}>
@@ -253,8 +253,8 @@ export function OrderScreen({
                         style={{ borderLeftWidth: 8, borderLeftColor: late ? "#C0392B" : soon ? "#D97706" : "#1A7A63" }}
                       >
                         <span className="min-w-0 flex-1 p-3.5">
-                          <span className="font-mono text-[13px] font-semibold text-[#087e83]">{visibleOrderNumber(order)}</span>
-                          <span className="mt-0.5 block truncate text-[13px] font-semibold text-[#125d63]">{order.laboratory_name || "Sem laboratório"}</span>
+                          <span className="font-mono text-[13px] font-semibold text-[#8c6239]">{visibleOrderNumber(order)}</span>
+                          <span className="mt-0.5 block truncate text-[13px] font-semibold text-[#6e4b2a]">{order.laboratory_name || "Sem laboratório"}</span>
                           <span className="mt-0.5 block truncate text-[16px] font-semibold leading-snug">{order.client_name}</span>
                           <span className={cn("mt-0.5 block truncate text-xs font-semibold", deadlineTone(order))}>
                             {deltaLabel}
@@ -268,12 +268,12 @@ export function OrderScreen({
               ))}
             </details>
           ))}
-          <div className="flex items-center justify-between px-1 py-2 text-[13px] text-[#60767b]">
+          <div className="flex items-center justify-between px-1 py-2 text-[13px] text-[#6e6a63]">
             <span>{count} OS</span>
             <div className="flex items-center gap-3">
-              {page > 1 ? <Link className="inline-flex h-11 items-center font-medium text-[#087e83]" href={query({ page: String(page - 1) })}>← Anterior</Link> : <span className="text-[#b4bec2]">← Anterior</span>}
+              {page > 1 ? <Link className="inline-flex h-11 items-center font-medium text-[#8c6239]" href={query({ page: String(page - 1) })}>← Anterior</Link> : <span className="text-[#b4bec2]">← Anterior</span>}
               <span className="font-mono">{page} / {pages}</span>
-              {page < pages ? <Link className="inline-flex h-11 items-center font-medium text-[#087e83]" href={query({ page: String(page + 1) })}>Próxima →</Link> : <span className="text-[#b4bec2]">Próxima →</span>}
+              {page < pages ? <Link className="inline-flex h-11 items-center font-medium text-[#8c6239]" href={query({ page: String(page + 1) })}>Próxima →</Link> : <span className="text-[#b4bec2]">Próxima →</span>}
             </div>
           </div>
         </div>
@@ -281,12 +281,12 @@ export function OrderScreen({
           {/* Tabela compacta: apenas o essencial */}
           <table className="w-full min-w-[560px] border-collapse text-left text-sm">
             <thead>
-              <tr className="bg-[#f6f9f9]">
+              <tr className="bg-[#f7f6f3]">
                 {["Ordem de serviço", "Cliente · responsável", "Prazo prometido", "Situação", ""].map((head, index) => (
                   <th
                     key={head}
                     className={cn(
-                      "border-b border-[#dce5e7] py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#60767b]",
+                      "border-b border-[#e2ddd5] py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#6e6a63]",
                       index === 0 ? "pl-4 pr-3 w-[110px]" : index === 3 ? "pl-3 pr-4 w-[160px]" : index === 2 ? "px-3 w-[90px]" : "px-3",
                     )}
                   >
@@ -300,12 +300,12 @@ export function OrderScreen({
                 const deltaLabel = dueDeltaLabel(order.due_at, new Date(), order.status);
                 const forecast = forecastOrder({ status: order.status, dueAt: order.due_at, stepsDone: order.steps_done, lensExpectedAt: order.lens_expected_at });
                 return (
-                  <tr key={order.id} className="group border-b border-[#edf2f3] last:border-b-0 hover:bg-[#f6f9f9]">
+                  <tr key={order.id} className="group border-b border-[#efece6] last:border-b-0 hover:bg-[#f7f6f3]">
                     {/* OS + Lab */}
                     <td className="py-2.5 pl-4 pr-3">
                       <Link href={orderHref(order.id)} scroll={false} className="flex flex-col gap-0.5">
-                        <span className="font-mono text-[13px] font-semibold text-[#087e83] group-hover:underline">{visibleOrderNumber(order)}</span>
-                        <span className="flex items-center gap-1 text-[11px] text-[#60767b]">
+                        <span className="font-mono text-[13px] font-semibold text-[#8c6239] group-hover:underline">{visibleOrderNumber(order)}</span>
+                        <span className="flex items-center gap-1 text-[11px] text-[#6e6a63]">
                           <span className="h-[6px] w-[6px] shrink-0 rounded-[2px]" style={{ background: order.laboratory_color }} />
                           {order.laboratory_name}
                         </span>
@@ -315,7 +315,7 @@ export function OrderScreen({
                     <td className="px-3 py-2.5">
                       <Link href={orderHref(order.id)} scroll={false} className="flex flex-col gap-0.5">
                         <span className="font-semibold leading-tight">{order.client_name}</span>
-                        <span className="text-xs text-[#60767b]">{order.seller_name || order.store_name || "—"}</span>
+                        <span className="text-xs text-[#6e6a63]">{order.seller_name || order.store_name || "—"}</span>
                       </Link>
                     </td>
                     {/* Prazo */}
@@ -340,12 +340,12 @@ export function OrderScreen({
             </tbody>
           </table>
           {/* Paginação */}
-          <div className="flex items-center justify-between border-t border-[#edf2f3] px-4 py-2.5 text-[13px] text-[#60767b]">
+          <div className="flex items-center justify-between border-t border-[#efece6] px-4 py-2.5 text-[13px] text-[#6e6a63]">
             <span>{count} OS</span>
             <div className="flex items-center gap-3">
-              {page > 1 ? <Link className="font-medium text-[#087e83] hover:underline" href={query({ page: String(page - 1) })}>← Anterior</Link> : <span className="text-[#b4bec2]">← Anterior</span>}
+              {page > 1 ? <Link className="font-medium text-[#8c6239] hover:underline" href={query({ page: String(page - 1) })}>← Anterior</Link> : <span className="text-[#b4bec2]">← Anterior</span>}
               <span className="font-mono">{page} / {pages}</span>
-              {page < pages ? <Link className="font-medium text-[#087e83] hover:underline" href={query({ page: String(page + 1) })}>Próxima →</Link> : <span className="text-[#b4bec2]">Próxima →</span>}
+              {page < pages ? <Link className="font-medium text-[#8c6239] hover:underline" href={query({ page: String(page + 1) })}>Próxima →</Link> : <span className="text-[#b4bec2]">Próxima →</span>}
             </div>
           </div>
         </Panel>

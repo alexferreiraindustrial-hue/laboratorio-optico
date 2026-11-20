@@ -73,7 +73,7 @@ class Session extends ChangeNotifier {
             message.contains('inválido') ||
             message.contains('invalido')) {
           await _clearPortal();
-          error = 'Seu acesso precisa ser renovado. Entre novamente com código e PIN.';
+          error = 'Seu acesso precisa ser renovado. Entre novamente com código e senha.';
         }
       } on FormatException {
         await _clearPortal();

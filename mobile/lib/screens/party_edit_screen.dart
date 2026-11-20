@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -102,6 +103,11 @@ class _PartyEditScreenState extends State<PartyEditScreen> {
       setState(() => error = loja ? 'Informe o nome da loja.' : 'Informe o nome do vendedor.');
       return;
     }
+    final nextPin = pin.text;
+    if (!loja && nextPin.isNotEmpty && (nextPin.runes.length < 4 || utf8.encode(nextPin).length > 64 || nextPin.contains('\u0000') || nextPin.trim().isEmpty)) {
+      setState(() => error = 'Use pelo menos 4 caracteres e no máximo 64 bytes. Letras, números e símbolos são aceitos.');
+      return;
+    }
     setState(() => pending = true);
     try {
       final quick = int.tryParse(code.text.trim());
@@ -130,11 +136,7 @@ class _PartyEditScreenState extends State<PartyEditScreen> {
           active: nextActive ?? active,
           storeIds: selectedStores.toList(),
         );
-        final nextPin = pin.text.trim();
         if (nextPin.isNotEmpty) {
-          if (!RegExp(r'^[0-9]{4,8}$').hasMatch(nextPin)) {
-            throw Exception('O PIN do app deve ter de 4 a 8 dígitos.');
-          }
           await api.setSellerAppAccess('${saved['id']}', nextPin);
         }
       }
@@ -168,13 +170,13 @@ class _PartyEditScreenState extends State<PartyEditScreen> {
                 if (!loja)
                   TextField(
                     controller: pin,
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.visiblePassword,
                     obscureText: true,
                     decoration: InputDecoration(
-                      labelText: 'PIN do app (4 a 8 dígitos)',
+                      labelText: 'Senha do vendedor',
                       helperText: widget.id == null
-                          ? 'Você cria o acesso. O vendedor entra no app com v${code.text.trim().isEmpty ? '…' : code.text.trim()} e este PIN. Só vê as OS dele.'
-                          : 'Deixe em branco para não alterar. O vendedor entra com o código rápido e este PIN.',
+                          ? 'Você cria o acesso. O vendedor entra no app com v${code.text.trim().isEmpty ? '…' : code.text.trim()} e esta senha. Só vê as OS dele.'
+                          : 'Deixe em branco para não alterar. O vendedor entra com o código rápido e esta senha.',
                     ),
                   ),
                 if (!loja) ...[
@@ -207,7 +209,7 @@ class _PartyEditScreenState extends State<PartyEditScreen> {
                   Text(loja ? 'Link da loja' : 'Link PWA (opcional)', style: Theme.of(context).textTheme.titleMedium),
                   Text(loja
                       ? 'Gera o link do PWA. A loja vê só as OS dela.'
-                      : 'O acesso principal do vendedor é o PIN acima. O link é extra, para o navegador.'),
+                      : 'O acesso principal do vendedor é a senha acima. O link é extra, para o navegador.'),
                   OutlinedButton(
                     onPressed: pending
                         ? null

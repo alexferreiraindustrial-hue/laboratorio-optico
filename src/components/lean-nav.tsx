@@ -25,7 +25,7 @@ export function LeanNav() {
             href={tab.href}
             className={cn(
               "flex h-11 shrink-0 items-center gap-2 rounded-lg px-3 text-sm transition-colors md:h-9",
-              active ? "bg-[#087e83] font-semibold text-white shadow-sm" : "border border-[#dce5e7] bg-white font-medium text-[#425f65] hover:border-[#cbdadd] hover:bg-[#f6f9f9]",
+              active ? "bg-[#8c6239] font-semibold text-white shadow-sm" : "border border-[#e2ddd5] bg-white font-medium text-[#6e6a63] hover:border-[#e2ddd5] hover:bg-[#f7f6f3]",
             )}
           >
             <Icon size={16} />

@@ -11,7 +11,7 @@
 | Todas as colunas e controles na bancada | Uma fila por vez, checklist recolhido e próxima ação destacada | Reduzir escolhas por cartão |
 | Mudança de status pode fazer o cartão desaparecer da fila | Acompanhar a fila de destino após iniciar/retomar/conferir | Explicar para onde o serviço foi |
 
-O modo Dia a dia é o padrão. A pessoa pode escolher Completo no menu; a preferência fica neste navegador. Os recursos anteriores continuam no modo Completo e em Outros recursos. A troca do modo mantém os campos já preenchidos enquanto a página continua aberta. A preferência não altera permissões nem registros da organização.
+A tela Início e o seletor de modo já existentes na branch principal foram preservados. O operador de montagem e o estoquista abrem no modo simples por padrão. Outros perfis podem escolher “Usar modo simples”; “Ver menu completo” traz de volta os recursos de gestão. A preferência continua no cookie lab_modo, sem um segundo seletor ou preferência concorrente. Trocar o modo retorna ao início: conclua os cadastros antes de mudar. A preferência não altera permissões nem registros da organização.
 
 ## Roteiro para treinar a equipe
 

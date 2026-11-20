@@ -81,6 +81,6 @@ export function GuidedEntry({ laboratories, sellers, stores, sellerLinks }: { la
     {message ? <div role="alert" className="rounded-xl border border-[#f1c4be] bg-[#fdecea] p-4 text-sm text-[#a3261b]">{message}<Link href="/laboratorio" className="mt-2 block min-h-11 py-2 font-semibold underline">Consultar OS já cadastradas</Link></div> : null}
     <button type="submit" disabled={pending || !labs.length || !sellers.some((item) => item.active)} className="min-h-14 rounded-xl bg-[#087e83] px-5 text-lg font-bold text-white hover:bg-[#066369] disabled:opacity-50">{pending ? "Salvando OS… aguarde" : "Salvar OS"}</button>
     {!labs.length || !sellers.some((item) => item.active) ? <p role="alert" className="text-sm text-[#a3261b]">Cadastre pelo menos um laboratório e um vendedor ativo no modo Completo antes de começar.</p> : null}
-    <p className="text-center text-xs text-[#60767b]">Para cadastrar várias OS de uma vez ou usar atalhos, escolha o modo “Completo”.</p>
+    <p className="text-center text-xs text-[#60767b]">Para cadastrar várias OS de uma vez ou usar atalhos, escolha “Ver menu completo”.</p>
   </form>;
 }

@@ -1,5 +1,3 @@
-import { OperationView } from "@/components/operation-mode";
-import { DailyStart } from "@/components/daily-start";
 import Link from "next/link";
 import { PageHeading } from "@/components/shell";
 import { STATUS_TONE, StatusBadge } from "@/components/status-badge";
@@ -17,7 +15,9 @@ import { NotifySeller, ProgressBar, RiskChip } from "@/components/forecast-ui";
 import { forecastOrder, formatForecastDate, sellerUpdateMessage, whatsappLink } from "@/lib/domain/forecast";
 import { visibleOrderNumber } from "@/lib/domain/orders";
 import { loadCatalogs, stepsDoneByOrder } from "@/server/queries";
+import { redirect } from "next/navigation";
 import { requireProfile } from "@/server/session";
+import { isSimpleMode } from "@/server/view-mode";
 
 type Period = "hoje" | "semana" | "mes" | "periodo";
 
@@ -51,6 +51,8 @@ export default async function DashboardPage({
 }) {
   const filters = await searchParams;
   const { supabase, profile } = await requireProfile();
+  // Quem usa o modo simples cai direto na tela de botões grandes.
+  if (await isSimpleMode(profile.role)) redirect("/inicio");
   const role = profile.role as AppRole;
   const now = new Date();
   const day = dayRange(now);
@@ -70,7 +72,7 @@ export default async function DashboardPage({
   const periodEnd = range.end;
   const lab = filters.laboratory || null;
 
-  const [catalogs, ordersResult, openResult, goalsResult, qualityResult, stockResult, dailyCounts] = await Promise.all([
+  const [catalogs, ordersResult, openResult, goalsResult, qualityResult, stockResult] = await Promise.all([
     loadCatalogs(),
     supabase.from("service_orders").select("id, status, entered_at, completed_at, due_at, laboratory_id"),
     supabase
@@ -85,12 +87,6 @@ export default async function DashboardPage({
       .gte("occurred_at", periodStart.toISOString())
       .lt("occurred_at", periodEnd.toISOString()),
     supabase.from("lens_prescription_stock").select("id, public_code, current_qty, min_qty, ideal_qty").eq("active", true),
-    Promise.all([
-      supabase.from("service_orders").select("id", { count: "exact", head: true }).eq("status", "aguardando_lentes"),
-      supabase.from("service_orders").select("id", { count: "exact", head: true }).in("status", ["aguardando_montagem", "em_montagem", "em_correcao", "em_conferencia"]),
-      supabase.from("service_orders").select("id", { count: "exact", head: true }).eq("status", "pronto"),
-      supabase.from("service_orders").select("id", { count: "exact", head: true }).in("status", ["aguardando_lentes", "aguardando_montagem", "em_montagem", "em_correcao", "em_conferencia"]).lt("due_at", now.toISOString()),
-    ]),
   ]);
   const weekdays = (catalogs.settings.schedule?.weekdays as number[] | undefined) ?? [1, 2, 3, 4, 5];
 
@@ -215,7 +211,6 @@ export default async function DashboardPage({
   const todayPct = goalPercent(doneToday, dailyGoal);
 
   return (
-    <OperationView simple={<DailyStart name={profile.full_name} role={role} waiting={dailyCounts[0].count ?? 0} assembly={dailyCounts[1].count ?? 0} ready={dailyCounts[2].count ?? 0} late={dailyCounts[3].count ?? 0} failed={dailyCounts.some((result) => Boolean(result.error))} />}>
     <div className="flex flex-col gap-5">
       <PageHeading title="Fila de hoje" description="Mesma organização do app: toque na etapa, depois na loja e na vendedora. Produção e qualidade seguem o período selecionado.">
         {can(role, "orders.write") ? (
@@ -456,7 +451,6 @@ export default async function DashboardPage({
         </Panel>
       </div>
     </div>
-    </OperationView>
   );
 }
 

@@ -179,3 +179,10 @@ details > summary::-webkit-details-marker { display: none; }
 .lab-drawer form > .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 @media (max-width: 640px) { .lab-drawer form > .grid { grid-template-columns: 1fr; } }
 @media print { .lab-sidebar, .lab-drawer { display: none !important; } }
+
+/* Modo simples: letras e áreas de toque um pouco maiores em todas as telas. */
+html:has(.lab-simple) { font-size: 17.5px; }
+body:has(.lab-simple) { font-size: 16px; }
+.lab-simple .lab-workspace h1 { font-size: clamp(26px, 5vw, 34px); }
+.lab-simple .lab-workspace :is(button, a, input, select) { min-height: 2.75rem; }
+.lab-simple .lab-workspace label { font-size: 15px; }

@@ -12,6 +12,8 @@ import {
   quickMoveOrders,
   type FoundOrder,
 } from "@/server/quick-actions";
+import { GuidedEntry } from "./guided-entry";
+import { OperationView } from "./operation-mode";
 import { EntryLaunch } from "./entry-launch";
 import { StatusBadge } from "./status-badge";
 import { Button, Panel } from "./ui";
@@ -98,7 +100,7 @@ export function QuickLaunch({
             : "Seu perfil não tem permissão para esta operação."}
         </Panel>
       ) : mode === "entrada" ? (
-        <EntryLaunch laboratories={laboratories} sellers={sellers} stores={stores} sellerLinks={sellerLinks} />
+        <OperationView simple={<GuidedEntry laboratories={laboratories} sellers={sellers} stores={stores} sellerLinks={sellerLinks} />}><EntryLaunch laboratories={laboratories} sellers={sellers} stores={stores} sellerLinks={sellerLinks} /></OperationView>
       ) : (
         <MoveMode key={mode} mode={mode} />
       )}

@@ -30,6 +30,7 @@ import {
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { OperationModeSwitch, useOperationMode } from "./operation-mode";
 import { signOut } from "@/server/actions";
 import { LensMark } from "@/components/lens";
 import { ROLE_LABEL, type AppRole } from "@/lib/domain/constants";
@@ -108,6 +109,8 @@ const ACCESS: Record<AppRole, string[] | null> = {
   admin: null,
   gestor: null,
   montador: [
+    "/dashboard",
+    "/laboratorio",
     "/rotina",
     "/laboratorio/rapido",
     "/lentes",
@@ -175,6 +178,7 @@ export function Shell({
   lensLate?: number;
 }) {
   const pathname = usePathname();
+  const { simple } = useOperationMode();
   const [mobileOpen, setMobileOpen] = useState(false);
   useEffect(() => {
     if (!mobileOpen) return;
@@ -197,7 +201,7 @@ export function Shell({
     .sort((a, b) => b.href.length - a.href.length)[0];
   const readOnly = role === "consulta";
 
-  const nav = (
+  const fullNav = (
     <nav aria-label="Navegação do laboratório" className="flex flex-col gap-5">
       {visibleGroups.map((group) => (
         <details key={group.title} open={!group.adminOnly || group.items.some((item) => item.href === current?.href)} className="group flex flex-col gap-0.5">
@@ -245,6 +249,16 @@ export function Shell({
       ))}
     </nav>
   );
+
+  const simpleItems = [
+    { href: "/dashboard", label: "Início · o que fazer", icon: LayoutDashboard },
+    { href: "/laboratorio/rapido", label: "1. Cadastrar OS", icon: Zap },
+    { href: "/lentes", label: "2. Lentes e pedidos", icon: PackageSearch },
+    { href: "/montagem", label: "3. Montar serviços", icon: Wrench },
+    { href: "/entrega", label: "4. Retirada e entrega", icon: PackageCheck },
+    { href: "/laboratorio", label: "Procurar uma OS", icon: Search },
+  ].filter((item) => !allowed || allowed.includes(item.href));
+  const nav = <div className="grid gap-4"><OperationModeSwitch />{simple ? <><nav aria-label="Tarefas do dia a dia" className="grid gap-2">{simpleItems.map((item) => <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} aria-current={current?.href === item.href ? "page" : undefined} className={cn("flex min-h-12 items-center gap-3 rounded-lg px-3 text-sm font-semibold", current?.href === item.href ? "bg-[#087e83] text-white" : "text-[#425f65] hover:bg-[#edf4f4]")}><item.icon size={19} /><span>{item.label}</span><PendingDot /></Link>)}</nav><details><summary className="min-h-11 cursor-pointer px-3 py-3 text-sm font-semibold text-[#60767b]">Outros recursos</summary><div className="pt-3">{fullNav}</div></details></> : fullNav}</div>;
 
   const brand = (
     <div className="lab-brand flex h-[80px] items-center gap-2.5 border-b border-[var(--line)] px-[18px]">
@@ -407,7 +421,8 @@ function MobileDock({
   boOpen: number;
   lensLate: number;
 }) {
-  const items = DOCK[role];
+  const { simple } = useOperationMode();
+  const items = DOCK[role].map((item) => simple && (item.href === "/dashboard" || item.href === "/rotina") ? { ...item, href: "/dashboard", label: "Início" } : item);
   return (
     <nav
       className="no-print fixed inset-x-3 bottom-[calc(0.6rem+env(safe-area-inset-bottom))] z-30 grid grid-cols-5 rounded-[28px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_92%,white)] p-1.5 shadow-[var(--shadow-soft)] backdrop-blur-xl lg:hidden"

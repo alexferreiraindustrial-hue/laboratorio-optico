@@ -96,7 +96,7 @@ export async function saveSeller(formData: FormData): Promise<ActionResult> {
   const pin = clean(formData.get("appPin"));
   if (pin) {
     if (!/^[0-9]{4,8}$/.test(pin)) {
-      return { ok: false, message: "O PIN do app deve ter de 4 a 8 dígitos." };
+      return { ok: false, message: "O PIN de acesso deve ter de 4 a 8 dígitos." };
     }
     const { data: access, error: pinError } = await supabase.rpc("set_seller_app_access", {
       p_seller_id: data.id,
@@ -111,8 +111,8 @@ export async function saveSeller(formData: FormData): Promise<ActionResult> {
       ok: true,
       id: data.id,
       message: id
-        ? `Vendedor atualizado. Acesso do app: código ${login}. Entregue o PIN só para esta pessoa.`
-        : `Vendedor cadastrado. Acesso do app: código ${login}. Entregue o PIN só para esta pessoa.`,
+        ? `Vendedor atualizado. Acesso no site e no app: código ${login}. Entregue o PIN só para esta pessoa.`
+        : `Vendedor cadastrado. Acesso no site e no app: código ${login}. Entregue o PIN só para esta pessoa.`,
     };
   }
 
@@ -128,7 +128,7 @@ export async function setSellerAppAccess(formData: FormData): Promise<ActionResu
   const sellerId = clean(formData.get("sellerId"));
   const pin = clean(formData.get("appPin"));
   if (!sellerId) return { ok: false, message: "Vendedor não informado." };
-  if (!pin || !/^[0-9]{4,8}$/.test(pin)) return { ok: false, message: "O PIN do app deve ter de 4 a 8 dígitos." };
+  if (!pin || !/^[0-9]{4,8}$/.test(pin)) return { ok: false, message: "O PIN de acesso deve ter de 4 a 8 dígitos." };
   const { data, error } = await supabase.rpc("set_seller_app_access", {
     p_seller_id: sellerId,
     p_pin: pin,
@@ -136,7 +136,7 @@ export async function setSellerAppAccess(formData: FormData): Promise<ActionResu
   if (error) return { ok: false, message: error.message };
   const login = data && typeof data === "object" && "login" in data ? String((data as { login?: string }).login ?? "") : "";
   revalidatePath("/vendedores");
-  return { ok: true, message: `Acesso do app criado. Código: ${login}. Entregue o PIN só para este vendedor.` };
+  return { ok: true, message: `Acesso no site e no app criado. Código: ${login}. Entregue o PIN só para este vendedor.` };
 }
 
 export async function issuePortalLink(subjectType: "store" | "seller", subjectId: string): Promise<ActionResult & { token?: string }> {

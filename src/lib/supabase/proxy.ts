@@ -49,7 +49,8 @@ export async function updateSession(request: NextRequest) {
     path === "/" ||
     path.startsWith("/login") ||
     path.startsWith("/acesso-inicial") ||
-    path.startsWith("/acompanhar");
+    path.startsWith("/acompanhar") ||
+    path === "/vendedor" || path.startsWith("/vendedor/");
 
   if (!data.user && !isPublic) {
     return redirectWithSession(request, response, "/login");

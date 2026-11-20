@@ -52,7 +52,7 @@ export default async function SellerDetailPage({ params }: { params: Promise<{ i
       {can(role, "portal.manage") ? (
         <>
           <Panel className="p-4">
-            <h2 className="font-medium">Acesso do app</h2>
+            <h2 className="font-medium">Acesso no site e no app</h2>
             <div className="mt-3">
               <SellerAppAccess sellerId={id} login={`v${seller.quick_code ?? ""}`} />
             </div>

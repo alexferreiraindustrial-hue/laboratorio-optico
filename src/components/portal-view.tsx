@@ -11,6 +11,7 @@ import { dueDeltaLabel } from "@/lib/domain/urgency";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { PortalDetail, PortalOrder as PortalOrderRow } from "@/server/portal";
+import { sellerSignOut, submitSellerSessionMessage } from "@/server/seller-actions";
 import { submitPortalMessage } from "@/server/portal-actions";
 import { LensGauge, LensMark } from "./lens";
 import { Button, Feedback } from "./ui";
@@ -66,6 +67,8 @@ export function PortalHome({
   sellers,
   filters,
   error,
+  basePath,
+  sessionAccess = false,
 }: {
   title: string;
   kind: "loja" | "vendedor";
@@ -74,6 +77,8 @@ export function PortalHome({
   sellers: { id: string; name: string }[];
   filters: Record<string, string | undefined>;
   error: string | null;
+  basePath?: string;
+  sessionAccess?: boolean;
 }) {
   const enriched = useMemo(
     () => orders.map((order) => ({ order, forecast: portalForecast(order) })),
@@ -87,13 +92,14 @@ export function PortalHome({
     .sort((a, b) => (a.order.due_at ?? "9999").localeCompare(b.order.due_at ?? "9999"));
   const closed = enriched.filter((item) => item.forecast.risk === "entregue" || item.forecast.risk === "cancelada");
   const alerts = active.filter((item) => item.forecast.risk === "atrasada" || item.forecast.risk === "risco");
-  const base = `/acompanhar/${kind}/${token}`;
+  const base = basePath ?? `/acompanhar/${kind}/${token}`;
   const filtered = Boolean(filters.q || filters.status || filters.from || filters.to || filters.late || filters.ready || filters.seller);
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 pb-16 pt-5 sm:px-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <Brand subtitle="Acompanhamento de serviços" />
+        <Brand subtitle={sessionAccess ? "Área do vendedor · somente seus serviços" : "Acompanhamento de serviços"} />
+        {sessionAccess ? <form action={sellerSignOut}><Button type="submit" variant="secondary">Sair do acompanhamento</Button></form> : null}
         <span className="flex items-center gap-1.5 text-xs text-[#60767b]">
           <RefreshCw size={13} /> Atualiza sozinho a cada minuto
         </span>
@@ -271,11 +277,15 @@ export function PortalOrder({
   token,
   detail,
   error,
+  basePath,
+  sessionAccess = false,
 }: {
   kind: "loja" | "vendedor";
   token: string;
   detail: PortalDetail | null;
   error: string | null;
+  basePath?: string;
+  sessionAccess?: boolean;
 }) {
   if (error || !detail) return <PortalDenied message={error ?? "OS não encontrada."} />;
   const forecast = portalForecast(detail);
@@ -293,7 +303,7 @@ export function PortalOrder({
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 pb-16 pt-5 sm:px-6">
       <header className="flex items-center justify-between gap-3">
-        <Link href={`/acompanhar/${kind}/${token}`} className="flex items-center gap-1.5 text-sm font-semibold text-[#087e83] hover:underline">
+        <Link href={basePath ?? `/acompanhar/${kind}/${token}`} className="flex items-center gap-1.5 text-sm font-semibold text-[#087e83] hover:underline">
           <ArrowLeft size={16} /> Meus serviços
         </Link>
         <span className="flex items-center gap-1.5 text-xs text-[#60767b]"><RefreshCw size={13} /> Ao vivo</span>
@@ -355,7 +365,7 @@ export function PortalOrder({
         </dl>
       </section>
 
-      <MessageBox token={token} orderId={detail.id} kind={kind} messages={detail.messages} />
+      <MessageBox token={token} orderId={detail.id} kind={kind} messages={detail.messages} sessionAccess={sessionAccess} />
     </div>
   );
 }
@@ -374,11 +384,13 @@ function MessageBox({
   orderId,
   kind,
   messages,
+  sessionAccess = false,
 }: {
   token: string;
   orderId: string;
   kind: string;
   messages: PortalDetail["messages"];
+  sessionAccess?: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -419,7 +431,7 @@ function MessageBox({
           const form = event.currentTarget;
           const formData = new FormData(form);
           startTransition(async () => {
-            const result = await submitPortalMessage(formData);
+            const result = await (sessionAccess ? submitSellerSessionMessage(formData) : submitPortalMessage(formData));
             if (!result.ok) {
               setMessage(null);
               setError(result.message);
@@ -452,13 +464,14 @@ function MessageBox({
   );
 }
 
-function PortalDenied({ message }: { message: string }) {
+export function PortalDenied({ message }: { message: string }) {
   return (
     <div className="mx-auto flex max-w-lg flex-col items-center gap-3 px-4 py-20 text-center">
       <Brand subtitle="Acompanhamento de serviços" />
       <h1 className="mt-4 text-xl font-semibold">Acompanhamento indisponível</h1>
       <p className="text-sm text-[#60767b]">{message}</p>
-      <p className="text-xs text-[#74898e]">Peça um novo link ao laboratório.</p>
+      <Link href="/vendedor/login" className="flex min-h-11 items-center font-semibold text-[#087e83]">Entrar como vendedor</Link>
+      <p className="text-xs text-[#74898e]">Entre novamente com seu código e PIN ou peça um novo link ao laboratório.</p>
     </div>
   );
 }

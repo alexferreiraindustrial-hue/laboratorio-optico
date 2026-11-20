@@ -119,8 +119,8 @@ export function SellerForm({
       </fieldset>
       <Field label="Observações internas"><TextArea name="notes" defaultValue={seller?.notes ?? ""} /></Field>
       <Field
-        label="PIN do app (4 a 8 dígitos)"
-        hint="Você cria o acesso. O vendedor entra no app com o código rápido (v3) e este PIN. Só vê as OS dele. Deixe em branco para não alterar."
+        label="PIN de acesso (4 a 8 dígitos)"
+        hint="Você cria o acesso. O vendedor entra no site e no app com o código rápido (v3) e este PIN. Só vê as OS dele. Deixe em branco para não alterar."
       >
         <Input name="appPin" inputMode="numeric" autoComplete="new-password" placeholder="••••" />
       </Field>
@@ -160,13 +160,13 @@ export function SellerAppAccess({ sellerId, login }: { sellerId: string; login: 
     >
       <input type="hidden" name="sellerId" value={sellerId} />
       <p className="text-sm text-[#60767b]">
-        Código de entrada no app: <strong className="text-[#172e32]">{login}</strong>. Defina um PIN de 4 a 8 dígitos e entregue só para este vendedor. Ele acompanha apenas as OS dele.
+        Código de entrada no site e no app: <strong className="text-[#172e32]">{login}</strong>. Defina um PIN de 4 a 8 dígitos e entregue só para este vendedor. Ele acompanha apenas as OS dele. No site, use lab.oticahub.com/vendedor/login; no app, escolha Vendedor.
       </p>
-      <Field label="Novo PIN do app">
+      <Field label="Novo PIN de acesso">
         <Input name="appPin" inputMode="numeric" autoComplete="new-password" required placeholder="4 a 8 dígitos" />
       </Field>
       <div className="flex items-center gap-3">
-        <Button type="submit" disabled={pending}>{pending ? "Salvando..." : "Criar acesso do app"}</Button>
+        <Button type="submit" disabled={pending}>{pending ? "Salvando..." : "Criar acesso no site e no app"}</Button>
         <Feedback error={error} message={message} />
       </div>
     </form>

@@ -25,6 +25,13 @@ class _LoginScreenState extends State<LoginScreen> {
   String? error;
 
   @override
+  void initState() {
+    super.initState();
+    sellerMode = widget.session.lastAccessKind == 'vendedor';
+    error = widget.session.error;
+  }
+
+  @override
   void dispose() {
     email.dispose();
     password.dispose();
@@ -145,14 +152,21 @@ class _LoginScreenState extends State<LoginScreen> {
             onSubmitted: (_) => submitLab(),
           ),
         ] else ...[
+          Text(
+            'Acompanhe somente os seus serviços. Use o código e o PIN criados pelo laboratório.',
+            style: LaType.corpo,
+          ),
+          const SizedBox(height: LaSpace.item),
           TextField(
             controller: sellerLogin,
+            autocorrect: false,
+            enableSuggestions: false,
             textCapitalization: TextCapitalization.none,
             autofillHints: const [AutofillHints.username],
             style: LaType.tituloSecao,
             decoration: const InputDecoration(
-              labelText: 'Código',
-              hintText: 'v3',
+              labelText: 'Código do vendedor',
+              hintText: 'Ex.: v3',
             ),
             textInputAction: TextInputAction.next,
           ),
@@ -198,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: LaSpace.secao),
         LaButton(
           key: const ValueKey('entrar'),
-          label: 'Entrar',
+          label: sellerMode ? 'Ver meus serviços' : 'Entrar',
           height: 58,
           loading: pending,
           onPressed: pending
@@ -222,7 +236,9 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       const SizedBox(height: 8),
       Text(
-        'Entre para continuar a produção do laboratório.',
+        sellerMode
+            ? 'Área do vendedor: suas OS, prazos e serviços prontos.'
+            : 'Entre para continuar a produção do laboratório.',
         style: LaType.corpo.copyWith(color: LaColors.regua),
       ),
     ],

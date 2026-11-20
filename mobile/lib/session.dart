@@ -3,7 +3,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide Session;
 
 class Profile {
-  Profile({required this.id, required this.fullName, required this.role, required this.active});
+  Profile({
+    required this.id,
+    required this.fullName,
+    required this.role,
+    required this.active,
+  });
   final String id;
   final String fullName;
   final String role;
@@ -17,9 +22,16 @@ class Session extends ChangeNotifier {
   String? portalName;
   String? error;
   String deviceHash = 'app';
+  String lastAccessKind = 'laboratorio';
 
-  bool get isLab => Supabase.instance.client.auth.currentSession != null && profile?.active == true;
-  bool get isPortal => portalToken != null && portalToken!.isNotEmpty;
+  bool get isLab =>
+      !isPortal &&
+      Supabase.instance.client.auth.currentSession != null &&
+      profile?.active == true;
+  bool get isPortal =>
+      portalToken != null &&
+      portalToken!.isNotEmpty &&
+      (portalKind == 'vendedor' || portalKind == 'loja');
   bool get isSignedIn => isLab || isPortal;
 
   void listenAuth() {
@@ -35,11 +47,46 @@ class Session extends ChangeNotifier {
 
   Future<void> restore() async {
     final prefs = await SharedPreferences.getInstance();
-    deviceHash = prefs.getString('device_hash') ?? 'app-${DateTime.now().millisecondsSinceEpoch}';
+    deviceHash =
+        prefs.getString('device_hash') ??
+        'app-${DateTime.now().millisecondsSinceEpoch}';
     await prefs.setString('device_hash', deviceHash);
     portalToken = prefs.getString('portal_token');
     portalKind = prefs.getString('portal_kind');
     portalName = prefs.getString('portal_name');
+    lastAccessKind = prefs.getString('last_access_kind') ?? 'laboratorio';
+    if (isPortal) {
+      try {
+        final data = await Supabase.instance.client.rpc(
+          'portal_identity',
+          params: {'p_token': portalToken, 'p_ip_hash': deviceHash},
+        );
+        final identity = Map<String, dynamic>.from(data as Map);
+        final expected = portalKind == 'loja' ? 'store' : 'seller';
+        if (identity['kind'] != expected) {
+          throw const FormatException('Acesso incompatível.');
+        }
+        portalName = '${identity['name'] ?? portalName ?? 'Vendedor'}';
+      } on PostgrestException catch (e) {
+        final message = e.message.toLowerCase();
+        if (message.contains('revogado') ||
+            message.contains('inválido') ||
+            message.contains('invalido')) {
+          await _clearPortal();
+          error = 'Seu acesso precisa ser renovado. Entre novamente com código e PIN.';
+        }
+      } on FormatException {
+        await _clearPortal();
+        error = 'Entre novamente para confirmar seu perfil de acesso.';
+      } catch (_) {
+        // Keep the token during a network outage; the portal RPCs still validate every request.
+      }
+      if (isPortal) {
+        profile = null;
+        notifyListeners();
+        return;
+      }
+    }
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
       profile = null;
@@ -54,7 +101,13 @@ class Session extends ChangeNotifier {
     notifyListeners();
     try {
       await _clearPortal();
-      await Supabase.instance.client.auth.signInWithPassword(email: email.trim(), password: password);
+      await Supabase.instance.client.auth.signInWithPassword(
+        email: email.trim(),
+        password: password,
+      );
+      final prefs = await SharedPreferences.getInstance();
+      lastAccessKind = 'laboratorio';
+      await prefs.setString('last_access_kind', lastAccessKind);
       await restore();
       if (profile != null && !profile!.active) {
         await signOut();
@@ -68,22 +121,39 @@ class Session extends ChangeNotifier {
     }
   }
 
-  Future<void> signInPortal({required String kind, required String token, required String name}) async {
+  Future<void> signInPortal({
+    required String kind,
+    required String token,
+    required String name,
+  }) async {
     error = null;
-    await Supabase.instance.client.auth.signOut();
+    final data = await Supabase.instance.client.rpc(
+      'portal_identity',
+      params: {'p_token': token, 'p_ip_hash': deviceHash},
+    );
+    final identity = Map<String, dynamic>.from(data as Map);
+    if (!['vendedor', 'loja'].contains(kind) ||
+        identity['kind'] != (kind == 'loja' ? 'store' : 'seller')) {
+      throw const FormatException(
+        'O perfil deste acesso não corresponde ao vendedor.',
+      );
+    }
+    await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
     profile = null;
     final prefs = await SharedPreferences.getInstance();
     portalToken = token;
     portalKind = kind;
-    portalName = name;
+    portalName = "${identity['name'] ?? name}";
+    lastAccessKind = 'vendedor';
+    await prefs.setString('last_access_kind', lastAccessKind);
     await prefs.setString('portal_token', token);
     await prefs.setString('portal_kind', kind);
-    await prefs.setString('portal_name', name);
+    await prefs.setString('portal_name', portalName!);
     notifyListeners();
   }
 
   Future<void> signOut() async {
-    await Supabase.instance.client.auth.signOut();
+    await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
     profile = null;
     await _clearPortal();
     notifyListeners();

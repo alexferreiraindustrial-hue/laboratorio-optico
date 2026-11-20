@@ -61,9 +61,10 @@ export default function LoginPage() {
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Acesso da equipe</p>
           <h1 className="mt-3 text-3xl font-bold">Vamos à produção.</h1>
           <p className="mb-8 mt-3 text-sm leading-relaxed text-[var(--muted)]">Entre para acompanhar as ordens de serviço e continuar o trabalho do laboratório.</p>
+          <div className="mb-5"><Link href="/vendedor/login" className="flex items-center justify-between rounded-xl bg-[var(--background)] p-4 text-sm font-semibold text-[var(--accent)]"><span>Sou vendedor · entrar e acompanhar OS<span className="mt-1 block text-xs font-normal text-[var(--muted)]">Acesse com seu código e PIN</span></span><ArrowRight size={18} /></Link></div>
           <Suspense fallback={<p role="status">Preparando acesso…</p>}><LoginForm /></Suspense>
           <div className="mt-8 border-t border-[var(--line)] pt-6">
-            <Link href="/acompanhar" className="flex items-center justify-between rounded-xl bg-[var(--background)] p-4 text-sm font-semibold text-[var(--accent)]"><span>Sou vendedor · acompanhar OS<span className="mt-1 block text-xs font-normal text-[var(--muted)]">Acesse com seu código e PIN</span></span><ArrowRight size={18} /></Link>
+
             <p className="mt-6 text-center text-xs text-[var(--muted)]">Primeiro acesso? <Link href="/acesso-inicial" className="font-semibold text-[var(--accent)] hover:underline">Configurar laboratório</Link></p>
           </div>
         </div>

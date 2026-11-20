@@ -25,6 +25,7 @@ import 'screens/portal_screen.dart';
 import 'screens/stock_screen.dart';
 import 'domain.dart';
 import 'session.dart';
+import 'access_routing.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -35,24 +36,12 @@ GoRouter createRouter(Session session) {
     navigatorKey: _rootKey,
     refreshListenable: session,
     initialLocation: '/painel',
-    redirect: (context, state) {
-      final loc = state.matchedLocation;
-      final loggingIn = loc == '/login';
-      final onPortal = loc == '/portal' || loc.startsWith('/portal/');
-      if (!session.isSignedIn && !loggingIn) return '/login';
-      if (session.isPortal) {
-        if (loggingIn || loc == '/' || loc.isEmpty || loc == '/painel')
-          return '/portal';
-        if (!onPortal && loc != '/login') return '/portal';
-        return null;
-      }
-      if (session.isLab && loggingIn) return '/painel';
-      if (session.isLab && onPortal) return '/painel';
-      if (session.isLab &&
-          (state.uri.path.isEmpty || loc == '/' || loc.isEmpty))
-        return '/painel';
-      return null;
-    },
+    redirect: (context, state) => accessRedirect(
+      location: state.matchedLocation,
+      signedIn: session.isSignedIn,
+      portal: session.isPortal,
+      laboratory: session.isLab,
+    ),
     routes: [
       GoRoute(
         path: '/login',

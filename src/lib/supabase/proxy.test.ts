@@ -23,6 +23,18 @@ vi.mock("@supabase/ssr", () => ({
 afterEach(() => { vi.unstubAllEnvs(); session.user = null; session.refresh = false; session.secondWrite = false; });
 
 describe("sessão do LAB incorporado ao CRM", () => {
+  it.each(["/vendedor", "/vendedor/login", "/vendedor/os/example"])("permite a área separada do vendedor sem conceder sessão da equipe em %s", async path => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "public-test-key");
+    const response = await updateSession(new NextRequest(`https://lab.example.org${path}`));
+    expect(response.headers.get("location")).toBeNull();
+  });
+  it.each(["/vendedores", "/vendedor-interno", "/laboratorio"])("continua protegendo a área da equipe em %s", async path => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "public-test-key");
+    const response = await updateSession(new NextRequest(`https://lab.example.org${path}`));
+    expect(response.headers.get("location")).toBe("https://lab.example.org/login");
+  });
   it("usa cookies particionados HTTPS em produção", () => {
     vi.stubEnv("NODE_ENV", "production");
     expect(sessionCookieOptions()).toMatchObject({ path: "/", sameSite: "none", secure: true, partitioned: true });

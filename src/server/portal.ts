@@ -108,8 +108,8 @@ export async function loadPortalIdentity(token: string) {
     p_token: token,
     p_ip_hash: await ipHash(),
   });
-  const row = (data ?? null) as { name?: string } | null;
-  return { name: row?.name ?? "Acompanhamento", error: error ? await portalContextError(error) : null };
+  const row = (data ?? null) as { name?: string; kind?: string } | null;
+  return { name: row?.name ?? "Acompanhamento", kind: row?.kind ?? null, error: error ? await portalContextError(error) : null };
 }
 
 export async function loadPortalSellers(token: string) {

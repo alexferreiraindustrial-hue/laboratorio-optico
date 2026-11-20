@@ -15,7 +15,7 @@ export const createClient = cache(async function createClient() {
       setAll(cookiesToSet) {
         try {
           cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
+            cookieStore.set({ ...options, name, value });
           });
         } catch {
           // Em Server Components a sessão é renovada no proxy.

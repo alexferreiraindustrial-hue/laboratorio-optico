@@ -12,6 +12,8 @@ import {
   quickMoveOrders,
   type FoundOrder,
 } from "@/server/quick-actions";
+import { GuidedEntry } from "./guided-entry";
+import { OperationView, useOperationMode } from "./operation-mode";
 import { EntryLaunch } from "./entry-launch";
 import { StatusBadge } from "./status-badge";
 import { Button, Panel } from "./ui";
@@ -56,6 +58,7 @@ export function QuickLaunch({
   sellerLinks: SellerStoreLink[];
   initialMode: Mode;
 }) {
+  const { simple } = useOperationMode();
   const [mode, setMode] = useState<Mode>(initialMode);
   const allowed: Record<Mode, boolean> = {
     entrada: can(role, "orders.write"),
@@ -84,7 +87,7 @@ export function QuickLaunch({
               </span>
               <span className="flex flex-col gap-0.5">
                 <span className="text-sm font-semibold">{item.label}</span>
-                <span className="text-xs text-[#60767b]">{item.hint}</span>
+                <span className="text-xs text-[#60767b]">{simple && item.key === "entrada" ? "Informe vendedor, número da OS e prazo." : item.hint}</span>
               </span>
             </button>
           );
@@ -98,7 +101,7 @@ export function QuickLaunch({
             : "Seu perfil não tem permissão para esta operação."}
         </Panel>
       ) : mode === "entrada" ? (
-        <EntryLaunch laboratories={laboratories} sellers={sellers} stores={stores} sellerLinks={sellerLinks} />
+        <OperationView simple={<GuidedEntry laboratories={laboratories} sellers={sellers} stores={stores} sellerLinks={sellerLinks} />}><EntryLaunch laboratories={laboratories} sellers={sellers} stores={stores} sellerLinks={sellerLinks} /></OperationView>
       ) : (
         <MoveMode key={mode} mode={mode} />
       )}

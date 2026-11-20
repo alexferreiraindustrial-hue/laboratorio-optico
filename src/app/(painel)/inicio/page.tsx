@@ -32,7 +32,7 @@ export default async function InicioPage() {
   const count = (statuses: string[]) =>
     supabase.from("service_orders").select("id", { count: "exact", head: true }).in("status", statuses);
 
-  const [lenses, lensLate, bench, ready] = await Promise.all([
+  const [lenses, lensLate, bench, ready, late] = await Promise.all([
     count(["aguardando_lentes"]),
     supabase
       .from("service_orders")
@@ -41,8 +41,10 @@ export default async function InicioPage() {
       .lt("lens_expected_at", nowIso),
     count(["aguardando_montagem", "em_montagem", "em_correcao", "em_conferencia"]),
     count(["pronto"]),
+    supabase.from("service_orders").select("id", { count: "exact", head: true }).in("status", ["aguardando_lentes", "aguardando_montagem", "em_montagem", "em_correcao", "em_conferencia"]).lt("due_at", nowIso),
   ]);
 
+  const countError = [lenses, lensLate, bench, ready, late].some((result) => Boolean(result.error));
   const allCards: Card[] = [
     {
       step: "1",
@@ -97,6 +99,8 @@ export default async function InicioPage() {
         <p className="mt-2 text-base text-[var(--muted)] md:text-lg">O que você vai fazer agora? Toque em um dos botões.</p>
       </div>
 
+      {countError ? <p role="alert" className="rounded-xl border border-[#f1c4be] bg-[#fdecea] p-4 text-[#a3261b]">Não foi possível conferir todos os números. Atualize a página antes de conferir a fila.</p> : (late.count ?? 0) > 0 ? <Link href="/laboratorio?tab=atrasadas" className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-[#f1c4be] bg-[#fdecea] p-4 font-semibold text-[#a3261b]"><span>{late.count} serviço(s) com prazo vencido · conferir primeiro</span><ChevronRight size={22} /></Link> : null}
+
       <form action="/laboratorio" method="get" role="search">
         <label className="flex h-14 w-full items-center gap-3 rounded-2xl border-2 border-[var(--line)] bg-white px-4 focus-within:border-[var(--accent)]">
           <Search size={22} className="shrink-0 text-[var(--muted)]" aria-hidden />
@@ -133,7 +137,7 @@ export default async function InicioPage() {
                   <span className="text-[22px] font-bold leading-tight md:text-2xl">{card.title}</span>
                 </span>
                 <span className="text-[15px] leading-snug text-[#425f65] md:text-base">{card.when}</span>
-                {card.count >= 0 ? (
+                {card.count >= 0 && !countError ? (
                   <span className="mt-1 flex flex-wrap gap-1.5">
                     <span className="rounded-full bg-[#edf2f3] px-3 py-1 text-sm font-semibold text-[#2d4a50]">
                       {card.countText(card.count)}
@@ -151,6 +155,8 @@ export default async function InicioPage() {
           );
         })}
       </div>
+
+      <details className="rounded-xl border border-[#dce5e7] bg-white p-4"><summary className="cursor-pointer text-base font-semibold">Como funciona o laboratório?</summary><ol className="mt-3 list-inside list-decimal space-y-2 text-sm leading-relaxed text-[#425f65]"><li>Cadastre a OS e coloque o material na gaveta do vendedor.</li><li>Complete o pedido e a previsão de chegada na tela Lentes.</li><li>Quando as lentes chegarem, confirme o recebimento.</li><li>Na montagem, registre cada etapa e qualquer problema encontrado.</li><li>Após a conferência final, libere e registre a retirada.</li></ol><p className="mt-3 text-sm text-[#60767b]">Precisa de relatórios ou atalhos? Escolha “Ver menu completo”.</p></details>
 
       <p className="rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-[15px] leading-snug text-[#125d63]">
         <strong>Dica:</strong> os números 1, 2, 3 e 4 mostram o caminho do óculos no laboratório: chega a OS, chega a lente, monta e entrega.

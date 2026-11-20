@@ -33,6 +33,7 @@ import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signOut } from "@/server/actions";
+import { OperationModeProvider } from "./operation-mode";
 import { setViewMode } from "@/server/simple-mode";
 import { SIMPLE_NAV, simpleAllowed } from "@/lib/domain/simple-nav";
 import { LensMark } from "@/components/lens";
@@ -341,6 +342,7 @@ export function Shell({
   );
 
   return (
+    <OperationModeProvider simple={simple}>
     <div className={cn("min-h-screen", simple && "lab-simple")}>
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:p-3">Ir para o conteúdo</a>
       <aside className="lab-sidebar fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] backdrop-blur-xl lg:flex">
@@ -427,6 +429,7 @@ export function Shell({
         lensLate={lensLate}
       />
     </div>
+    </OperationModeProvider>
   );
 }
 

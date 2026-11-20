@@ -12,8 +12,8 @@ export default async function LancamentoRapidoPage({ searchParams }: { searchPar
   return (
     <div className="flex flex-col gap-1">
       <PageHeading
-        title="Lançamento rápido"
-        description="Para o balcão e a bancada: abra, libere e dê saída em OS em segundos, digitando ou com leitor de código."
+        title="Entrada e saída de serviços"
+        description="Escolha o que aconteceu: novo serviço, lentes recebidas ou retirada de uma OS pronta."
       >
         <Button variant="secondary" asChild>
           <Link href="/laboratorio/nova">Cadastro completo</Link>

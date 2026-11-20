@@ -1,5 +1,6 @@
 "use server";
 
+import { validateGuidedEntry, type GuidedEntryInput } from "@/lib/domain/guided-entry";
 import { revalidatePath } from "next/cache";
 import type { OrderStatus } from "@/lib/domain/constants";
 import { can } from "@/lib/domain/permissions";
@@ -157,4 +158,10 @@ export async function quickMoveOrders(
   revalidatePath("/dashboard");
   const done = results.filter((item) => item.ok).length;
   return { ok: done > 0, message: `${done} de ${results.length} OS atualizadas.`, results };
+}
+
+export async function createGuidedOrder(input: GuidedEntryInput) {
+  const error = validateGuidedEntry(input);
+  if (error) return { ok: false, message: error, results: [] as QuickCreateResult[] };
+  return quickCreateOrders({ entries: [{ orderRef: input.orderRef.trim(), clientName: input.clientName.trim() || null, dueAt: input.dueAt }], laboratoryId: input.laboratoryId, sellerId: input.sellerId, storeId: input.storeId || null, dueHours: null, status: "aguardando_lentes", priority: "normal" });
 }

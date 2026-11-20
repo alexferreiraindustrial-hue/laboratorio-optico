@@ -5,6 +5,8 @@ import {
   ClipboardCheck,
   ClipboardList,
   FileText,
+  Home,
+  LayoutList,
   LayoutDashboard,
   LifeBuoy,
   Lightbulb,
@@ -31,6 +33,8 @@ import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signOut } from "@/server/actions";
+import { setViewMode } from "@/server/simple-mode";
+import { SIMPLE_NAV, simpleAllowed } from "@/lib/domain/simple-nav";
 import { LensMark } from "@/components/lens";
 import { ROLE_LABEL, type AppRole } from "@/lib/domain/constants";
 import { cn } from "@/lib/utils";
@@ -141,6 +145,34 @@ const ACCESS: Record<AppRole, string[] | null> = {
 
 const allItems = groups.flatMap((group) => group.items);
 
+const SIMPLE_ICON: Record<string, typeof LayoutDashboard> = {
+  "/inicio": Home,
+  "/laboratorio/rapido": Zap,
+  "/lentes": PackageSearch,
+  "/montagem": Wrench,
+  "/entrega": PackageCheck,
+};
+
+function simpleItems(role: AppRole) {
+  return SIMPLE_NAV.filter((item) => simpleAllowed(role, item.href)).map((item) => ({ ...item, icon: SIMPLE_ICON[item.href] }));
+}
+
+/** Botão que troca entre modo simples e menu completo. */
+function ModeSwitch({ simple, className }: { simple: boolean; className?: string }) {
+  return (
+    <form action={setViewMode} className={className}>
+      <input type="hidden" name="modo" value={simple ? "completo" : "simples"} />
+      <button
+        type="submit"
+        className="flex min-h-11 w-full items-center gap-2 rounded-xl border border-[#29474d] px-3 text-left text-sm font-semibold text-[#e4f0f1] transition-colors hover:bg-[#1c4148]"
+      >
+        {simple ? <LayoutList size={18} /> : <Home size={18} />}
+        <span className="flex-1">{simple ? "Ver menu completo" : "Usar modo simples"}</span>
+      </button>
+    </form>
+  );
+}
+
 /** Indicador instantâneo de navegação: aparece no item clicado enquanto a próxima tela carrega. */
 function PendingDot() {
   const { pending } = useLinkStatus();
@@ -157,6 +189,7 @@ function initials(name: string) {
 
 export function Shell({
   children,
+  simple = false,
   name,
   role,
   orgName,
@@ -166,6 +199,7 @@ export function Shell({
   lensLate = 0,
 }: {
   children: React.ReactNode;
+  simple?: boolean;
   name: string;
   role: AppRole;
   orgName: string;
@@ -192,12 +226,40 @@ export function Shell({
     .map((group) => ({ ...group, items: group.items.filter((item) => !allowed || allowed.includes(item.href)) }))
     .filter((group) => group.items.length > 0);
 
-  const current = allItems
+  const simpleNav = simpleItems(role);
+  const current = [...allItems, ...simpleNav]
     .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
     .sort((a, b) => b.href.length - a.href.length)[0];
   const readOnly = role === "consulta";
 
-  const nav = (
+  const simpleMenu = (
+    <nav aria-label="Navegação do laboratório" className="flex flex-col gap-2">
+      {simpleNav.map((item) => {
+        const active = current?.href === item.href;
+        const Icon = item.icon;
+        const count = item.href === "/lentes" ? lensLate : 0;
+        return (
+          <Link
+            key={item.href}
+            aria-current={active ? "page" : undefined}
+            href={item.href}
+            onClick={() => setMobileOpen(false)}
+            className="flex min-h-[60px] items-center gap-3 rounded-2xl px-3 transition-colors"
+          >
+            <Icon size={24} strokeWidth={2.2} />
+            <span className="flex min-w-0 flex-1 flex-col leading-tight">
+              <span className="text-[17px] font-semibold">{item.label}</span>
+              <span className="mt-0.5 text-[13px] opacity-80">{item.hint}</span>
+            </span>
+            <PendingDot />
+            {count > 0 ? <span className="rounded-full bg-[#d2382b] px-2 py-0.5 text-sm font-bold text-white">{count}</span> : null}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+
+  const fullMenu = (
     <nav aria-label="Navegação do laboratório" className="flex flex-col gap-5">
       {visibleGroups.map((group) => (
         <details key={group.title} open={!group.adminOnly || group.items.some((item) => item.href === current?.href)} className="group flex flex-col gap-0.5">
@@ -246,6 +308,13 @@ export function Shell({
     </nav>
   );
 
+  const nav = (
+    <div className="flex flex-col gap-4">
+      {simple ? simpleMenu : fullMenu}
+      <ModeSwitch simple={simple} />
+    </div>
+  );
+
   const brand = (
     <div className="lab-brand flex h-[80px] items-center gap-2.5 border-b border-[var(--line)] px-[18px]">
       <LensMark size={30} />
@@ -272,7 +341,7 @@ export function Shell({
   );
 
   return (
-    <div className="min-h-screen">
+    <div className={cn("min-h-screen", simple && "lab-simple")}>
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:p-3">Ir para o conteúdo</a>
       <aside className="lab-sidebar fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] backdrop-blur-xl lg:flex">
         {brand}
@@ -348,6 +417,8 @@ export function Shell({
       </div>
 
       <MobileDock
+        simple={simple}
+        simpleNav={simpleNav}
         role={role}
         pathname={pathname}
         onOpenMenu={() => setMobileOpen(true)}
@@ -393,6 +464,8 @@ const DOCK: Record<AppRole, { href: string; label: string; icon: typeof LayoutDa
 };
 
 function MobileDock({
+  simple,
+  simpleNav,
   role,
   pathname,
   onOpenMenu,
@@ -400,6 +473,8 @@ function MobileDock({
   boOpen,
   lensLate,
 }: {
+  simple: boolean;
+  simpleNav: { href: string; label: string; icon: typeof LayoutDashboard }[];
   role: AppRole;
   pathname: string;
   onOpenMenu: () => void;
@@ -407,11 +482,14 @@ function MobileDock({
   boOpen: number;
   lensLate: number;
 }) {
-  const items = DOCK[role];
+  // No modo simples o dock mostra os passos (até 5); o menu ☰ do topo abre o resto.
+  const items = simple ? simpleNav.slice(0, 5) : DOCK[role];
+  const columns = simple ? items.length : items.length + 1;
   return (
     <nav
-      className="no-print fixed inset-x-3 bottom-[calc(0.6rem+env(safe-area-inset-bottom))] z-30 grid grid-cols-5 rounded-[28px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_92%,white)] p-1.5 shadow-[var(--shadow-soft)] backdrop-blur-xl lg:hidden"
+      className="no-print fixed inset-x-3 bottom-[calc(0.6rem+env(safe-area-inset-bottom))] z-30 grid rounded-[28px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_92%,white)] p-1.5 shadow-[var(--shadow-soft)] backdrop-blur-xl lg:hidden"
       aria-label="Atalhos do celular"
+      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
     >
       {items.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -422,11 +500,12 @@ function MobileDock({
             key={item.href}
             href={item.href}
             className={cn(
-              "relative flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[11px] font-semibold",
+              "relative flex flex-col items-center justify-center gap-0.5 rounded-2xl px-1 font-semibold",
+              simple ? "min-h-16 text-[12.5px]" : "min-h-14 text-[11px]",
               active ? "bg-[var(--accent)] text-white" : "text-[var(--muted)]",
             )}
           >
-            <Icon size={22} strokeWidth={active ? 2.4 : 2} />
+            <Icon size={simple ? 26 : 22} strokeWidth={active ? 2.4 : 2} />
             <span className="leading-none">{item.href === "/dashboard" ? "Hoje" : item.label}</span>
             {count > 0 ? (
               <span className="absolute right-1/2 top-1.5 mr-[-18px] min-w-4 rounded-full bg-[#d2382b] px-1 text-[10px] font-bold leading-4 text-white">{count}</span>
@@ -434,14 +513,14 @@ function MobileDock({
           </Link>
         );
       })}
-      <button
+      {simple ? null : <button
         type="button"
         onClick={onOpenMenu}
         className="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[11px] font-semibold text-[var(--muted)]"
       >
         <Menu size={22} />
         <span className="leading-none">Mais</span>
-      </button>
+      </button>}
     </nav>
   );
 }

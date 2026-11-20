@@ -15,7 +15,9 @@ import { NotifySeller, ProgressBar, RiskChip } from "@/components/forecast-ui";
 import { forecastOrder, formatForecastDate, sellerUpdateMessage, whatsappLink } from "@/lib/domain/forecast";
 import { visibleOrderNumber } from "@/lib/domain/orders";
 import { loadCatalogs, stepsDoneByOrder } from "@/server/queries";
+import { redirect } from "next/navigation";
 import { requireProfile } from "@/server/session";
+import { isSimpleMode } from "@/server/view-mode";
 
 type Period = "hoje" | "semana" | "mes" | "periodo";
 
@@ -49,6 +51,8 @@ export default async function DashboardPage({
 }) {
   const filters = await searchParams;
   const { supabase, profile } = await requireProfile();
+  // Quem usa o modo simples cai direto na tela de botões grandes.
+  if (await isSimpleMode(profile.role)) redirect("/inicio");
   const role = profile.role as AppRole;
   const now = new Date();
   const day = dayRange(now);

@@ -21,18 +21,18 @@ export function RiskChip({ risk, className }: { risk: Risk; className?: string }
 export function ProgressBar({ value, risk, className, showLabel = true }: { value: number; risk?: Risk; className?: string; showLabel?: boolean }) {
   const color =
     risk === "risco" || risk === "atrasada"
-      ? "#d2382b"
+      ? "#b83a3a"
       : risk === "atencao"
-        ? "#d99a0b"
+        ? "#87601f"
         : risk === "pronta" || risk === "entregue" || value >= 100
-          ? "#23955a"
-          : "#087e83";
+          ? "#2e7d5b"
+          : "#8c6239";
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#e7ebed]">
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#efece6]">
         <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${Math.max(3, Math.min(100, value))}%`, background: color }} />
       </div>
-      {showLabel ? <span className="tabular w-9 text-right font-mono text-[11px] font-medium text-[#425f65]">{value}%</span> : null}
+      {showLabel ? <span className="tabular w-9 text-right font-mono text-[11px] font-medium text-[#6e6a63]">{value}%</span> : null}
     </div>
   );
 }
@@ -68,7 +68,7 @@ export function NotifySeller({
           rel="noreferrer"
           title={`Enviar atualização para ${sellerName ?? "o vendedor"} no WhatsApp`}
           className={cn(
-            "inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-[#1f9d55] font-semibold text-white hover:bg-[#188346]",
+            "inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-[#2e7d5b] font-semibold text-white hover:bg-[#2e7d5b]",
             compact ? "h-11 px-3 text-sm md:h-7 md:px-2 md:text-xs" : "h-11 px-3 text-sm md:h-9",
           )}
         >
@@ -81,7 +81,7 @@ export function NotifySeller({
         onClick={copy}
         title="Copiar mensagem"
         className={cn(
-          "inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#cbdadd] bg-white font-medium text-[#425f65] hover:bg-[#f6f9f9]",
+          "inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#e2ddd5] bg-white font-medium text-[#6e6a63] hover:bg-[#f7f6f3]",
           compact ? "h-11 min-w-11 justify-center px-3 text-sm md:h-7 md:min-w-0 md:px-2 md:text-xs" : "h-11 px-3 text-sm md:h-9",
         )}
       >

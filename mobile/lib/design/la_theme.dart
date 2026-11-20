@@ -1,4 +1,4 @@
-// Laboratório ALEX: ThemeData do app.
+// Lab Gold: ThemeData do app.
 import 'package:flutter/material.dart';
 
 import 'la_tokens.dart';
@@ -8,7 +8,7 @@ ThemeData laTheme() {
     primary: LaColors.acento,
     onPrimary: LaColors.branco,
     secondary: LaColors.faixa,
-    onSecondary: LaColors.grafite,
+    onSecondary: LaColors.branco,
     error: LaColors.perigo,
     onError: LaColors.branco,
     surface: LaColors.branco,
@@ -74,7 +74,7 @@ ThemeData laTheme() {
       hintStyle: LaType.corpo.copyWith(color: LaColors.regua),
       errorStyle: LaType.rotulo.copyWith(color: LaColors.perigo),
       enabledBorder: borda(LaColors.borda, 1.5),
-      focusedBorder: borda(LaColors.grafite, 2),
+      focusedBorder: borda(LaColors.acento, 2),
       errorBorder: borda(LaColors.perigo, 2),
       focusedErrorBorder: borda(LaColors.perigo, 2),
       disabledBorder: borda(LaColors.filete, 1.5),

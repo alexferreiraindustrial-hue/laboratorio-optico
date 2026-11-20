@@ -226,21 +226,21 @@ export default async function DashboardPage({
         <Button variant="secondary" asChild>
           <Link href="/rotina">Rotina</Link>
         </Button>
-        <div className="flex w-full gap-0.5 overflow-x-auto rounded-[9px] bg-[#e7ebed] p-[3px] sm:w-auto">
+        <div className="flex w-full gap-0.5 overflow-x-auto rounded-[9px] bg-[#efece6] p-[3px] sm:w-auto">
           {PERIODS.map((item) => {
             const on = item.key === period;
             return (
               <Link
                 key={item.key}
                 href={periodHref(item.key)}
-                className={`flex h-11 min-w-0 flex-1 items-center justify-center rounded-[7px] px-3 text-[13px] font-semibold sm:flex-none md:h-[30px] ${on ? "bg-white text-[#172e32] shadow-[0_1px_2px_rgba(19,32,31,0.12)]" : "text-[#60767b] hover:text-[#172e32]"}`}
+                className={`flex h-11 min-w-0 flex-1 items-center justify-center rounded-[7px] px-3 text-[13px] font-semibold sm:flex-none md:h-[30px] ${on ? "bg-white text-[#222222] shadow-[0_1px_2px_rgba(19,32,31,0.12)]" : "text-[#6e6a63] hover:text-[#222222]"}`}
               >
                 {item.label}
               </Link>
             );
           })}
         </div>
-        <span className="font-mono text-[13px] text-[#425f65]">{rangeLabel}</span>
+        <span className="font-mono text-[13px] text-[#6e6a63]">{rangeLabel}</span>
       </PageHeading>
 
       {period === "periodo" || catalogs.laboratories.length > 1 ? (
@@ -248,8 +248,8 @@ export default async function DashboardPage({
           <input type="hidden" name="period" value={period} />
           {period === "periodo" ? (
             <>
-              <input type="date" name="from" defaultValue={filters.from ?? month.startYmd} aria-label="Período inicial" className="h-11 rounded-lg border border-[#cbdadd] bg-white px-3 text-base outline-none focus:border-[#087e83] md:h-9 md:text-sm" />
-              <input type="date" name="to" defaultValue={filters.to ?? zonedYmd(new Date(month.end.getTime() - 1))} aria-label="Período final" className="h-11 rounded-lg border border-[#cbdadd] bg-white px-3 text-base outline-none focus:border-[#087e83] md:h-9 md:text-sm" />
+              <input type="date" name="from" defaultValue={filters.from ?? month.startYmd} aria-label="Período inicial" className="h-11 rounded-lg border border-[#e2ddd5] bg-white px-3 text-base outline-none focus:border-[#8c6239] md:h-9 md:text-sm" />
+              <input type="date" name="to" defaultValue={filters.to ?? zonedYmd(new Date(month.end.getTime() - 1))} aria-label="Período final" className="h-11 rounded-lg border border-[#e2ddd5] bg-white px-3 text-base outline-none focus:border-[#8c6239] md:h-9 md:text-sm" />
             </>
           ) : null}
           {catalogs.laboratories.length > 1 ? (
@@ -267,22 +267,22 @@ export default async function DashboardPage({
       {riskCount + lateCount > 0 ? (
         <a
           href="#radar"
-          className="flex flex-wrap items-center gap-4 rounded-xl border border-[#f3c4be] bg-[#fdecea] px-5 py-3.5 transition-colors hover:border-[#d2382b]"
+          className="flex flex-wrap items-center gap-4 rounded-xl border border-[#f3c4be] bg-[#f9eaea] px-5 py-3.5 transition-colors hover:border-[#b83a3a]"
         >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#d2382b] text-base font-bold text-white">!</span>
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#b83a3a] text-base font-bold text-white">!</span>
           <span className="flex flex-1 flex-col">
-            <span className="text-[15px] font-semibold text-[#a3261b]">
+            <span className="text-[15px] font-semibold text-[#b83a3a]">
               {riskCount > 0 ? `${riskCount} OS ${riskCount > 1 ? "vão" : "vai"} atrasar se nada mudar` : ""}
               {riskCount > 0 && lateCount > 0 ? " · " : ""}
               {lateCount > 0 ? `${lateCount} já atrasada${lateCount > 1 ? "s" : ""}` : ""}
             </span>
             <span className="text-[13px] text-[#7a2a22]">Priorize na bancada e avise o vendedor agora, antes que o cliente cobre.</span>
           </span>
-          <span className="text-[13px] font-semibold text-[#a3261b]">Ver radar ↓</span>
+          <span className="text-[13px] font-semibold text-[#b83a3a]">Ver radar ↓</span>
         </a>
       ) : open.length > 0 ? (
-        <div className="flex items-center gap-3 rounded-xl border border-[#cfe6d8] bg-[#e3f4ea] px-5 py-3 text-[13px] font-medium text-[#1c6b43]">
-          <span className="grid h-6 w-6 place-items-center rounded-full bg-[#23955a] text-xs text-white">✓</span>
+        <div className="flex items-center gap-3 rounded-xl border border-[#cfe6d8] bg-[#e8f3ee] px-5 py-3 text-[13px] font-medium text-[#286f51]">
+          <span className="grid h-6 w-6 place-items-center rounded-full bg-[#2e7d5b] text-xs text-white">✓</span>
           Nenhuma OS em risco de atraso. Todas as previsões cabem no prazo.
         </div>
       ) : null}
@@ -291,19 +291,19 @@ export default async function DashboardPage({
         <PanelHeader title="Fila agora">
           {open.length} OS em andamento · clique para abrir no Laboratório
         </PanelHeader>
-        <div className="grid grid-cols-2 gap-px bg-[#dce5e7] sm:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-px bg-[#e2ddd5] sm:grid-cols-3 xl:grid-cols-6">
           {pipeline.map((stage) => (
             <Link
               key={stage.status}
               href={`/laboratorio/fila/${stage.status}`}
-              className="flex flex-col gap-2.5 bg-white px-5 pb-5 pt-[18px] hover:bg-[#f6f9f9]"
+              className="flex flex-col gap-2.5 bg-white px-5 pb-5 pt-[18px] hover:bg-[#f7f6f3]"
             >
-              <span className="flex items-center gap-[7px] text-[13px] font-medium text-[#425f65]">
+              <span className="flex items-center gap-[7px] text-[13px] font-medium text-[#6e6a63]">
                 <span className="h-2 w-2 shrink-0 rounded-[2px]" style={{ background: STATUS_TONE[stage.status].dot }} />
                 {stage.status === "em_conferencia" ? "Em conferência" : STATUS_LABEL[stage.status]}
               </span>
               <span className="tabular text-[34px] font-semibold leading-none tracking-[-0.03em]">{stage.count}</span>
-              <span className={`text-xs ${stage.alert ? "font-semibold text-[#b42318]" : "text-[#60767b]"}`}>{stage.note}</span>
+              <span className={`text-xs ${stage.alert ? "font-semibold text-[#b83a3a]" : "text-[#6e6a63]"}`}>{stage.note}</span>
             </Link>
           ))}
         </div>
@@ -311,63 +311,63 @@ export default async function DashboardPage({
 
       <Panel className="overflow-hidden">
         <PanelHeader title="Produção">Conta a data de conclusão da montagem</PanelHeader>
-        <div className="grid grid-cols-1 gap-px bg-[#dce5e7] sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-px bg-[#e2ddd5] sm:grid-cols-2 xl:grid-cols-4">
           <Stat label="Concluídas hoje" value={doneToday} suffix={dailyGoal ? `/ meta ${dailyGoal}` : undefined}>
             {todayPct != null ? (
               <>
-                <div className="h-1.5 overflow-hidden rounded-[3px] bg-[#e7ebed]">
-                  <div className="h-full bg-[#087e83]" style={{ width: `${Math.min(100, todayPct * 100)}%` }} />
+                <div className="h-1.5 overflow-hidden rounded-[3px] bg-[#efece6]">
+                  <div className="h-full bg-[#8c6239]" style={{ width: `${Math.min(100, todayPct * 100)}%` }} />
                 </div>
-                <span className="text-xs text-[#60767b]">{formatPercent(todayPct)} da meta diária</span>
+                <span className="text-xs text-[#6e6a63]">{formatPercent(todayPct)} da meta diária</span>
               </>
             ) : (
               <GoalHint />
             )}
           </Stat>
           <Stat label="Na semana" value={doneWeek} suffix={weeklyGoal ? `/ meta ${weeklyGoal}` : undefined}>
-            {weeklyGoal ? <span className="text-xs text-[#60767b]">{formatPercent(goalPercent(doneWeek, weeklyGoal))} da meta semanal</span> : <GoalHint scope="semanal" />}
+            {weeklyGoal ? <span className="text-xs text-[#6e6a63]">{formatPercent(goalPercent(doneWeek, weeklyGoal))} da meta semanal</span> : <GoalHint scope="semanal" />}
           </Stat>
           <Stat label="No mês" value={doneMonth} suffix={monthlyGoal ? `/ meta ${monthlyGoal}` : undefined}>
-            {monthlyGoal ? <span className="text-xs text-[#60767b]">{formatPercent(goalPercent(doneMonth, monthlyGoal))} da meta mensal</span> : <GoalHint scope="mensal" />}
+            {monthlyGoal ? <span className="text-xs text-[#6e6a63]">{formatPercent(goalPercent(doneMonth, monthlyGoal))} da meta mensal</span> : <GoalHint scope="mensal" />}
           </Stat>
           <Stat
             label="Projeção do período"
             value={projection.projected == null ? "—" : formatNumber(projection.projected, 1)}
             suffix={projection.projected == null ? undefined : "montagens"}
           >
-            <span className="text-pretty text-xs text-[#60767b]">
+            <span className="text-pretty text-xs text-[#6e6a63]">
               {projection.dailyAverage == null
                 ? projection.note
                 : `Média diária ${formatNumber(projection.dailyAverage, 1)} · ${projection.remainingWorkingDays} dias de funcionamento restantes. Estimativa, não garantia.`}
             </span>
           </Stat>
         </div>
-        <div className="border-t border-[#dce5e7] px-5 pb-4 pt-[18px]">
-          <div className="mb-2 flex justify-between text-xs text-[#60767b]">
+        <div className="border-t border-[#e2ddd5] px-5 pb-4 pt-[18px]">
+          <div className="mb-2 flex justify-between text-xs text-[#6e6a63]">
             <span>Montagens concluídas por dia · últimos 14 dias</span>
             {dailyGoal ? (
               <span className="flex items-center gap-1.5">
-                <span className="w-3.5 border-t border-dashed border-[#087e83]" />
+                <span className="w-3.5 border-t border-dashed border-[#8c6239]" />
                 Meta diária {dailyGoal}
               </span>
             ) : null}
           </div>
-          <div className="relative grid h-[120px] grid-cols-[repeat(14,minmax(0,1fr))] items-end gap-2 border-b border-[#dce5e7]">
+          <div className="relative grid h-[120px] grid-cols-[repeat(14,minmax(0,1fr))] items-end gap-2 border-b border-[#e2ddd5]">
             {dailyGoal ? (
-              <div className="absolute inset-x-0 border-t border-dashed border-[#087e83] opacity-60" style={{ bottom: `${(dailyGoal / barMax) * 100}%` }} />
+              <div className="absolute inset-x-0 border-t border-dashed border-[#8c6239] opacity-60" style={{ bottom: `${(dailyGoal / barMax) * 100}%` }} />
             ) : null}
             {bars.map((bar, index) => (
               <div
                 key={bar.day + index}
                 title={`${bar.produced} montagem(ns)`}
                 className="min-h-[2px] rounded-t-[3px]"
-                style={{ height: `${(bar.produced / barMax) * 100}%`, background: index === bars.length - 1 ? "#087e83" : "#9cc9c3" }}
+                style={{ height: `${(bar.produced / barMax) * 100}%`, background: index === bars.length - 1 ? "#8c6239" : "#9cc9c3" }}
               />
             ))}
           </div>
           <div className="mt-1.5 grid grid-cols-[repeat(14,minmax(0,1fr))] gap-2">
             {bars.map((bar, index) => (
-              <span key={bar.day + index} className="text-center font-mono text-[10px] text-[#74898e]">{bar.day}</span>
+              <span key={bar.day + index} className="text-center font-mono text-[10px] text-[#6e6a63]">{bar.day}</span>
             ))}
           </div>
         </div>
@@ -380,22 +380,22 @@ export default async function DashboardPage({
             <span>Avisa antes do atraso · {radar.length} OS</span>
           </PanelHeader>
           {attention.length === 0 ? (
-            <p className="px-5 py-6 text-sm text-[#60767b]">Nada atrasado, em risco ou vencendo hoje. Tudo no prazo.</p>
+            <p className="px-5 py-6 text-sm text-[#6e6a63]">Nada atrasado, em risco ou vencendo hoje. Tudo no prazo.</p>
           ) : (
             attention.map((order) => (
-              <div key={order.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[#edf2f3] px-5 py-3.5 last:border-b-0 hover:bg-[#f6f9f9]">
+              <div key={order.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[#efece6] px-5 py-3.5 last:border-b-0 hover:bg-[#f7f6f3]">
                 <Link href={`/laboratorio/${order.id}`} className="flex min-w-0 flex-col gap-1.5">
                   <span className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-[13px] font-medium text-[#087e83]">{visibleOrderNumber(order)}</span>
+                    <span className="font-mono text-[13px] font-medium text-[#8c6239]">{visibleOrderNumber(order)}</span>
                     <span className="truncate text-[13px] font-semibold">{order.client_name}</span>
                     <RiskChip risk={order.forecast.risk} />
                   </span>
-                  <span className={`text-xs font-medium ${order.forecast.risk === "atrasada" || order.forecast.risk === "risco" ? "text-[#a3261b]" : "text-[#8a5a00]"}`}>
+                  <span className={`text-xs font-medium ${order.forecast.risk === "atrasada" || order.forecast.risk === "risco" ? "text-[#b83a3a]" : "text-[#87601f]"}`}>
                     {order.reason}
                   </span>
                   <span className="flex items-center gap-3">
                     <ProgressBar value={order.forecast.progress} risk={order.forecast.risk} className="w-36" />
-                    <span className="truncate text-xs text-[#60767b]">
+                    <span className="truncate text-xs text-[#6e6a63]">
                       {STATUS_LABEL[order.status]} · {order.laboratory_name || "Sem laboratório"} · {order.sellerName || "Sem vendedor"}
                     </span>
                   </span>
@@ -405,43 +405,43 @@ export default async function DashboardPage({
             ))
           )}
           {lowStock.length > 0 ? (
-            <Link href="/estoque" className="flex items-center justify-between border-t border-[#dce5e7] bg-[#fdf3dc]/50 px-5 py-3 text-[13px] hover:bg-[#fdf3dc]">
-              <span className="font-semibold text-[#8a5a00]">{lowStock.length} lente(s) com estoque baixo ou zerado</span>
-              <span className="font-medium text-[#087e83]">Ver estoque</span>
+            <Link href="/estoque" className="flex items-center justify-between border-t border-[#e2ddd5] bg-[#fbf3e4]/50 px-5 py-3 text-[13px] hover:bg-[#fbf3e4]">
+              <span className="font-semibold text-[#87601f]">{lowStock.length} lente(s) com estoque baixo ou zerado</span>
+              <span className="font-medium text-[#8c6239]">Ver estoque</span>
             </Link>
           ) : null}
         </Panel>
 
         <Panel className="overflow-hidden">
           <PanelHeader title="Qualidade no período">
-            <Link href="/relatorios" className="font-medium text-[#087e83] hover:underline">Relatório</Link>
+            <Link href="/relatorios" className="font-medium text-[#8c6239] hover:underline">Relatório</Link>
           </PanelHeader>
-          <div className="grid grid-cols-2 gap-px border-b border-[#dce5e7] bg-[#dce5e7]">
+          <div className="grid grid-cols-2 gap-px border-b border-[#e2ddd5] bg-[#e2ddd5]">
             <div className="flex flex-col gap-1.5 bg-white px-5 py-4">
-              <span className="text-[13px] font-medium text-[#425f65]">OS com ocorrência</span>
+              <span className="text-[13px] font-medium text-[#6e6a63]">OS com ocorrência</span>
               <span className="tabular text-[28px] font-semibold leading-none tracking-[-0.03em]">
                 {rate.percent == null ? "—" : formatPercent(rate.percent)}
               </span>
-              <span className="text-xs text-[#60767b]">{rate.affected} de {rate.orders} OS</span>
+              <span className="text-xs text-[#6e6a63]">{rate.affected} de {rate.orders} OS</span>
             </div>
             <div className="flex flex-col gap-1.5 bg-white px-5 py-4">
-              <span className="text-[13px] font-medium text-[#425f65]">Ocorrências abertas</span>
-              <span className={`tabular text-[28px] font-semibold leading-none tracking-[-0.03em] ${openQuality.length ? "text-[#b42318]" : ""}`}>
+              <span className="text-[13px] font-medium text-[#6e6a63]">Ocorrências abertas</span>
+              <span className={`tabular text-[28px] font-semibold leading-none tracking-[-0.03em] ${openQuality.length ? "text-[#b83a3a]" : ""}`}>
                 {openQuality.length}
               </span>
-              <span className="text-xs text-[#60767b]">Bloqueia “Pronto”</span>
+              <span className="text-xs text-[#6e6a63]">Bloqueia “Pronto”</span>
             </div>
           </div>
           <div className="flex flex-col gap-2.5 px-5 pb-[18px] pt-3.5">
-            <span className="text-xs font-semibold text-[#74898e]">Por categoria</span>
+            <span className="text-xs font-semibold text-[#6e6a63]">Por categoria</span>
             {byCategory.length === 0 ? (
-              <span className="text-[13px] text-[#60767b]">Nenhuma ocorrência no período.</span>
+              <span className="text-[13px] text-[#6e6a63]">Nenhuma ocorrência no período.</span>
             ) : (
               byCategory.slice(0, 6).map((item) => (
                 <div key={item.key} className="grid grid-cols-[minmax(0,1fr)_120px_24px] items-center gap-3 text-[13px]">
                   <span className="truncate">{item.key}</span>
-                  <div className="h-1.5 rounded-[3px] bg-[#e7ebed]">
-                    <div className="h-full rounded-[3px] bg-[#d2382b]" style={{ width: `${(item.count / categoryMax) * 100}%` }} />
+                  <div className="h-1.5 rounded-[3px] bg-[#efece6]">
+                    <div className="h-full rounded-[3px] bg-[#b83a3a]" style={{ width: `${(item.count / categoryMax) * 100}%` }} />
                   </div>
                   <span className="text-right font-mono">{item.count}</span>
                 </div>
@@ -467,10 +467,10 @@ function Stat({
 }) {
   return (
     <div className="flex flex-col gap-2 bg-white px-5 py-[18px]">
-      <span className="text-[13px] font-medium text-[#425f65]">{label}</span>
+      <span className="text-[13px] font-medium text-[#6e6a63]">{label}</span>
       <div className="flex items-baseline gap-1.5">
         <span className="tabular text-[34px] font-semibold leading-none tracking-[-0.03em]">{value}</span>
-        {suffix ? <span className="text-sm text-[#60767b]">{suffix}</span> : null}
+        {suffix ? <span className="text-sm text-[#6e6a63]">{suffix}</span> : null}
       </div>
       {children}
     </div>
@@ -479,9 +479,9 @@ function Stat({
 
 function GoalHint({ scope = "diária" }: { scope?: string }) {
   return (
-    <span className="text-xs text-[#60767b]">
+    <span className="text-xs text-[#6e6a63]">
       Meta {scope} não definida ·{" "}
-      <Link href="/configuracoes" className="text-[#087e83] hover:underline">Definir</Link>
+      <Link href="/configuracoes" className="text-[#8c6239] hover:underline">Definir</Link>
     </span>
   );
 }

@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f3f6f6;
+  --background: #f7f6f3;
   --surface: #ffffff;
-  --ink: #172e32;
-  --muted: #60767b;
-  --line: #dce5e7;
-  --accent: #087e83;
-  --accent-strong: #066369;
-  --accent-soft: #e0f2f1;
-  --danger: #b42318;
-  --warning: #9a5b00;
-  --ok: #1a6b4a;
+  --ink: #222222;
+  --muted: #6e6a63;
+  --line: #e2ddd5;
+  --accent: #8c6239;
+  --accent-strong: #734f2d;
+  --accent-soft: #f3ece2;
+  --danger: #b83a3a;
+  --warning: #87601f;
+  --ok: #2e7d5b;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --shadow-soft: 0 2px 6px -4px rgba(23, 46, 50, 0.18);
+  --shadow-soft: 0 4px 18px -8px rgba(34, 34, 34, 0.06);
   color-scheme: light;
 }
 
@@ -107,7 +107,7 @@ textarea:focus {
 }
 
 ::selection {
-  background: #cde5df;
+  background: #e2ddd5;
 }
 
 @media print {
@@ -161,19 +161,17 @@ table { font-variant-numeric: tabular-nums; }
 thead th { position: relative; white-space: nowrap; }
 details > summary { list-style: none; }
 details > summary::-webkit-details-marker { display: none; }
-.lab-sidebar { background: #102e34; color: #e4f0f1; }
-.lab-sidebar nav a { color: #bed0d3; }
-.lab-sidebar nav a:hover { background: #1c4148; color: white; }
-.lab-sidebar nav a[aria-current="page"] { background: #e0f2f1; color: #125d63; box-shadow: none; }
-.lab-sidebar nav p { color: #86a5ac; }
-.lab-sidebar nav details[open] summary { color: #e4f0f1; }
-.lab-sidebar .lab-brand { border-color: #29474d; }
-.lab-sidebar .lab-brand .display { color: white; }
-.lab-sidebar .lab-brand small { color: #8fb4bc; }
-.lab-sidebar .lab-account { border-color: #29474d; }
-.lab-sidebar .lab-account span { color: #bed0d3; }
-.lab-sidebar .lab-account button { color: #bed0d3; }
-.lab-sidebar .lab-account button:hover { background: #1c4148; }
+/* Lab Gold: luminous navigation, restrained oak accents. */
+.lab-sidebar { background: var(--surface); color: var(--ink); }
+.lab-sidebar nav a { color: var(--muted); }
+.lab-sidebar nav a:hover { background: #f3ece2; color: #6e4b2a; }
+.lab-sidebar nav a[aria-current="page"] { background: #f3ece2; color: #6e4b2a; box-shadow: none; }
+.lab-sidebar nav p { color: var(--muted); }
+.lab-sidebar nav details[open] summary { color: var(--ink); }
+.lab-sidebar .lab-brand, .lab-sidebar .lab-account { border-color: var(--line); }
+.lab-sidebar .lab-brand .display { color: var(--ink); }
+.lab-sidebar .lab-brand small, .lab-sidebar .lab-account span, .lab-sidebar .lab-account button { color: var(--muted); }
+.lab-sidebar .lab-account button:hover { background: #f3ece2; }
 .lab-workspace section { scroll-margin-top: 88px; }
 .lab-drawer form { padding-bottom: 24px; }
 .lab-drawer form > .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }

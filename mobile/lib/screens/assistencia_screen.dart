@@ -86,7 +86,7 @@ class _AssistenciaScreenState extends State<AssistenciaScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             const Text('Óculos barrados na bancada. Abra a OS ou registre a decisão.'),
-            if (error != null) Text(error!, style: const TextStyle(color: Color(0xFFB42318))),
+            if (error != null) Text(error!, style: const TextStyle(color: Color(0xFFB83A3A))),
             if (rows.isEmpty) const Padding(padding: EdgeInsets.only(top: 24), child: Text('Nenhum BO aberto agora.')),
             for (final row in rows)
               Card(

@@ -36,7 +36,7 @@ class _PainelExemploState extends State<PainelExemplo> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Laboratório ALEX', style: LaType.corpoForte.copyWith(fontSize: 18, fontWeight: FontWeight.w700)),
+                      Text('Lab Gold', style: LaType.corpoForte.copyWith(fontSize: 18, fontWeight: FontWeight.w700)),
                       Text('Terça, 3 de novembro', style: LaType.rotulo.copyWith(fontWeight: FontWeight.w500, color: LaColors.regua)),
                     ],
                   ),

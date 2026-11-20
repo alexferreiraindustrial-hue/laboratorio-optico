@@ -57,7 +57,7 @@ class _PartiesScreenState extends State<PartiesScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             const Text('Toque para editar. Cadastro com OS no histórico é desativado, nunca apagado.'),
-            if (error != null) Text(error!, style: const TextStyle(color: Color(0xFFB42318))),
+            if (error != null) Text(error!, style: const TextStyle(color: Color(0xFFB83A3A))),
             for (final row in rows)
               Card(
                 child: ListTile(

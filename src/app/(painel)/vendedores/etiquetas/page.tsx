@@ -45,7 +45,7 @@ function SellerLabels() {
       });
   }, [idList]);
 
-  if (error) return <p className="text-sm text-[#b42318]">{error}</p>;
+  if (error) return <p className="text-sm text-[#b83a3a]">{error}</p>;
   return <LabelSheet cards={cards} empty="Selecione um vendedor para imprimir a etiqueta." />;
 }
 

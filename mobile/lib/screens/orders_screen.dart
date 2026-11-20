@@ -128,7 +128,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
           if (error != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpace.md),
-              child: Text(error!, style: const TextStyle(color: Color(0xFFB42318))),
+              child: Text(error!, style: const TextStyle(color: Color(0xFFB83A3A))),
             ),
           Expanded(
             child: RefreshIndicator(

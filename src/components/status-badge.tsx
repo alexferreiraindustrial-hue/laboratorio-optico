@@ -3,21 +3,21 @@ import type { Urgency } from "@/lib/domain/urgency";
 import { cn } from "@/lib/utils";
 
 export const STATUS_TONE: Record<OrderStatus, { fg: string; bg: string; dot: string }> = {
-  aguardando_lentes: { fg: "#8a5a00", bg: "#fdf3dc", dot: "#d99a0b" },
-  aguardando_montagem: { fg: "#425f65", bg: "#edf2f3", dot: "#8a96a0" },
-  em_montagem: { fg: "#125d63", bg: "#e0f2f1", dot: "#087e83" },
-  em_correcao: { fg: "#a3261b", bg: "#fdecea", dot: "#d2382b" },
-  em_conferencia: { fg: "#125d63", bg: "#e0f2f1", dot: "#087e83" },
-  pronto: { fg: "#1c6b43", bg: "#e3f4ea", dot: "#23955a" },
+  aguardando_lentes: { fg: "#87601f", bg: "#fbf3e4", dot: "#87601f" },
+  aguardando_montagem: { fg: "#6e6a63", bg: "#efece6", dot: "#8a96a0" },
+  em_montagem: { fg: "#6e4b2a", bg: "#f3ece2", dot: "#8c6239" },
+  em_correcao: { fg: "#b83a3a", bg: "#f9eaea", dot: "#b83a3a" },
+  em_conferencia: { fg: "#6e4b2a", bg: "#f3ece2", dot: "#8c6239" },
+  pronto: { fg: "#2e7d5b", bg: "#e8f3ee", dot: "#2e7d5b" },
   entregue: { fg: "#3b4650", bg: "#e6e9ec", dot: "#3b4650" },
   cancelado: { fg: "#6b7680", bg: "#f3f4f6", dot: "#a0a8b0" },
 };
 
 const urgencyTone: Record<Urgency, { dot: string; fg: string; weight: string }> = {
-  vermelho: { dot: "#d2382b", fg: "#a3261b", weight: "font-semibold" },
-  amarelo: { dot: "#d99a0b", fg: "#8a5a00", weight: "font-semibold" },
-  verde: { dot: "#23955a", fg: "#425f65", weight: "font-medium" },
-  cinza: { dot: "#c9d0d4", fg: "#74898e", weight: "font-normal" },
+  vermelho: { dot: "#b83a3a", fg: "#b83a3a", weight: "font-semibold" },
+  amarelo: { dot: "#87601f", fg: "#87601f", weight: "font-semibold" },
+  verde: { dot: "#2e7d5b", fg: "#6e6a63", weight: "font-medium" },
+  cinza: { dot: "#c9d0d4", fg: "#6e6a63", weight: "font-normal" },
 };
 
 const urgencyLabel: Record<Urgency, string> = {

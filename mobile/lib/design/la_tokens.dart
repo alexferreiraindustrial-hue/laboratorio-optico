@@ -1,34 +1,34 @@
-// Laboratório ALEX: tokens de design.
+// Lab Gold: tokens de design.
 // Fonte da verdade: design-handoff/HANDOFF.md §2.
 import 'package:flutter/material.dart';
 
 /// Cores. Use sempre o token, nunca o hex solto.
 abstract final class LaColors {
-  static const acento = Color(0xFF087E83);
-  static const acentoSuave = Color(0xFFE0F2F1);
-  static const navegacao = Color(0xFF102E34);
-  static const piso = Color(0xFFF3F6F6);
+  static const acento = Color(0xFF8C6239);
+  static const acentoSuave = Color(0xFFF3ECE2);
+  static const navegacao = Color(0xFF222222);
+  static const piso = Color(0xFFF7F6F3);
   static const branco = Color(0xFFFFFFFF);
-  static const grafite = Color(0xFF172E32);
-  static const regua = Color(0xFF60767B);
-  static const borda = Color(0xFFCBDADD);
-  static const filete = Color(0xFFDCE5E7);
-  static const linha = Color(0xFFEDF2F3);
+  static const grafite = Color(0xFF222222);
+  static const regua = Color(0xFF6E6A63);
+  static const borda = Color(0xFFE2DDD5);
+  static const filete = Color(0xFFE2DDD5);
+  static const linha = Color(0xFFEFECE6);
 
   /// Amarelo de faixa de piso: só ação principal e "você está aqui".
-  static const faixa = Color(0xFF087E83);
-  static const abaInativa = Color(0xFFB4B8B3);
+  static const faixa = Color(0xFF8C6239);
+  static const abaInativa = Color(0xFF6E6A63);
 
-  static const perigo = Color(0xFFB42318);
-  static const perigoFundo = Color(0xFFFEF3F2);
-  static const alerta = Color(0xFFB54708);
-  static const alertaFundo = Color(0xFFFFF1E6);
-  static const alertaBorda = Color(0xFFF2B98C);
-  static const noPrazo = Color(0xFF2B7A3B);
+  static const perigo = Color(0xFFB83A3A);
+  static const perigoFundo = Color(0xFFF9EAEA);
+  static const alerta = Color(0xFF87601F);
+  static const alertaFundo = Color(0xFFFBF3E4);
+  static const alertaBorda = Color(0xFFC68B2C);
+  static const noPrazo = Color(0xFF286F51);
 
-  static const pontoAtrasada = Color(0xFFD92D20);
-  static const pontoProximo = Color(0xFFF27A1A);
-  static const pontoNoPrazo = Color(0xFF2F9E44);
+  static const pontoAtrasada = Color(0xFFB83A3A);
+  static const pontoProximo = Color(0xFFC68B2C);
+  static const pontoNoPrazo = Color(0xFF2E7D5B);
 }
 
 abstract final class LaSpace {

@@ -1,4 +1,4 @@
-// Laboratório ALEX: importe só este arquivo nas telas.
+// Lab Gold: importe só este arquivo nas telas.
 export 'la_tokens.dart';
 export 'widgets/la_responsive.dart';
 export 'la_theme.dart';

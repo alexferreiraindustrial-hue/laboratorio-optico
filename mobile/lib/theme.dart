@@ -124,20 +124,20 @@ abstract final class AppAssets {
 }
 
 const _lightColors = AppColors(
-  ink: Color(0xFF172E32),
-  muted: Color(0xFF60767B),
-  accent: Color(0xFF087E83),
-  accentStrong: Color(0xFF066369),
-  glow: Color(0xFFE0F2F1),
+  ink: Color(0xFF222222),
+  muted: Color(0xFF6E6A63),
+  accent: Color(0xFF8C6239),
+  accentStrong: Color(0xFF734F2D),
+  glow: Color(0xFFF3ECE2),
   paper: Color(0xFFFFFFFF),
-  canvas: Color(0xFFF3F6F6),
-  hairline: Color(0xFFCBDADD),
-  danger: Color(0xFFB42318),
-  warn: Color(0xFFB54708),
-  ok: Color(0xFF2B7A3B),
-  warnFill: Color(0xFFFFF1E6),
-  dangerFill: Color(0xFFFEF3F2),
-  okFill: Color(0xFFE7F6EA),
+  canvas: Color(0xFFF7F6F3),
+  hairline: Color(0xFFE2DDD5),
+  danger: Color(0xFFB83A3A),
+  warn: Color(0xFF87601F),
+  ok: Color(0xFF286F51),
+  warnFill: Color(0xFFFBF3E4),
+  dangerFill: Color(0xFFF9EAEA),
+  okFill: Color(0xFFE8F3EE),
 );
 
 ThemeData labTheme() => laTheme().copyWith(extensions: const [_lightColors]);

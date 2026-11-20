@@ -56,7 +56,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('Vendedor'));
         await tester.pumpAndSettle();
-        expect(find.text('PIN'), findsOneWidget);
+        expect(find.text('Senha do vendedor'), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
     );
@@ -73,7 +73,7 @@ void main() {
         LoginScreen(session: session),
       );
       expect(find.text('Ver meus serviços'), findsOneWidget);
-      expect(find.text('PIN'), findsOneWidget);
+      expect(find.text('Senha do vendedor'), findsOneWidget);
       await tester.ensureVisible(find.byKey(const ValueKey('entrar')));
       await tester.tap(find.byKey(const ValueKey('entrar')));
       await tester.pumpAndSettle();

@@ -65,9 +65,9 @@ export function nextBenchAction(order: BenchOrder, role: AppRole): NextAction {
 
 
 export const BENCH_LANES: { status: BenchOrder["status"]; title: string; hint: string; color: string }[] = [
-  { status: "aguardando_montagem", title: "Aguardando montagem", hint: "Lentes liberadas · puxar próxima OS", color: "#74898e" },
-  { status: "em_montagem", title: "Em montagem", hint: "Executar e registrar as cinco etapas", color: "#087e83" },
-  { status: "em_correcao", title: "Em correção", hint: "Resolver impedimentos e retomar", color: "#b42318" },
+  { status: "aguardando_montagem", title: "Aguardando montagem", hint: "Lentes liberadas · puxar próxima OS", color: "#6e6a63" },
+  { status: "em_montagem", title: "Em montagem", hint: "Executar e registrar as cinco etapas", color: "#8c6239" },
+  { status: "em_correcao", title: "Em correção", hint: "Resolver impedimentos e retomar", color: "#b83a3a" },
   { status: "em_conferencia", title: "Conferência de qualidade", hint: "Inspeção final antes da liberação", color: "#8a5a00" },
 ];
 

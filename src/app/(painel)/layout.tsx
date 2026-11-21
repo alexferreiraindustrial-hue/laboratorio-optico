@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Shell } from "@/components/shell";
 import { QUEUE_STATUSES } from "@/lib/domain/constants";
@@ -23,7 +24,7 @@ export default async function PainelLayout({ children }: { children: React.React
   const operations = (settings.data?.value ?? {}) as { org_name?: string };
   const orgName = operations.org_name || "Laboratório Óptico";
   return (
-    <Shell simple={simple} name={profile.full_name} role={profile.role} orgName={orgName} unread={unread.count ?? 0} openOrders={open.count ?? 0} boOpen={bo.count ?? 0} lensLate={lensLate.count ?? 0}>
+    <Shell initialSidebarCollapsed={(await cookies()).get("lab_sidebar")?.value === "collapsed"} simple={simple} name={profile.full_name} role={profile.role} orgName={orgName} unread={unread.count ?? 0} openOrders={open.count ?? 0} boOpen={bo.count ?? 0} lensLate={lensLate.count ?? 0}>
       {children}
     </Shell>
   );

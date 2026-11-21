@@ -14,6 +14,8 @@ import {
   Loader2,
   LogOut,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   MessageSquare,
   Package,
   PackageCheck,
@@ -191,6 +193,7 @@ function initials(name: string) {
 export function Shell({
   children,
   simple = false,
+  initialSidebarCollapsed = false,
   name,
   role,
   orgName,
@@ -201,6 +204,7 @@ export function Shell({
 }: {
   children: React.ReactNode;
   simple?: boolean;
+  initialSidebarCollapsed?: boolean;
   name: string;
   role: AppRole;
   orgName: string;
@@ -211,6 +215,7 @@ export function Shell({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed,setSidebarCollapsed] = useState(initialSidebarCollapsed);
   useEffect(() => {
     if (!mobileOpen) return;
     const previous = document.body.style.overflow;
@@ -345,7 +350,7 @@ export function Shell({
     <OperationModeProvider simple={simple}>
     <div className={cn("min-h-screen", simple && "lab-simple")}>
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-[var(--surface)] focus:p-3">Ir para o conteúdo</a>
-      <aside className="lab-sidebar fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] backdrop-blur-xl lg:flex">
+      <aside id="desktop-sidebar" className={cn("lab-sidebar fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] backdrop-blur-xl", sidebarCollapsed ? "lg:hidden" : "lg:flex")}>
         {brand}
         <div className="flex-1 overflow-auto px-3 py-3">{nav}</div>
         {footer}
@@ -367,8 +372,11 @@ export function Shell({
         </div>
       ) : null}
 
-      <div className="flex min-h-screen min-w-0 flex-col lg:pl-[248px]">
+      <div className={cn("flex min-h-screen min-w-0 flex-col",sidebarCollapsed?"lg:pl-0":"lg:pl-[248px]")}>
         <header className="no-print sticky top-0 z-20 flex min-h-[60px] items-center gap-2 border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_82%,transparent)] px-2 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:gap-4 md:px-5">
+          <button type="button" aria-label={sidebarCollapsed?"Expandir menu lateral":"Recolher menu lateral"} title={sidebarCollapsed?"Expandir menu lateral":"Recolher menu lateral"} aria-expanded={!sidebarCollapsed} aria-controls="desktop-sidebar" className="hidden min-h-11 shrink-0 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--ink)] hover:bg-[var(--accent-soft)] lg:inline-flex" onClick={()=>{const next=!sidebarCollapsed;setSidebarCollapsed(next);document.cookie=`lab_sidebar=${next?"collapsed":"expanded"}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol==="https:"?"; Secure":""}`;}}>
+            {sidebarCollapsed?<PanelLeftOpen size={18}/>:<PanelLeftClose size={18}/>}<span>{sidebarCollapsed?"Menu":"Recolher"}</span>
+          </button>
           <button aria-label="Abrir menu" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-[var(--muted)] hover:bg-[var(--accent-soft)] lg:hidden" onClick={() => setMobileOpen(true)} type="button">
             <Menu size={22} />
           </button>

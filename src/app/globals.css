@@ -420,3 +420,14 @@ body::before {
 .bench-deadline-label { color: var(--bench-color); }
 .bench-compact-card[data-urgency="none"] .bench-deadline-label { color: var(--muted); }
 :root[data-theme="dark"] .bench-compact-card[data-urgency="soon"] { --bench-color: #f0b58a; }
+
+.lens-priority-row { --lens-color: var(--line); background: var(--surface); border-color: var(--line); border-left: 5px solid var(--lens-color); }
+.lens-priority-row[data-urgency="normal"] { --lens-color: var(--ok); }
+.lens-priority-row[data-urgency="attention"] { --lens-color: var(--warning); }
+.lens-priority-row[data-urgency="soon"] { --lens-color: #a85620; }
+.lens-priority-row[data-urgency="critical"], .lens-priority-row[data-urgency="late"] { --lens-color: var(--danger); background: color-mix(in srgb,var(--danger-soft) 22%,var(--surface)); }
+.lens-priority-row[data-urgency="late"] { border-left-width: 7px; }
+.lens-priority-text { color: var(--lens-color); }
+.lens-priority-badge { color: var(--lens-color); background: var(--background); border: 1px solid currentColor; }
+.lens-priority-row[data-urgency="none"] .lens-priority-badge { color: var(--muted); }
+:root[data-theme="dark"] .lens-priority-row[data-urgency="soon"] { --lens-color: #f0b58a; }

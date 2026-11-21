@@ -47,13 +47,13 @@ export function Kpi({
 }) {
   const bar = { ok: "var(--ok)", warn: "var(--warning)", bad: "var(--danger)", neutral: "var(--line)" }[tone];
   return (
-    <article className="relative overflow-hidden rounded-[22px] border border-[var(--line)] bg-[var(--surface)] p-4 shadow-[var(--shadow-soft)]">
+    <article className="lab-reference-kpi relative overflow-hidden rounded-[22px] border border-[var(--line)] bg-[var(--surface)] p-4 shadow-[var(--shadow-soft)]">
       <span className="absolute inset-y-0 left-0 w-1" style={{ background: bar }} />
       <div className="flex items-start justify-between gap-2">
         <p className="text-[13px] font-medium text-[var(--muted)]">{label}</p>
-        {tool ? <span className="rounded-full bg-[var(--accent-soft)] px-1.5 py-px text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">{tool}</span> : null}
+        {tool ? <span className="lab-kpi-tool rounded-full bg-[var(--accent-soft)] px-1.5 py-px text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">{tool}</span> : null}
       </div>
-      <p className="display tabular mt-2 text-[28px] leading-none">{value}</p>
+      <p className="lab-kpi-value display tabular mt-2 text-[28px] leading-none">{value}</p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         {badge ? <Pill tone={tone}>{badge}</Pill> : null}
         {hint ? <span className="text-xs text-[var(--muted)]">{hint}</span> : null}

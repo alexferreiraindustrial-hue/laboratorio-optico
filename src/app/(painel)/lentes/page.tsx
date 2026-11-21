@@ -19,9 +19,9 @@ export default async function LentesPage() {
   const noForecast = risks.filter((risk) => risk === "sem_previsao").length;
 
   return (
-    <div className="flex flex-col gap-5">
-      <PageHeading
-        title="Lentes a chegar"
+    <div className="lab-reference-lenses flex flex-col gap-5">
+      <PageHeading stacked
+        title={<>Lentes <span className="lab-reference-heading-accent">a chegar</span></>}
         description="OS vendidas cuja lente ainda está no laboratório externo. A lente precisa chegar com pelo menos 1 dia de folga antes do prazo prometido ao cliente para dar tempo de montar."
       >
         <Button asChild>

@@ -346,3 +346,66 @@ body:has(.lab-simple) { font-size: 16px; }
 
 /* Solid action fills retain AA white labels in either theme. */
 :root[data-theme="dark"] { --bg-0b423f:#0b423f; --bg-18723f:#18723f; --bg-188046:#188046; --bg-2e7d5b:#2e7d5b; --bg-6e4b2a:#6e4b2a; --bg-87601f:#87601f; --bg-963030:#963030; }
+
+/* Reference identity: black cabinetry, champagne gold and pale marble. */
+:root {
+ --background: #fafaf8; --surface: rgba(255,255,255,.94); --surface-secondary: #efece5;
+ --ink: #111111; --muted: #57534a; --line: #ac9b78;
+ --accent: #101010; --accent-strong: #29251e; --accent-soft: #eee4ce;
+ --link: #78623b; --focus: #927b4e;
+ --gold: #927b4e; --gold-light: #e6d5ac; --on-accent: #eadbb9;
+ --shadow-soft: 0 8px 16px -10px rgba(28,23,13,.36);
+}
+body { background: var(--background); isolation: isolate; }
+body::before {
+ content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+ background: url('/textures/lab-gold-marble.png') center / cover no-repeat;
+ filter: grayscale(.78) contrast(1.55) brightness(1.14); opacity: .76;
+}
+:root[data-theme="dark"] {
+ --background: #131210; --surface: #211f1b; --surface-secondary: #2c2924;
+ --ink: #f2eee7; --muted: #c5bdb1; --line: #74644a;
+ --accent: #101010; --accent-strong: #29251e; --accent-soft: #382f22;
+ --link: #e2bd87; --focus: #e2bd87; --on-accent: #eadbb9;
+}
+:root[data-theme="dark"] body::before { opacity: .055; filter: grayscale(1); }
+:root[data-theme] .lab-sidebar { background: #101010; color: #ece8de; border-color: #292722; }
+:root[data-theme] .lab-sidebar nav a { color: #e6e2d8; }
+:root[data-theme] .lab-sidebar nav a:hover { background: #27241e; color: #f3e5bf; }
+:root[data-theme] .lab-sidebar nav a[aria-current="page"] {
+ background: linear-gradient(105deg,#b39a62 0%,#e8d8a4 53%,#b59a62 100%);
+ color: #17140e; box-shadow: 0 3px 9px rgba(0,0,0,.18); border-radius: 14px;
+}
+:root[data-theme] .lab-sidebar nav a[aria-current="page"] * { color: inherit; }
+:root[data-theme] .lab-sidebar nav p,
+:root[data-theme] .lab-sidebar nav details[open] summary { color: #c9c3b6; }
+:root[data-theme] .lab-sidebar .lab-brand,
+:root[data-theme] .lab-sidebar .lab-account { border-color: #292722; }
+:root[data-theme] .lab-sidebar .lab-brand .display { color: #e4d5b2; }
+:root[data-theme] .lab-sidebar .lab-brand small,
+:root[data-theme] .lab-sidebar .lab-account span,
+:root[data-theme] .lab-sidebar .lab-account button { color: #d3c8b2; }
+:root[data-theme] .lab-sidebar button { color: #d3c8b2; }
+:root[data-theme] .lab-sidebar button:hover { background: #27241e; }
+:root[data-theme] .lab-sidebar nav a[aria-current="page"]:focus-visible { outline-color: #f3e5bf; }
+.lab-reference-button { color: var(--on-accent); border-color: var(--gold); box-shadow: 0 5px 12px -6px rgba(0,0,0,.6); }
+.theme-toggle { background: #101010; color: #eadbb9; border-color: #927b4e; box-shadow: 0 4px 10px rgba(0,0,0,.24); }
+.lab-reference-kpi { border-color: #171715; border-radius: 18px; box-shadow: 0 7px 13px -8px rgba(0,0,0,.55); }
+:root:not([data-theme="dark"]) .lab-reference-kpi {
+ background: linear-gradient(rgba(255,255,255,.74),rgba(255,255,255,.74)),url('/textures/lab-gold-marble.png') center / cover;
+}
+.lab-reference-kpi:first-child { border-color: #ad9769; }
+.lab-reference-kpi:first-child .lab-kpi-value { color: var(--gold); }
+.lab-reference-kpi .lab-kpi-tool { background: #e9ddbf; color: #302718; letter-spacing: .02em; }
+.lab-reference-kpi:nth-child(n+3) .lab-kpi-tool { background: #796139; color: #fff8e8; }
+.lab-reference-heading-accent { color: var(--gold); }
+:root[data-theme="dark"] .lab-reference-heading-accent { color: var(--link); }
+@media print {
+ body::before { display: none; }
+ :root { --background: #fff; --surface: #fff; --ink: #111; --muted: #555; }
+ .lab-reference-kpi { background: white !important; box-shadow: none; }
+}
+
+:root [class*="bg-[var(--accent)]"].text-white { color: var(--on-accent); }
+:root[data-theme] .lab-sidebar form > button { background: transparent; color: #d3c8b2; border-color: #ac9b78; }
+:root:not([data-theme="dark"]) .lab-reference-lenses h1 + p { color: #111; }

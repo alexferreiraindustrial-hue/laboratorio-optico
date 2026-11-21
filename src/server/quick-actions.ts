@@ -1,4 +1,5 @@
 "use server";
+import { INTERNAL_MAINTENANCE } from "@/lib/domain/laboratories";
 import { resolveLaboratory } from "./laboratory-resolution";
 
 import { validateGuidedEntry, type GuidedEntryInput } from "@/lib/domain/guided-entry";
@@ -12,6 +13,8 @@ export type QuickCreateInput = {
   entries: {
     orderRef: string | null;
     clientName: string | null;
+    serviceDescription?: string;
+    notes?: string;
     /** Quando informados por linha, têm prioridade sobre os padrões abaixo. */
     sellerId?: string | null;
     storeId?: string | null;
@@ -42,6 +45,7 @@ export async function quickCreateOrders(input: QuickCreateInput): Promise<{ ok: 
   if (input.entries.length === 0) return { ok: false, message: "Nada para lançar.", results: [] };
   if (input.entries.length > 100) return { ok: false, message: "Lance no máximo 100 OS por vez.", results: [] };
 
+  if (input.entries.some(entry => (entry.serviceDescription?.length ?? 0) > 520 || (entry.notes?.length ?? 0) > 1500)) return {ok:false,message:"A descrição do serviço está muito longa.",results:[]};
   const resolvedLab = await resolveLaboratory(supabase, input.laboratoryId);
   if (resolvedLab.error) return { ok: false, message: resolvedLab.error, results: [] };
   const now = new Date();
@@ -63,8 +67,8 @@ export async function quickCreateOrders(input: QuickCreateInput): Promise<{ ok: 
       p_laboratory_id: resolvedLab.id,
       p_entered_at: now.toISOString(),
       p_due_at: entry.dueAt !== undefined ? entry.dueAt : due,
-      p_notes: entry.clientName ? "Lançamento rápido." : "Lançamento rápido só com o número da OS — completar o nome do cliente.",
-      p_service_description: "Lançamento rápido",
+      p_notes: entry.notes?.trim() || (entry.clientName ? "Lançamento rápido." : "Lançamento rápido só com o número da OS — completar o nome do cliente."),
+      p_service_description: entry.serviceDescription?.trim() || "Lançamento rápido",
       // Com número, a função grava esse número como a OS. Sem número, ela gera OS-ANO-SEQ.
       p_external_order_id: ref,
       p_priority: input.priority,
@@ -88,8 +92,7 @@ export async function quickCreateOrders(input: QuickCreateInput): Promise<{ ok: 
     }
   }
 
-  revalidatePath("/laboratorio");
-  revalidatePath("/dashboard");
+  for (const path of ["/laboratorio","/dashboard","/lentes","/montagem","/inicio"]) revalidatePath(path);
   const created = results.filter((item) => item.ok).length;
   return { ok: created > 0, message: `${created} de ${results.length} OS lançadas.`, results };
 }
@@ -169,5 +172,12 @@ export async function quickMoveOrders(
 export async function createGuidedOrder(input: GuidedEntryInput) {
   const error = validateGuidedEntry(input);
   if (error) return { ok: false, message: error, results: [] as QuickCreateResult[] };
-  return quickCreateOrders({ entries: [{ orderRef: input.orderRef.trim(), clientName: input.clientName.trim() || null, dueAt: input.dueAt }], laboratoryId: input.laboratoryId, sellerId: input.sellerId, storeId: input.storeId || null, dueHours: null, status: "aguardando_lentes", priority: "normal" });
+  const maintenance = input.serviceKind === "manutencao";
+  const description = maintenance ? `Manutenção — ${input.serviceDescription!.trim()}` : "Lançamento rápido";
+  return quickCreateOrders({
+    entries: [{ orderRef: input.orderRef.trim() || null, clientName: input.clientName.trim() || (maintenance ? description.slice(0,200) : null), dueAt: input.dueAt, serviceDescription: description, notes: maintenance ? "Manutenção interna. Número interno gerado quando não há OS informada. Encaminhar à bancada." : undefined }],
+    laboratoryId: maintenance ? INTERNAL_MAINTENANCE : input.laboratoryId,
+    sellerId: input.sellerId, storeId: input.storeId || null, dueHours: null,
+    status: maintenance ? "aguardando_montagem" : "aguardando_lentes", priority: "normal",
+  });
 }

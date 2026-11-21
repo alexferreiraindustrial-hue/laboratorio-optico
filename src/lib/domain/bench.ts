@@ -9,6 +9,7 @@ export type BenchOrder = {
   id: string;
   number: string;
   clientName: string;
+  serviceDescription?: string | null;
   laboratoryName: string | null;
   sellerName: string | null;
   storeName: string | null;

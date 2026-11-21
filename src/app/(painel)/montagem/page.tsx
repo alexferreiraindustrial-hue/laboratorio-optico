@@ -41,7 +41,7 @@ export default async function MontagemPage({ searchParams }: { searchParams: Pro
   const { supabase, role, user } = await requireProfile();
   const { data: orders, error } = await supabase
     .from("orders_enriched")
-    .select("id, number, client_name, seller_name, store_name, laboratory_name, external_order_id, due_at, status, priority, entered_at")
+    .select("id, number, client_name, service_description, seller_name, store_name, laboratory_name, external_order_id, due_at, status, priority, entered_at")
     .in("status", [...assemblyStatuses])
     .order("due_at", { ascending: true, nullsFirst: false })
     .limit(200);
@@ -72,6 +72,7 @@ export default async function MontagemPage({ searchParams }: { searchParams: Pro
     id: order.id as string,
     number: order.number as string,
     clientName: order.client_name as string,
+    serviceDescription: (order.service_description as string | null) ?? null,
     laboratoryName: (order.laboratory_name as string | null) ?? null,
     sellerName: (order.seller_name as string | null) ?? null,
     storeName: (order.store_name as string | null) ?? null,

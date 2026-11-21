@@ -13,7 +13,6 @@ import {
   type FoundOrder,
 } from "@/server/quick-actions";
 import { GuidedEntry } from "./guided-entry";
-import { OperationView, useOperationMode } from "./operation-mode";
 import { EntryLaunch } from "./entry-launch";
 import { StatusBadge } from "./status-badge";
 import { Button, Panel } from "./ui";
@@ -21,7 +20,7 @@ import { Button, Panel } from "./ui";
 type Mode = "entrada" | "lentes" | "saida";
 
 const MODES: { key: Mode; label: string; hint: string; icon: typeof Zap }[] = [
-  { key: "entrada", label: "Entrada de OS", hint: "Abre OS só com número, só com nome ou com os dois.", icon: Zap },
+  { key: "entrada", label: "Lançar serviço", hint: "Pedido de lentes ou manutenção rápida.", icon: Zap },
   { key: "lentes", label: "Chegada de lentes", hint: "Libera para a montagem as OS cujas lentes chegaram.", icon: PackageOpen },
   { key: "saida", label: "Saída / entrega", hint: "Registra a retirada das OS prontas.", icon: PackageCheck },
 ];
@@ -58,7 +57,7 @@ export function QuickLaunch({
   sellerLinks: SellerStoreLink[];
   initialMode: Mode;
 }) {
-  const { simple } = useOperationMode();
+  const [batch,setBatch]=useState(false);
   const [mode, setMode] = useState<Mode>(initialMode);
   const allowed: Record<Mode, boolean> = {
     entrada: can(role, "orders.write"),
@@ -67,7 +66,7 @@ export function QuickLaunch({
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3">
       <div className="grid gap-2.5 sm:grid-cols-3">
         {MODES.map((item) => {
           const on = item.key === mode;
@@ -76,10 +75,11 @@ export function QuickLaunch({
             <button
               key={item.key}
               type="button"
+              aria-pressed={on}
               onClick={() => setMode(item.key)}
               className={cn(
-                "flex items-start gap-3 rounded-xl border px-4 py-3.5 text-left transition-colors",
-                on ? "border-[var(--focus)] bg-[var(--accent-soft)] shadow-[0_0_0_3px_rgba(14,107,98,0.12)]" : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--line)]",
+                "flex min-h-11 items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors",
+                on ? "border-[var(--focus)] bg-[var(--accent-soft)] " : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--line)]",
               )}
             >
               <span className={cn("mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg", on ? "bg-[var(--accent)] text-white" : "bg-[var(--surface-secondary)] text-[var(--muted)]")}>
@@ -87,7 +87,7 @@ export function QuickLaunch({
               </span>
               <span className="flex flex-col gap-0.5">
                 <span className="text-sm font-semibold">{item.label}</span>
-                <span className="text-xs text-[var(--muted)]">{simple && item.key === "entrada" ? "Informe vendedor, número da OS e prazo." : item.hint}</span>
+                <span className="text-xs text-[var(--muted)]">{item.hint}</span>
               </span>
             </button>
           );
@@ -101,7 +101,7 @@ export function QuickLaunch({
             : "Seu perfil não tem permissão para esta operação."}
         </Panel>
       ) : mode === "entrada" ? (
-        <OperationView simple={<GuidedEntry laboratories={laboratories} sellers={sellers} stores={stores} sellerLinks={sellerLinks} />}><EntryLaunch laboratories={laboratories} sellers={sellers} stores={stores} sellerLinks={sellerLinks} /></OperationView>
+        <div className="grid gap-3"><div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--muted)]"><span>{batch?"Lançamento em lote · atalhos e leitor de código":"Um serviço por vez · preencha e salve"}</span><button type="button" aria-pressed={batch} onClick={()=>setBatch(value=>!value)} className="min-h-11 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 font-semibold text-[var(--link)]">{batch?"Voltar ao lançamento simples":"Lançar várias OS / leitor"}</button></div><div hidden={batch} inert={batch}><GuidedEntry laboratories={laboratories} sellers={sellers} stores={stores} sellerLinks={sellerLinks}/></div><div hidden={!batch} inert={!batch}><EntryLaunch laboratories={laboratories} sellers={sellers} stores={stores} sellerLinks={sellerLinks}/></div></div>
       ) : (
         <MoveMode key={mode} mode={mode} />
       )}

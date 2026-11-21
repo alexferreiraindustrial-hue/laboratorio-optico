@@ -58,7 +58,7 @@ const groups: { title: string; step?: string; adminOnly?: boolean; items: NavIte
     title: "Entrada",
     step: "1",
     items: [
-      { href: "/laboratorio/rapido", label: "Lançar OS", icon: Zap },
+      { href: "/laboratorio/rapido", label: "Lançar serviço", icon: Zap },
       { href: "/laboratorio", label: "Fila de produção", icon: ClipboardList },
     ],
   },

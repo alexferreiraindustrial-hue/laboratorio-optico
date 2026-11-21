@@ -1,4 +1,5 @@
 "use server";
+import { resolveLaboratory } from "./laboratory-resolution";
 
 import { validateGuidedEntry, type GuidedEntryInput } from "@/lib/domain/guided-entry";
 import { revalidatePath } from "next/cache";
@@ -41,6 +42,8 @@ export async function quickCreateOrders(input: QuickCreateInput): Promise<{ ok: 
   if (input.entries.length === 0) return { ok: false, message: "Nada para lançar.", results: [] };
   if (input.entries.length > 100) return { ok: false, message: "Lance no máximo 100 OS por vez.", results: [] };
 
+  const resolvedLab = await resolveLaboratory(supabase, input.laboratoryId);
+  if (resolvedLab.error) return { ok: false, message: resolvedLab.error, results: [] };
   const now = new Date();
   const due = input.dueHours ? new Date(now.getTime() + input.dueHours * 36e5).toISOString() : null;
   const results: QuickCreateResult[] = [];
@@ -57,7 +60,7 @@ export async function quickCreateOrders(input: QuickCreateInput): Promise<{ ok: 
       p_client_name: name,
       p_seller_id: (hasOwnTarget ? entry.sellerId : input.sellerId) || null,
       p_store_id: (hasOwnTarget ? entry.storeId : input.storeId) || null,
-      p_laboratory_id: input.laboratoryId,
+      p_laboratory_id: resolvedLab.id,
       p_entered_at: now.toISOString(),
       p_due_at: entry.dueAt !== undefined ? entry.dueAt : due,
       p_notes: entry.clientName ? "Lançamento rápido." : "Lançamento rápido só com o número da OS — completar o nome do cliente.",

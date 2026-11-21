@@ -1,4 +1,5 @@
 "use client";
+import { PENDING_LABORATORY, PENDING_LABORATORY_CODE, PENDING_LABORATORY_NAME } from "@/lib/domain/laboratories";
 
 import { CalendarClock, Check, Keyboard, PackageSearch, Printer, ScanLine, Store as StoreIcon, Trash2, User, Zap } from "lucide-react";
 import Link from "next/link";
@@ -81,13 +82,13 @@ export function EntryLaunch({
   stores: Store[];
   sellerLinks: SellerStoreLink[];
 }) {
-  const activeLabs = laboratories.filter((lab) => lab.active);
+  const activeLabs = laboratories.filter((lab) => lab.active && lab.code !== PENDING_LABORATORY_CODE);
   const activeSellers = useMemo(() => sellers.filter((seller) => seller.active).sort((a, b) => (a.quick_code ?? 999) - (b.quick_code ?? 999)), [sellers]);
   const activeStores = useMemo(() => stores.filter((store) => store.active).sort((a, b) => (a.quick_code ?? 999) - (b.quick_code ?? 999)), [stores]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [text, setText] = useState("");
   const [drafts, setDrafts] = useState<Draft[]>([]);
-  const [labId, setLabId] = useState(activeLabs[0]?.id ?? "");
+  const [labId, setLabId] = useState(PENDING_LABORATORY);
   const [sellerId, setSellerId] = useState("");
   const [storeId, setStoreId] = useState("");
   const [dueHours, setDueHours] = useState<number | null>(48);
@@ -103,7 +104,7 @@ export function EntryLaunch({
   useEffect(() => {
     const prefs = readPrefs();
     /* eslint-disable react-hooks/set-state-in-effect -- restaura preferências salvas no navegador */
-    if (prefs.labId && activeLabs.some((lab) => lab.id === prefs.labId)) setLabId(prefs.labId);
+
     if (prefs.sellerId && activeSellers.some((seller) => seller.id === prefs.sellerId)) setSellerId(prefs.sellerId);
     if (prefs.dueHours) setDueHours(prefs.dueHours === "none" ? null : Number(prefs.dueHours));
     if (prefs.status === "aguardando_montagem") setStatus("aguardando_montagem");
@@ -274,9 +275,6 @@ export function EntryLaunch({
   const pendingDrafts = drafts.filter((item) => !item.result?.ok);
   const createdIds = drafts.filter((item) => item.result?.ok && item.result.id).map((item) => item.result!.id!);
 
-  if (activeLabs.length === 0) {
-    return <Panel className="px-5 py-8 text-center text-sm text-[var(--muted)]">Cadastre um laboratório em Configurações antes de lançar OS.</Panel>;
-  }
 
   return (
     <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -292,9 +290,10 @@ export function EntryLaunch({
             </p>
           </div>
           <div className="mt-3 grid gap-3">
-            <div className={activeLabs.length < 2 ? "hidden" : "flex items-start gap-2"}>
+            <div className={"flex items-start gap-2"}>
               <span className="mt-1.5 flex w-20 shrink-0 items-center gap-1 text-xs font-semibold text-[var(--muted)]">Lab</span>
               <div className="flex flex-wrap gap-1.5">
+                <TargetChip on={labId === PENDING_LABORATORY} onClick={() => setLabId(PENDING_LABORATORY)} code="?">A definir</TargetChip>
                 {activeLabs.map((lab) => (
                   <TargetChip key={lab.id} on={labId === lab.id} onClick={() => setLabId(lab.id)} code={lab.name.slice(0, 2).toUpperCase()}>
                     {lab.name}
@@ -467,7 +466,7 @@ export function EntryLaunch({
             <span className="flex items-center gap-1.5">
               <Keyboard size={14} /> Indo para:{" "}
               <strong className="text-[var(--link)]">
-                {[activeLabs.find((lab) => lab.id === labId)?.name, seller?.name, store?.trade_name].filter(Boolean).join(" · ") || "sem laboratório"}
+                {[(labId === PENDING_LABORATORY ? "Laboratório a definir" : activeLabs.find((lab) => lab.id === labId)?.name), seller?.name, store?.trade_name].filter(Boolean).join(" · ") || "sem laboratório"}
               </strong>
             </span>
             <label className="flex min-h-11 cursor-pointer items-center gap-2 font-medium text-[var(--muted)]">
@@ -581,6 +580,7 @@ export function EntryLaunch({
         <label className="grid gap-1.5 text-[13px] font-medium text-[var(--muted)]">
           Laboratório
           <select value={labId} onChange={(event) => setLabId(event.target.value)} className="h-11 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 text-base text-[var(--ink)] outline-none focus:border-[var(--focus)] md:h-9 md:text-sm">
+            <option value={PENDING_LABORATORY}>{PENDING_LABORATORY_NAME}</option>
             {activeLabs.map((lab) => (
               <option key={lab.id} value={lab.id}>
                 {lab.name}

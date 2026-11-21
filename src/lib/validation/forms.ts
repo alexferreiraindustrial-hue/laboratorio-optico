@@ -1,9 +1,10 @@
+import { PENDING_LABORATORY } from "@/lib/domain/laboratories";
 import { z } from "zod";
 
 export const orderFormSchema = z
   .object({
     clientName: z.string().trim().min(2, "Informe o cliente ou a loja."),
-    laboratoryId: z.string().uuid("Selecione o laboratório."),
+    laboratoryId: z.string().uuid("Selecione o laboratório.").or(z.literal(PENDING_LABORATORY)),
     sellerId: z.string().uuid().or(z.literal("")).optional(),
     storeId: z.string().uuid().or(z.literal("")).optional(),
     enteredAt: z.string().min(1, "Informe a entrada."),

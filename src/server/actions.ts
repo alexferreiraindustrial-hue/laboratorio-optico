@@ -1,4 +1,5 @@
 "use server";
+import { resolveLaboratory } from "./laboratory-resolution";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -171,11 +172,13 @@ export async function saveOrder(formData: FormData): Promise<ActionResult> {
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
 
   const id = String(formData.get("id") ?? "");
+  const resolvedLab = await resolveLaboratory(supabase, parsed.data.laboratoryId);
+  if (resolvedLab.error) return { ok: false, message: resolvedLab.error };
   const payload = {
     p_client_name: parsed.data.clientName,
     p_seller_id: emptyToNull(parsed.data.sellerId),
     p_store_id: emptyToNull(parsed.data.storeId),
-    p_laboratory_id: parsed.data.laboratoryId,
+    p_laboratory_id: resolvedLab.id,
     p_entered_at: dateTimeLocalToIso(parsed.data.enteredAt),
     p_due_at: parsed.data.dueAt ? dateTimeLocalToIso(parsed.data.dueAt) : null,
     p_notes: emptyToNull(parsed.data.notes),
@@ -189,6 +192,7 @@ export async function saveOrder(formData: FormData): Promise<ActionResult> {
     const { error } = await supabase.rpc("update_service_order", { p_order_id: id, ...payload });
     if (error) return { ok: false, message: actionError(error, "Não foi possível salvar a OS.") ?? "" };
     revalidatePath("/laboratorio");
+    revalidatePath("/lentes");
     revalidatePath(`/laboratorio/${id}`);
     revalidatePath("/dashboard");
     return { ok: true, id, message: "OS atualizada." };

@@ -1,4 +1,5 @@
 "use client";
+import { PENDING_LABORATORY, PENDING_LABORATORY_CODE, PENDING_LABORATORY_NAME } from "@/lib/domain/laboratories";
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -50,13 +51,6 @@ export function OrderForm({
     : sellerOptions.filter((seller) => seller.active || seller.id === order?.seller_id);
   const spec = order?.lens_spec ?? {};
 
-  if (laboratories.length === 0) {
-    return (
-      <p className="text-sm text-[var(--muted)]">
-        Cadastre um laboratório em Configurações antes de abrir uma OS.
-      </p>
-    );
-  }
 
   return (
     <div className="grid gap-4">
@@ -138,8 +132,9 @@ export function OrderForm({
             </Select>
           </Field>
           <Field label="Laboratório onde a lente foi pedida">
-            <Select name="laboratoryId" required defaultValue={order?.laboratory_id}>
-              {laboratories.filter((lab) => lab.active || lab.id === order?.laboratory_id).map((lab) => (
+            <Select name="laboratoryId" required defaultValue={order?.laboratory_id ?? PENDING_LABORATORY}>
+              <option value={PENDING_LABORATORY}>{PENDING_LABORATORY_NAME}</option>
+              {laboratories.filter((lab) => (lab.active && lab.code !== PENDING_LABORATORY_CODE) || lab.id === order?.laboratory_id).map((lab) => (
                 <option key={lab.id} value={lab.id}>{lab.name}</option>
               ))}
             </Select>

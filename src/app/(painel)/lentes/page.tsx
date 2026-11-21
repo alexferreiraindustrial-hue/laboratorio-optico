@@ -1,3 +1,10 @@
+import { LensForecastEditor } from "@/components/lens-forecast-editor";
+import { OrderDrawer } from "@/components/order-drawer";
+import { OrderForm } from "@/components/order-form";
+import { OrderWorkspace } from "@/components/order-workspace";
+import { loadOrderDetail } from "@/server/order-detail";
+import { loadCatalogs } from "@/server/queries";
+import { visibleOrderNumber } from "@/lib/domain/orders";
 import { ScanLine } from "lucide-react";
 import Link from "next/link";
 import { LensBoard } from "@/components/lens-board";
@@ -9,9 +16,12 @@ import { can } from "@/lib/domain/permissions";
 import { loadLensQueue, loadSupplierStats } from "@/server/flow";
 import { requireProfile } from "@/server/session";
 
-export default async function LentesPage() {
+export default async function LentesPage({ searchParams }: { searchParams: Promise<{os?:string}> }) {
+  const raw = await searchParams;
   const { role } = await requireProfile();
   const [{ rows, error }, stats] = await Promise.all([loadLensQueue(), loadSupplierStats()]);
+  const detail = raw.os && /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(raw.os) ? await loadOrderDetail(raw.os) : null;
+  const catalogs = detail && can(role,"orders.write") ? await loadCatalogs() : null;
   const now = new Date();
   const risks = rows.map((row) => lensRisk({ dueAt: row.due_at, lensExpectedAt: row.lens_expected_at, now }).risk);
   const late = risks.filter((risk) => risk === "lente_atrasada").length;
@@ -19,6 +29,7 @@ export default async function LentesPage() {
   const noForecast = risks.filter((risk) => risk === "sem_previsao").length;
 
   return (
+    <>
     <div className="lab-reference-lenses flex flex-col gap-5">
       <PageHeading stacked
         title={<>Lentes <span className="lab-reference-heading-accent">a chegar</span></>}
@@ -47,5 +58,9 @@ export default async function LentesPage() {
       </div>
       <LensBoard rows={rows} canEdit={role !== "consulta" && role !== "estoquista"} canRelease={can(role, "orders.status") && role !== "montador"} nowIso={now.toISOString()} />
     </div>
+    {detail ? <OrderDrawer key={detail.order.id} title={`OS ${visibleOrderNumber(detail.order)}`} closeHref="/lentes" detailHref={`/laboratorio/${detail.order.id}`}
+      editor={catalogs ? <><OrderForm laboratories={catalogs.laboratories} sellers={catalogs.sellers} stores={catalogs.stores} sellerLinks={catalogs.sellerLinks} order={detail.order}/><LensForecastEditor orderId={detail.order.id} expectedAt={detail.order.lens_expected_at} supplierRef={detail.order.lens_supplier_ref}/></> : undefined}
+      workspace={<OrderWorkspace {...detail} mode="laboratorio"/>}/> : null}
+    </>
   );
 }

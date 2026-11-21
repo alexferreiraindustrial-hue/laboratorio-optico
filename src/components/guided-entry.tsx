@@ -1,4 +1,5 @@
 "use client";
+import { PENDING_LABORATORY, PENDING_LABORATORY_CODE, PENDING_LABORATORY_NAME } from "@/lib/domain/laboratories";
 
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
@@ -11,8 +12,8 @@ import { createGuidedOrder } from "@/server/quick-actions";
 const field = "mt-1 min-h-12 w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 text-base outline-none focus:border-[var(--focus)] focus:ring-2 focus:ring-[var(--focus)]/20 disabled:opacity-60";
 
 export function GuidedEntry({ laboratories, sellers, stores, sellerLinks }: { laboratories: Laboratory[]; sellers: Seller[]; stores: Store[]; sellerLinks: SellerStoreLink[] }) {
-  const labs = laboratories.filter((item) => item.active);
-  const [laboratoryId, setLaboratoryId] = useState(labs.length === 1 ? labs[0].id : "");
+  const labs = laboratories.filter((item) => item.active && item.code !== PENDING_LABORATORY_CODE);
+  const [laboratoryId, setLaboratoryId] = useState(PENDING_LABORATORY);
   const [sellerId, setSellerId] = useState("");
   const [storeId, setStoreId] = useState("");
   const [orderRef, setOrderRef] = useState("");
@@ -66,7 +67,7 @@ export function GuidedEntry({ laboratories, sellers, stores, sellerLinks }: { la
     <fieldset disabled={pending} className="grid gap-5 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 disabled:opacity-70">
       <legend className="px-2 text-base font-bold">1. Quem vendeu?</legend>
       <label className="font-semibold">Vendedor<select required value={sellerId} onChange={(event) => chooseSeller(event.target.value)} className={field}><option value="">Escolha o vendedor</option>{sellers.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-      {<label className="font-semibold">Laboratório onde a lente foi pedida<select required value={laboratoryId} onChange={(event) => setLaboratoryId(event.target.value)} className={field}><option value="">Escolha o laboratório</option>{labs.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
+      {<label className="font-semibold">Laboratório das lentes <span className="text-sm font-normal text-[var(--muted)]">(pode definir depois)</span><select required value={laboratoryId} onChange={(event) => setLaboratoryId(event.target.value)} className={field}><option value={PENDING_LABORATORY}>{PENDING_LABORATORY_NAME}</option>{labs.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
       {availableStores.length > 0 ? <label className="font-semibold">Loja <span className="text-sm font-normal text-[var(--muted)]">(se necessário)</span><select value={storeId} onChange={(event) => setStoreId(event.target.value)} className={field}><option value="">Sem loja informada</option>{availableStores.map((item) => <option key={item.id} value={item.id}>{item.trade_name}</option>)}</select></label> : null}
     </fieldset>
     <fieldset disabled={pending} className="grid gap-4 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
@@ -79,8 +80,8 @@ export function GuidedEntry({ laboratories, sellers, stores, sellerLinks }: { la
       <label className="font-semibold">Data e horário da entrega<input required type="datetime-local" value={due} onChange={(event) => setDue(event.target.value)} className={field} /></label><p className="text-sm text-[var(--muted)]">Use o prazo combinado com o cliente. Horário de Brasília.</p>
     </fieldset>
     {message ? <div role="alert" className="rounded-xl border border-[var(--edge-f1c4be)] bg-[var(--danger-soft)] p-4 text-sm text-[var(--danger)]">{message}<Link href="/laboratorio" className="mt-2 block min-h-11 py-2 font-semibold underline">Consultar OS já cadastradas</Link></div> : null}
-    <button type="submit" disabled={pending || !labs.length || !sellers.some((item) => item.active)} className="min-h-14 rounded-xl bg-[var(--accent)] px-5 text-lg font-bold text-white hover:bg-[var(--accent-strong)] disabled:opacity-50">{pending ? "Salvando OS… aguarde" : "Salvar OS"}</button>
-    {!labs.length || !sellers.some((item) => item.active) ? <p role="alert" className="text-sm text-[var(--danger)]">Cadastre pelo menos um laboratório e um vendedor ativo no modo Completo antes de começar.</p> : null}
+    <button type="submit" disabled={pending || !sellers.some((item) => item.active)} className="min-h-14 rounded-xl bg-[var(--accent)] px-5 text-lg font-bold text-white hover:bg-[var(--accent-strong)] disabled:opacity-50">{pending ? "Salvando OS… aguarde" : "Salvar OS"}</button>
+    {!sellers.some((item) => item.active) ? <p role="alert" className="text-sm text-[var(--danger)]">Cadastre pelo menos um vendedor ativo no modo Completo antes de começar.</p> : null}
     <p className="text-center text-xs text-[var(--muted)]">Para cadastrar várias OS de uma vez ou usar atalhos, escolha “Ver menu completo”.</p>
   </form>;
 }

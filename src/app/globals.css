@@ -409,3 +409,14 @@ body::before {
 :root [class*="bg-[var(--accent)]"].text-white { color: var(--on-accent); }
 :root[data-theme] .lab-sidebar form > button { background: transparent; color: #d3c8b2; border-color: #ac9b78; }
 :root:not([data-theme="dark"]) .lab-reference-lenses h1 + p { color: #111; }
+
+/* Deadline urgency stays visible without opening the compact bench card. */
+.bench-compact-card { --bench-color: var(--line); --bench-fill: var(--surface); background: var(--bench-fill); border-color: var(--bench-color); border-left-width: 5px; }
+.bench-compact-card[data-urgency="normal"] { --bench-color: var(--ok); }
+.bench-compact-card[data-urgency="attention"] { --bench-color: var(--warning); --bench-fill: color-mix(in srgb,var(--warning-soft) 28%,var(--surface)); }
+.bench-compact-card[data-urgency="soon"] { --bench-color: #a85620; --bench-fill: color-mix(in srgb,var(--warning-soft) 62%,var(--surface)); }
+.bench-compact-card[data-urgency="critical"], .bench-compact-card[data-urgency="late"] { --bench-color: var(--danger); --bench-fill: color-mix(in srgb,var(--danger-soft) 65%,var(--surface)); }
+.bench-compact-card[data-urgency="late"] { border-left-width: 7px; }
+.bench-deadline-label { color: var(--bench-color); }
+.bench-compact-card[data-urgency="none"] .bench-deadline-label { color: var(--muted); }
+:root[data-theme="dark"] .bench-compact-card[data-urgency="soon"] { --bench-color: #f0b58a; }

@@ -104,3 +104,16 @@ export function selectBenchOrders(orders: BenchOrder[], options: { query: string
     return a.order.enteredAt.localeCompare(b.order.enteredAt) || a.order.id.localeCompare(b.order.id);
   }).map(({ order }) => order);
 }
+
+/** Deadline signals remain explicit even when the card is collapsed. */
+export function benchDeadlineSignal(order: BenchOrder, now: Date): { level: "late" | "critical" | "soon" | "attention" | "normal" | "none"; label: string } {
+ const hours = order.dueAt ? (Date.parse(order.dueAt)-now.getTime())/3600000 : NaN;
+ if (Number.isFinite(hours) && hours < 0) return {level:"late",label:"Em atraso"};
+ if (order.urgent) return {level:"critical",label:"Prioridade crítica"};
+ if (!Number.isFinite(hours)) return {level:"none",label:"Sem prazo informado"};
+ if (hours <= 4) return {level:"critical",label:"Prazo imediato · até 4h"};
+ if (benchForecast(order,now).risk === "risco") return {level:"critical",label:"Risco de não concluir no prazo"};
+ if (hours <= 24) return {level:"soon",label:"Vence em até 24h"};
+ if (hours <= 48) return {level:"attention",label:"Prazo próximo · até 48h"};
+ return {level:"normal",label:"No prazo"};
+}

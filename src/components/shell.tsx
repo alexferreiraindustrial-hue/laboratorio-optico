@@ -532,13 +532,15 @@ export function PageHeading({
   title,
   description,
   children,
+  stacked = false,
 }: {
-  title: string;
+  title: import("react").ReactNode;
   description?: string;
+  stacked?: boolean;
   children?: React.ReactNode;
 }) {
   return (
-    <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+    <div className={cn("mb-5 flex flex-col gap-3", stacked ? "items-start" : "sm:flex-row sm:flex-wrap sm:items-end sm:justify-between")}>
       <div>
         <h1 className="text-[26px] font-bold leading-tight md:text-[30px]">{title}</h1>
         {description ? <p className="mt-1.5 max-w-3xl text-sm text-[var(--muted)]">{description}</p> : null}

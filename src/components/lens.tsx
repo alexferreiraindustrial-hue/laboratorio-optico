@@ -124,11 +124,11 @@ export function LensGauge({
 export function LensMark({ size = 30, className }: { size?: number; className?: string }) {
   return (
     <svg viewBox="0 0 32 32" width={size} height={size} aria-hidden className={cn("shrink-0", className)}>
-      <rect width="32" height="32" rx="10" fill="#8c6239" />
-      <circle cx="16" cy="16" r="9.5" fill="none" stroke="#7fd8bd" strokeWidth="2.2" />
-      <circle cx="16" cy="16" r="6.4" fill="#ffffff" fillOpacity="0.14" />
-      <path d="M16 9.5v13M9.5 16h13" stroke="#ffffff" strokeOpacity="0.55" strokeWidth="1" />
-      <path d="M11.6 12.6a6 6 0 0 1 3.4-2.6" stroke="#ffffff" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+      <rect width="32" height="32" rx="10" fill="#d9c796" />
+      <circle cx="16" cy="16" r="9.5" fill="none" stroke="#57472b" strokeWidth="2.2" />
+      <circle cx="16" cy="16" r="6.4" fill="#57472b" fillOpacity="0.14" />
+      <path d="M16 9.5v13M9.5 16h13" stroke="#57472b" strokeOpacity="0.55" strokeWidth="1" />
+      <path d="M11.6 12.6a6 6 0 0 1 3.4-2.6" stroke="#57472b" strokeWidth="1.6" strokeLinecap="round" fill="none" />
     </svg>
   );
 }

@@ -17,7 +17,7 @@ class MoreScreen extends StatelessWidget {
     final full = canManage(role);
     final assembler = role == 'montador';
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         LaSpace.tela,
         LaSpace.l,
         LaSpace.tela,
@@ -25,23 +25,23 @@ class MoreScreen extends StatelessWidget {
       ),
       children: [
         SafeArea(bottom: false, child: Text('Mais', style: LaType.tituloTela)),
-        const SizedBox(height: LaSpace.secao),
+        SizedBox(height: LaSpace.secao),
         Material(
-          color: LaColors.branco,
+          color: LaColors.surface(context),
           borderRadius: LaRadius.rCartao,
           child: Padding(
-            padding: const EdgeInsets.all(LaSpace.interno),
+            padding: EdgeInsets.all(LaSpace.interno),
             child: Row(
               children: [
                 CircleAvatar(
                   radius: 22,
-                  backgroundColor: LaColors.grafite,
+                  backgroundColor: Color(0xFF222222),
                   child: Text(
                     iniciaisDe(name),
                     style: LaType.rotulo.copyWith(color: LaColors.branco),
                   ),
                 ),
-                const SizedBox(width: LaSpace.l),
+                SizedBox(width: LaSpace.l),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,14 +60,14 @@ class MoreScreen extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: LaSpace.secao),
+        SizedBox(height: LaSpace.secao),
         LaButton(
           label: 'Rotina do dia',
           variant: LaButtonVariant.principal,
-          leading: const Icon(Icons.checklist, color: LaColors.grafite),
+          leading: Icon(Icons.checklist, color: LaColors.adapt(context, LaColors.grafite)),
           onPressed: () => context.push('/rotina'),
         ),
-        const SizedBox(height: LaSpace.secao),
+        SizedBox(height: LaSpace.secao),
         _grupo(context, '1 Entrada', [
           _item(
             context,
@@ -173,11 +173,11 @@ class MoreScreen extends StatelessWidget {
                 '/configuracoes',
               ),
           ]),
-        const SizedBox(height: LaSpace.xxl),
+        SizedBox(height: LaSpace.xxl),
         LaButton(
           label: 'Sair',
           variant: LaButtonVariant.perigo,
-          leading: const Icon(Icons.logout, color: LaColors.perigo),
+          leading: Icon(Icons.logout, color: LaColors.adapt(context, LaColors.perigo)),
           onPressed: session.signOut,
         ),
       ],
@@ -186,12 +186,12 @@ class MoreScreen extends StatelessWidget {
 
   Widget _grupo(BuildContext context, String title, List<Widget> items) {
     return Padding(
-      padding: const EdgeInsets.only(top: LaSpace.secao),
+      padding: EdgeInsets.only(top: LaSpace.secao),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title, style: LaType.tituloSecao),
-          const SizedBox(height: LaSpace.item),
+          SizedBox(height: LaSpace.item),
           ...items,
         ],
       ),
@@ -206,17 +206,17 @@ class MoreScreen extends StatelessWidget {
     bool go = false,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: LaSpace.item),
+      padding: EdgeInsets.only(bottom: LaSpace.item),
       child: Material(
-        color: LaColors.branco,
+        color: LaColors.surface(context),
         borderRadius: LaRadius.rCartao,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () => go ? context.go(path) : context.push(path),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: LaSize.toque + 16),
+            constraints: BoxConstraints(minHeight: LaSize.toque + 16),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
+              padding: EdgeInsets.symmetric(
                 horizontal: LaSpace.interno,
                 vertical: 10,
               ),
@@ -231,7 +231,7 @@ class MoreScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right, color: LaColors.regua),
+                  Icon(Icons.chevron_right, color: LaColors.adapt(context, LaColors.regua)),
                 ],
               ),
             ),

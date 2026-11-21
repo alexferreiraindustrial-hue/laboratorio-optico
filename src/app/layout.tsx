@@ -1,3 +1,5 @@
+import { cookies } from "next/headers";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Manrope } from "next/font/google";
 import { Toaster } from "sonner";
@@ -34,11 +36,13 @@ export const viewport: Viewport = {
   themeColor: "#8c6239",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const dark = (await cookies()).get("lab_theme")?.value === "dark";
   return (
-    <html lang="pt-BR" className={`${manrope.variable} ${plexMono.variable} h-full`}>
+    <html data-theme={dark ? "dark" : "light"} lang="pt-BR" className={`${manrope.variable} ${plexMono.variable} h-full`}>
       <body className="min-h-full antialiased">
         {children}
+        <ThemeToggle initialDark={dark} />
         <Toaster
           position="top-center"
           richColors
@@ -46,9 +50,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           toastOptions={{
             style: {
               fontFamily: "var(--font-ui)",
-              background: "#ffffff",
-              border: "1px solid #e2ddd5",
-              color: "#222222",
+              background: "var(--surface)",
+              border: "1px solid var(--line)",
+              color: "var(--ink)",
             },
           }}
         />

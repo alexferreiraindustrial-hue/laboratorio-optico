@@ -32,13 +32,15 @@ class LaFlowSymbol extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ExcludeSemantics(
-      child: CustomPaint(size: Size.square(size), painter: _FlowPainter(kind, vazio)),
+      child: CustomPaint(size: Size.square(size), painter: _FlowPainter(kind, vazio, Theme.of(context).brightness)),
     );
   }
 }
 
 class _FlowPainter extends CustomPainter {
-  _FlowPainter(this.kind, this.vazio);
+  _FlowPainter(this.kind, this.vazio, this.brightness);
+  final Brightness brightness;
+  Color tone(Color color) => brightness == Brightness.dark && color == LaColors.branco ? const Color(0xFF23211E) : LaColors.forBrightness(brightness, color);
 
   final LaFlowKind kind;
   final bool vazio;
@@ -54,13 +56,13 @@ class _FlowPainter extends CustomPainter {
       ..strokeWidth = 2.2
       ..strokeJoin = StrokeJoin.round
       ..strokeCap = StrokeCap.round
-      ..color = vazio ? LaColors.abaInativa : LaColors.grafite;
+      ..color = vazio ? tone(LaColors.abaInativa) : tone(LaColors.grafite);
     final grosso = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.4
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
-      ..color = LaColors.grafite;
+      ..color = tone(LaColors.grafite);
     final caixa = RRect.fromRectAndRadius(const Rect.fromLTWH(7, 9, 26, 22), const Radius.circular(3));
 
     switch (kind) {
@@ -70,19 +72,19 @@ class _FlowPainter extends CustomPainter {
           ..lineTo(34, 32)
           ..lineTo(6, 32)
           ..close();
-        if (!vazio) canvas.drawPath(tri, Paint()..color = LaColors.branco);
+        if (!vazio) canvas.drawPath(tri, Paint()..color = tone(LaColors.branco));
         canvas.drawPath(tri, traco);
         if (!vazio) canvas.drawLine(const Offset(20, 18), const Offset(20, 27), grosso);
       case LaFlowKind.bancada:
-        canvas.drawRRect(caixa, Paint()..color = LaColors.grafite);
+        canvas.drawRRect(caixa, Paint()..color = tone(LaColors.grafite));
       case LaFlowKind.retrabalho:
-        canvas.drawCircle(const Offset(20, 20), 14, Paint()..color = LaColors.alertaFundo);
+        canvas.drawCircle(const Offset(20, 20), 14, Paint()..color = tone(LaColors.alertaFundo));
         final laranja = Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.4
           ..strokeCap = StrokeCap.round
           ..strokeJoin = StrokeJoin.round
-          ..color = LaColors.alerta;
+          ..color = tone(LaColors.alerta);
         // Arco quase completo, aberto no canto superior direito.
         canvas.drawArc(Rect.fromCircle(center: const Offset(20, 20), radius: 9), -0.5, 5.2, false, laranja);
         final seta = Path()
@@ -91,7 +93,7 @@ class _FlowPainter extends CustomPainter {
           ..lineTo(23, 15);
         canvas.drawPath(seta, laranja);
       case LaFlowKind.inspecao:
-        canvas.drawRRect(caixa, Paint()..color = LaColors.branco);
+        canvas.drawRRect(caixa, Paint()..color = tone(LaColors.branco));
         canvas.drawRRect(caixa, traco);
         final visto = Path()
           ..moveTo(14, 20)
@@ -111,5 +113,5 @@ class _FlowPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_FlowPainter old) => old.kind != kind || old.vazio != vazio;
+  bool shouldRepaint(_FlowPainter old) => old.brightness != brightness || old.kind != kind || old.vazio != vazio;
 }

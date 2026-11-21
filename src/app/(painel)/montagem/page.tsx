@@ -30,6 +30,7 @@ export default async function MontagemPage({ searchParams }: { searchParams: Pro
         pageSize={pageSize}
         filters={filters}
         laboratories={catalogs.laboratories}
+      sellers={catalogs.sellers}
         role={session.role}
         error={error}
         statuses={[...assemblyStatuses]}

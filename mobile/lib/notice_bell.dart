@@ -43,9 +43,9 @@ class _NoticeBellState extends State<NoticeBell> {
     if (!mounted) return;
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: LaColors.branco,
+      backgroundColor: LaColors.surface(context),
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: LaRadius.rFolhaTopo),
+      shape: RoundedRectangleBorder(borderRadius: LaRadius.rFolhaTopo),
       builder: (context) => _NoticeSheet(lateOrders: lateOrders, notes: notes),
     );
   }
@@ -60,25 +60,25 @@ class _NoticeBellState extends State<NoticeBell> {
       label: label,
       child: InkWell(
         onTap: open,
-        customBorder: const CircleBorder(),
+        customBorder: CircleBorder(),
         child: SizedBox(
           width: LaSize.toque,
           height: LaSize.toque,
           child: Stack(
             alignment: Alignment.center,
             children: [
-              const Icon(Icons.notifications_outlined, color: LaColors.grafite),
+              Icon(Icons.notifications_outlined, color: LaColors.adapt(context, LaColors.grafite)),
               if (total > 0)
                 Positioned(
                   right: 6,
                   top: 6,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                       horizontal: 5,
                       vertical: 1,
                     ),
-                    decoration: const BoxDecoration(
-                      color: LaColors.perigo,
+                    decoration: BoxDecoration(
+                      color: LaColors.adapt(context, LaColors.perigo),
                       borderRadius: LaRadius.rChip,
                     ),
                     child: Text(
@@ -120,9 +120,9 @@ class _NoticeSheet extends StatelessWidget {
         ),
         children: [
           Text('Avisos', style: LaType.tituloSecao),
-          const SizedBox(height: LaSpace.secao),
+          SizedBox(height: LaSpace.secao),
           Text('Atrasos', style: LaType.rotulo),
-          const SizedBox(height: LaSpace.s),
+          SizedBox(height: LaSpace.s),
           if (lateOrders.isEmpty)
             Text('Nenhuma OS atrasada.', style: LaType.apoio)
           else
@@ -135,9 +135,9 @@ class _NoticeSheet extends StatelessWidget {
                   context.push('/os/${row['id']}');
                 },
               ),
-          const SizedBox(height: LaSpace.secao),
+          SizedBox(height: LaSpace.secao),
           Text('Recados do vendedor', style: LaType.rotulo),
-          const SizedBox(height: LaSpace.s),
+          SizedBox(height: LaSpace.s),
           if (notes.isEmpty)
             Text('Nenhum recado novo.', style: LaType.apoio)
           else
@@ -172,9 +172,9 @@ class _NoticeRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: LaSize.toque),
+        constraints: BoxConstraints(minHeight: LaSize.toque),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          padding: EdgeInsets.symmetric(vertical: 6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,

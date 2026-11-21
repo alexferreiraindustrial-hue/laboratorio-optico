@@ -140,7 +140,15 @@ const _lightColors = AppColors(
   okFill: Color(0xFFE8F3EE),
 );
 
-ThemeData labTheme() => laTheme().copyWith(extensions: const [_lightColors]);
+const _darkColors = AppColors(
+  ink: Color(0xFFF2EEE7), muted: Color(0xFFC5BDB1),
+  accent: Color(0xFF8C6239), accentStrong: Color(0xFF734F2D),
+  glow: Color(0xFF382F22), paper: Color(0xFF23211E),
+  canvas: Color(0xFF181715), hairline: Color(0xFF514A41),
+  danger: Color(0xFFEFAAAA), warn: Color(0xFFE2BD87), ok: Color(0xFF8AD3B0),
+  warnFill: Color(0xFF382F22), dangerFill: Color(0xFF3A2828), okFill: Color(0xFF20362C),
+);
+ThemeData labTheme({bool dark = false}) => laTheme(brightness: dark ? Brightness.dark : Brightness.light).copyWith(extensions: [dark ? _darkColors : _lightColors]);
 
 Color stockFillOf(BuildContext context, String tone) {
   final colors = AppColors.of(context);

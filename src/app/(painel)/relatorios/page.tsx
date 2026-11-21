@@ -105,7 +105,7 @@ export default async function ReportsPage({
       <div className="grid gap-3 md:grid-cols-3">
         {summaryRows.map((row) => (
           <Panel key={row.indicador} className="p-3">
-            <p className="text-xs text-[#6e6a63]">{row.indicador}</p>
+            <p className="text-xs text-[var(--muted)]">{row.indicador}</p>
             <p className="mt-1 text-xl font-semibold">{row.valor}</p>
           </Panel>
         ))}
@@ -136,9 +136,9 @@ export default async function ReportsPage({
           <ul className="mt-2 grid gap-1 text-sm">
             {late.slice(0, 40).map((order) => {
               const source = orders.find((item) => item.id === order.id);
-              return <li key={order.id}><Link className="text-[#8c6239] underline" href={`/laboratorio/${order.id}`}>{source ? visibleOrderNumber(source) : "OS"} · {source?.client_name}</Link></li>;
+              return <li key={order.id}><Link className="text-[var(--link)] underline" href={`/laboratorio/${order.id}`}>{source ? visibleOrderNumber(source) : "OS"} · {source?.client_name}</Link></li>;
             })}
-            {late.length === 0 ? <li className="text-[#6e6a63]">Nenhuma OS atrasada.</li> : null}
+            {late.length === 0 ? <li className="text-[var(--muted)]">Nenhuma OS atrasada.</li> : null}
           </ul>
         </Panel>
         <Panel className="p-3">
@@ -158,12 +158,12 @@ function ReportTable({ title, rows }: { title: string; rows: Record<string, stri
         <h2 className="font-medium">{title}</h2>
         <DownloadCsv filename={`${title}.csv`} rows={rows} />
       </div>
-      {rows.length === 0 ? <p className="text-sm text-[#6e6a63]">Sem dados no período.</p> : (
+      {rows.length === 0 ? <p className="text-sm text-[var(--muted)]">Sem dados no período.</p> : (
         <table className="w-full text-left text-sm">
-          <thead>{headers.map((header) => <th key={header} className="py-1 pr-3 text-xs uppercase text-[#6e6a63]">{header}</th>)}</thead>
+          <thead>{headers.map((header) => <th key={header} className="py-1 pr-3 text-xs uppercase text-[var(--muted)]">{header}</th>)}</thead>
           <tbody>
             {rows.map((row, index) => (
-              <tr key={index} className="border-t border-[#efece6]">
+              <tr key={index} className="border-t border-[var(--line)]">
                 {headers.map((header) => <td key={header} className="py-1 pr-3">{row[header]}</td>)}
               </tr>
             ))}
@@ -175,6 +175,6 @@ function ReportTable({ title, rows }: { title: string; rows: Record<string, stri
 }
 
 function SimpleList({ rows, empty }: { rows: string[]; empty: string }) {
-  if (rows.length === 0) return <p className="text-sm text-[#6e6a63]">{empty}</p>;
+  if (rows.length === 0) return <p className="text-sm text-[var(--muted)]">{empty}</p>;
   return <ul className="grid gap-1 text-sm">{rows.map((row) => <li key={row}>{row}</li>)}</ul>;
 }

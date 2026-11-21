@@ -54,7 +54,7 @@ export default async function InicioPage() {
       icon: Zap,
       count: -1,
       countText: () => "",
-      tone: "bg-[#8c6239] text-white",
+      tone: "bg-[var(--accent)] text-white",
     },
     {
       step: "2",
@@ -65,7 +65,7 @@ export default async function InicioPage() {
       count: lenses.count ?? 0,
       countText: (n) => (n === 0 ? "Nenhuma OS esperando lente" : `${n} OS esperando lente`),
       alert: lensLate.count ?? 0,
-      tone: "bg-[#e8f1fb] text-[#1d4f8a]",
+      tone: "bg-[var(--bg-e8f1fb)] text-[var(--fg-1d4f8a)]",
     },
     {
       step: "3",
@@ -75,7 +75,7 @@ export default async function InicioPage() {
       icon: Wrench,
       count: bench.count ?? 0,
       countText: (n) => (n === 0 ? "Bancada vazia" : `${n} OS na bancada`),
-      tone: "bg-[#fff4e0] text-[#8a5300]",
+      tone: "bg-[var(--bg-fff4e0)] text-[var(--fg-8a5300)]",
     },
     {
       step: "4",
@@ -85,7 +85,7 @@ export default async function InicioPage() {
       icon: PackageCheck,
       count: ready.count ?? 0,
       countText: (n) => (n === 0 ? "Nada para entregar" : `${n} OS ${n === 1 ? "pronta" : "prontas"} para entregar`),
-      tone: "bg-[#e8f3ee] text-[#286f51]",
+      tone: "bg-[var(--ok-soft)] text-[var(--ok)]",
     },
   ];
   const cards = allCards.filter((card) => simpleAllowed(role, card.href));
@@ -99,17 +99,17 @@ export default async function InicioPage() {
         <p className="mt-2 text-base text-[var(--muted)] md:text-lg">O que você vai fazer agora? Toque em um dos botões.</p>
       </div>
 
-      {countError ? <p role="alert" className="rounded-xl border border-[#f1c4be] bg-[#f9eaea] p-4 text-[#b83a3a]">Não foi possível conferir todos os números. Atualize a página antes de conferir a fila.</p> : (late.count ?? 0) > 0 ? <Link href="/laboratorio?tab=atrasadas" className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-[#f1c4be] bg-[#f9eaea] p-4 font-semibold text-[#b83a3a]"><span>{late.count} serviço(s) com prazo vencido · conferir primeiro</span><ChevronRight size={22} /></Link> : null}
+      {countError ? <p role="alert" className="rounded-xl border border-[var(--edge-f1c4be)] bg-[var(--danger-soft)] p-4 text-[var(--danger)]">Não foi possível conferir todos os números. Atualize a página antes de conferir a fila.</p> : (late.count ?? 0) > 0 ? <Link href="/laboratorio?tab=atrasadas" className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-[var(--edge-f1c4be)] bg-[var(--danger-soft)] p-4 font-semibold text-[var(--danger)]"><span>{late.count} serviço(s) com prazo vencido · conferir primeiro</span><ChevronRight size={22} /></Link> : null}
 
       <form action="/laboratorio" method="get" role="search">
-        <label className="flex h-14 w-full items-center gap-3 rounded-2xl border-2 border-[var(--line)] bg-white px-4 focus-within:border-[var(--accent)]">
+        <label className="flex h-14 w-full items-center gap-3 rounded-2xl border-2 border-[var(--line)] bg-[var(--surface)] px-4 focus-within:border-[var(--accent)]">
           <Search size={22} className="shrink-0 text-[var(--muted)]" aria-hidden />
           <span className="sr-only">Procurar uma OS</span>
           <input
             name="q"
             inputMode="search"
             placeholder="Procurar OS pelo número ou nome do cliente"
-            className="min-w-0 flex-1 border-0 bg-transparent text-base text-[var(--ink)] shadow-none outline-none placeholder:text-[#6e6a63] focus:shadow-none md:text-lg"
+            className="min-w-0 flex-1 border-0 bg-transparent text-base text-[var(--ink)] shadow-none outline-none placeholder:text-[var(--muted)] focus:shadow-none md:text-lg"
           />
           <button type="submit" className="hidden h-10 rounded-xl bg-[var(--accent)] px-4 text-base font-semibold text-white sm:block">
             Procurar
@@ -124,41 +124,41 @@ export default async function InicioPage() {
             <Link
               key={card.href}
               href={card.href}
-              className="group flex min-h-[140px] items-center gap-4 rounded-3xl border-2 border-[var(--line)] bg-white p-5 shadow-[var(--shadow-soft)] transition-[border-color,transform] duration-150 hover:border-[var(--accent)] active:scale-[0.98] md:min-h-[170px] md:p-6"
+              className="group flex min-h-[140px] items-center gap-4 rounded-3xl border-2 border-[var(--line)] bg-[var(--surface)] p-5 shadow-[var(--shadow-soft)] transition-[border-color,transform] duration-150 hover:border-[var(--accent)] active:scale-[0.98] md:min-h-[170px] md:p-6"
             >
               <span className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl md:h-20 md:w-20 ${card.tone}`}>
                 <Icon size={34} strokeWidth={2.2} aria-hidden />
               </span>
               <span className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <span className="flex items-center gap-2">
-                  <span className="grid h-7 w-7 place-items-center rounded-full bg-[var(--accent-soft)] text-sm font-bold text-[var(--accent-strong)]" aria-label={`Passo ${card.step}`}>
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-[var(--accent-soft)] text-sm font-bold text-[var(--link)]" aria-label={`Passo ${card.step}`}>
                     {card.step}
                   </span>
                   <span className="text-[22px] font-bold leading-tight md:text-2xl">{card.title}</span>
                 </span>
-                <span className="text-[15px] leading-snug text-[#6e6a63] md:text-base">{card.when}</span>
+                <span className="text-[15px] leading-snug text-[var(--muted)] md:text-base">{card.when}</span>
                 {card.count >= 0 && !countError ? (
                   <span className="mt-1 flex flex-wrap gap-1.5">
-                    <span className="rounded-full bg-[#efece6] px-3 py-1 text-sm font-semibold text-[#2d4a50]">
+                    <span className="rounded-full bg-[var(--surface-secondary)] px-3 py-1 text-sm font-semibold text-[var(--fg-2d4a50)]">
                       {card.countText(card.count)}
                     </span>
                     {card.alert ? (
-                      <span className="rounded-full bg-[#f9eaea] px-3 py-1 text-sm font-semibold text-[#b83a3a]">
+                      <span className="rounded-full bg-[var(--danger-soft)] px-3 py-1 text-sm font-semibold text-[var(--danger)]">
                         {card.alert === 1 ? "1 lente atrasada" : `${card.alert} lentes atrasadas`}
                       </span>
                     ) : null}
                   </span>
                 ) : null}
               </span>
-              <ChevronRight size={28} className="shrink-0 text-[#9bb0b4] transition-transform group-hover:translate-x-0.5" aria-hidden />
+              <ChevronRight size={28} className="shrink-0 text-[var(--fg-9bb0b4)] transition-transform group-hover:translate-x-0.5" aria-hidden />
             </Link>
           );
         })}
       </div>
 
-      <details className="rounded-xl border border-[#e2ddd5] bg-white p-4"><summary className="cursor-pointer text-base font-semibold">Como funciona o laboratório?</summary><ol className="mt-3 list-inside list-decimal space-y-2 text-sm leading-relaxed text-[#6e6a63]"><li>Cadastre a OS e coloque o material na gaveta do vendedor.</li><li>Complete o pedido e a previsão de chegada na tela Lentes.</li><li>Quando as lentes chegarem, confirme o recebimento.</li><li>Na montagem, registre cada etapa e qualquer problema encontrado.</li><li>Após a conferência final, libere e registre a retirada.</li></ol><p className="mt-3 text-sm text-[#6e6a63]">Precisa de relatórios ou atalhos? Escolha “Ver menu completo”.</p></details>
+      <details className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4"><summary className="cursor-pointer text-base font-semibold">Como funciona o laboratório?</summary><ol className="mt-3 list-inside list-decimal space-y-2 text-sm leading-relaxed text-[var(--muted)]"><li>Cadastre a OS e coloque o material na gaveta do vendedor.</li><li>Complete o pedido e a previsão de chegada na tela Lentes.</li><li>Quando as lentes chegarem, confirme o recebimento.</li><li>Na montagem, registre cada etapa e qualquer problema encontrado.</li><li>Após a conferência final, libere e registre a retirada.</li></ol><p className="mt-3 text-sm text-[var(--muted)]">Precisa de relatórios ou atalhos? Escolha “Ver menu completo”.</p></details>
 
-      <p className="rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-[15px] leading-snug text-[#6e4b2a]">
+      <p className="rounded-2xl bg-[var(--accent-soft)] px-4 py-3 text-[15px] leading-snug text-[var(--link)]">
         <strong>Dica:</strong> os números 1, 2, 3 e 4 mostram o caminho do óculos no laboratório: chega a OS, chega a lente, monta e entrega.
       </p>
     </div>

@@ -28,21 +28,21 @@ class LaFlowList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 6, 14, 6),
-      decoration: const BoxDecoration(
-        color: LaColors.branco,
+      padding: EdgeInsets.fromLTRB(8, 6, 14, 6),
+      decoration: BoxDecoration(
+        color: LaColors.surface(context),
         borderRadius: LaRadius.rCartao,
       ),
       child: Stack(
         children: [
           // Trilho amarelo atrás dos símbolos (centro da coluna de 44 px).
-          const Positioned(
+          Positioned(
             left: 20,
             top: LaSize.linhaFluxo / 2,
             bottom: LaSize.linhaFluxo / 2,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: LaColors.faixa,
+                color: LaColors.adapt(context, LaColors.faixa),
                 borderRadius: BorderRadius.all(Radius.circular(2)),
               ),
               child: SizedBox(width: 4),
@@ -63,9 +63,9 @@ class _Linha extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final retrabalho = step.kind == LaFlowKind.retrabalho;
-    final destaque = retrabalho ? LaColors.alerta : LaColors.grafite;
+    final destaque = retrabalho ? LaColors.adapt(context, LaColors.alerta) : LaColors.adapt(context, LaColors.grafite);
     final numero = step.contagem > 999 ? '999+' : '${step.contagem}';
-    final corNumero = step.contagem == 0 ? LaColors.regua : destaque;
+    final corNumero = step.contagem == 0 ? LaColors.adapt(context, LaColors.regua) : destaque;
 
     return Semantics(
       button: true,
@@ -76,14 +76,14 @@ class _Linha extends StatelessWidget {
         onTap: step.onTap,
         borderRadius: LaRadius.rBotao,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 72),
+          constraints: BoxConstraints(minHeight: 72),
           child: Row(
             children: [
               SizedBox(
                 width: 44,
                 child: Center(child: LaFlowSymbol(kind: step.kind)),
               ),
-              const SizedBox(width: LaSpace.m),
+              SizedBox(width: LaSpace.m),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -93,7 +93,7 @@ class _Linha extends StatelessWidget {
                     Text(
                       step.subtitulo,
                       style: LaType.apoio.copyWith(
-                        color: retrabalho ? LaColors.alerta : LaColors.regua,
+                        color: retrabalho ? LaColors.adapt(context, LaColors.alerta) : LaColors.adapt(context, LaColors.regua),
                         fontWeight: retrabalho
                             ? FontWeight.w600
                             : FontWeight.w400,
@@ -103,8 +103,8 @@ class _Linha extends StatelessWidget {
                 ),
               ),
               Text(numero, style: LaType.contagem.copyWith(color: corNumero)),
-              const SizedBox(width: LaSpace.m),
-              const Icon(Icons.chevron_right, size: 18, color: LaColors.regua),
+              SizedBox(width: LaSpace.m),
+              Icon(Icons.chevron_right, size: 18, color: LaColors.adapt(context, LaColors.regua)),
             ],
           ),
         ),

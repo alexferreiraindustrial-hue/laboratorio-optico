@@ -155,20 +155,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
     final status = '${order?['status'] ?? ''}';
     return Scaffold(
-      backgroundColor: LaColors.piso,
+      backgroundColor: LaColors.adapt(context, LaColors.piso),
       appBar: AppBar(
         title: Text(order == null ? 'OS' : 'Ordem de serviço'),
         actions: [
           if (order != null && order['priority'] == 'critica')
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: EdgeInsets.only(right: 8),
               child: Center(child: LaBadge.urgente()),
             ),
           if (order != null && canWriteOrders(role))
             IconButton(
               tooltip: 'Editar OS',
               onPressed: () => context.push('/os/${widget.id}/editar'),
-              icon: const Icon(Icons.edit_outlined),
+              icon: Icon(Icons.edit_outlined),
             ),
         ],
       ),
@@ -176,14 +176,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         child: data == null
             ? Center(
                 child: error == null
-                    ? const CircularProgressIndicator()
+                    ? CircularProgressIndicator()
                     : LabError(message: error!, onRetry: load),
               )
             : RefreshIndicator(
                 color: colors.accent,
                 onRefresh: load,
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(
+                  padding: EdgeInsets.fromLTRB(
                     AppSpace.md,
                     8,
                     AppSpace.md,
@@ -204,7 +204,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             style: LaType.corpoForte.copyWith(fontSize: 20),
                           ),
                           if (talked || messages.isNotEmpty) ...[
-                            const SizedBox(height: 6),
+                            SizedBox(height: 6),
                             Text(
                               'Conversa nesta OS',
                               style: LaType.rotulo.copyWith(
@@ -212,22 +212,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               ),
                             ),
                           ],
-                          const SizedBox(height: LaSpace.secao),
+                          SizedBox(height: LaSpace.secao),
                           LaStageBar(
                             etapaAtual: flowEtapa(status),
                             encerrada: flowEncerrada(status),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           Text(
                             '${statusLabel[status] ?? status} · Etapa ${flowEtapa(status)} de 6',
                             style: LaType.corpoForte,
                           ),
-                          const SizedBox(height: LaSpace.item),
+                          SizedBox(height: LaSpace.item),
                           LaPrazoTag(
                             status: prazoDe(order),
                             texto: prazoCurto(order),
                           ),
-                          const SizedBox(height: AppSpace.sm),
+                          SizedBox(height: AppSpace.sm),
                           LabMeta(
                             label: 'Laboratório',
                             value: '${order['laboratory_name'] ?? '—'}',
@@ -287,7 +287,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             LabMeta(label: 'Notas', value: '${order['notes']}'),
                           if (order['status'] == 'aguardando_lentes')
                             Padding(
-                              padding: const EdgeInsets.only(top: 8),
+                              padding: EdgeInsets.only(top: 8),
                               child: Text(
                                 'Aguarda lentes. A montagem ainda não começou.',
                                 style: TextStyle(
@@ -319,17 +319,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               onChanged: (value) =>
                                   setState(() => nextStatus = value),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             TextField(
                               controller: note,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Observação',
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             FilledButton(
                               style: FilledButton.styleFrom(
-                                backgroundColor: LaColors.grafite,
+                                backgroundColor: Color(0xFF222222),
                                 foregroundColor: LaColors.branco,
                               ),
                               onPressed: pending ? null : move,
@@ -390,7 +390,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               }
                               return FilledButton(
                                 style: FilledButton.styleFrom(
-                                  backgroundColor: LaColors.grafite,
+                                  backgroundColor: Color(0xFF222222),
                                   foregroundColor: LaColors.branco,
                                 ),
                                 onPressed: pending ? null : runBench,
@@ -400,10 +400,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               );
                             },
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: 8),
                           for (final key in stepKeys)
                             Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              padding: EdgeInsets.symmetric(vertical: 8),
                               child: Row(
                                 children: [
                                   Expanded(
@@ -435,7 +435,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             'Fica no histórico da OS e no relatório do serviço.',
                             style: TextStyle(color: colors.muted, fontSize: 13),
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: 10),
                           if (photos.isEmpty)
                             Text(
                               'Nenhuma foto nesta OS ainda.',
@@ -445,7 +445,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             GridView.count(
                               crossAxisCount: 2,
                               shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
+                              physics: NeverScrollableScrollPhysics(),
                               mainAxisSpacing: 8,
                               crossAxisSpacing: 8,
                               childAspectRatio: 1,
@@ -491,7 +491,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               ],
                             ),
                           if (canAttachPhotos(role)) ...[
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             Row(
                               children: [
                                 Expanded(
@@ -499,23 +499,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                     onPressed: pending
                                         ? null
                                         : () => attachPhoto(ImageSource.camera),
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.photo_camera_outlined,
                                     ),
-                                    label: const Text('Câmera'),
+                                    label: Text('Câmera'),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 Expanded(
                                   child: OutlinedButton.icon(
                                     onPressed: pending
                                         ? null
                                         : () =>
                                               attachPhoto(ImageSource.gallery),
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.photo_library_outlined,
                                     ),
-                                    label: const Text('Galeria'),
+                                    label: Text('Galeria'),
                                   ),
                                 ),
                               ],
@@ -535,7 +535,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               children: [
                                 for (final item in occurrences)
                                   Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
+                                    padding: EdgeInsets.only(bottom: 12),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -589,7 +589,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               children: [
                                 for (final item in history)
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(
+                                    padding: EdgeInsets.symmetric(
                                       vertical: 8,
                                     ),
                                     child: Row(
@@ -604,7 +604,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                                 .titleMedium,
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
+                                        SizedBox(width: 8),
                                         Text(
                                           formatWhen(item['created_at']),
                                           style: Theme.of(context)
@@ -616,12 +616,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                   ),
                                 for (final item in photos)
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(
+                                    padding: EdgeInsets.symmetric(
                                       vertical: 8,
                                     ),
                                     child: Row(
                                       children: [
-                                        const Expanded(
+                                        Expanded(
                                           child: Text(
                                             'Foto anexada',
                                             style: TextStyle(

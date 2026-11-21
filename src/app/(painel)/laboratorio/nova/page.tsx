@@ -12,16 +12,16 @@ export default async function NovaOsPage() {
       <PageHeading title="Nova ordem de serviço" description="O número é gerado pelo banco e não se repete." />
       <Link
         href="/laboratorio/rapido"
-        className="mb-5 flex items-center gap-3.5 rounded-xl border border-[#8c6239]/30 bg-[#f3ece2] px-5 py-4 transition-colors hover:border-[#8c6239]"
+        className="mb-5 flex items-center gap-3.5 rounded-xl border border-[var(--focus)]/30 bg-[var(--accent-soft)] px-5 py-4 transition-colors hover:border-[var(--focus)]"
       >
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#8c6239] text-white">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[var(--accent)] text-white">
           <Zap size={19} />
         </span>
         <span className="flex flex-1 flex-col">
-          <span className="text-[15px] font-semibold text-[#6e4b2a]">Com pressa? Use o lançamento rápido</span>
-          <span className="text-[13px] text-[#6e6a63]">Só o número da OS, só o nome ou os dois — várias de uma vez, inclusive com leitor de código.</span>
+          <span className="text-[15px] font-semibold text-[var(--link)]">Com pressa? Use o lançamento rápido</span>
+          <span className="text-[13px] text-[var(--muted)]">Só o número da OS, só o nome ou os dois — várias de uma vez, inclusive com leitor de código.</span>
         </span>
-        <span className="hidden text-[13px] font-semibold text-[#8c6239] sm:block">Abrir →</span>
+        <span className="hidden text-[13px] font-semibold text-[var(--link)] sm:block">Abrir →</span>
       </Link>
       <Panel className="p-5">
         <OrderForm laboratories={laboratories} sellers={sellers} stores={stores} sellerLinks={sellerLinks} />

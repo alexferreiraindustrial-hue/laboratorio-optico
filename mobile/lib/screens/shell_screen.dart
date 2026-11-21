@@ -28,7 +28,7 @@ class ShellScreen extends StatelessWidget {
     final wide = MediaQuery.sizeOf(context).width >= 720;
     final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     return Scaffold(
-      backgroundColor: LaColors.piso,
+      backgroundColor: LaColors.adapt(context, LaColors.piso),
       body: Row(
         children: [
           if (wide)
@@ -38,13 +38,13 @@ class ShellScreen extends StatelessWidget {
                 selectedIndex: tab,
                 onDestinationSelected: (index) => context.go(paths[index]),
                 labelType: NavigationRailLabelType.all,
-                backgroundColor: LaColors.branco,
-                indicatorColor: LaColors.acentoSuave,
-                leading: const Padding(
+                backgroundColor: LaColors.surface(context),
+                indicatorColor: LaColors.adapt(context, LaColors.acentoSuave),
+                leading: Padding(
                   padding: EdgeInsets.all(12),
                   child: LaMonogram(),
                 ),
-                destinations: const [
+                destinations: [
                   NavigationRailDestination(
                     icon: Icon(Icons.dashboard_outlined),
                     label: Text('Hoje'),
@@ -69,29 +69,29 @@ class ShellScreen extends StatelessWidget {
               ),
             ),
           Expanded(
-            key: const ValueKey('conteudo-operacional'),
+            key: ValueKey('conteudo-operacional'),
             child: LaContent(
               child: IndexedStack(
                 index: tab,
                 sizing: StackFit.expand,
                 children: [
                   DashboardScreen(
-                    key: const ValueKey('tab-painel'),
+                    key: ValueKey('tab-painel'),
                     session: session,
                   ),
-                  const LaunchScreen(
+                  LaunchScreen(
                     key: ValueKey('tab-lancar'),
                     inShell: true,
                   ),
                   BenchScreen(
-                    key: const ValueKey('tab-bancada'),
+                    key: ValueKey('tab-bancada'),
                     session: session,
                   ),
                   LensesScreen(
-                    key: const ValueKey('tab-lentes'),
+                    key: ValueKey('tab-lentes'),
                     session: session,
                   ),
-                  MoreScreen(key: const ValueKey('tab-mais'), session: session),
+                  MoreScreen(key: ValueKey('tab-mais'), session: session),
                 ],
               ),
             ),

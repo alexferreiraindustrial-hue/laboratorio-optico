@@ -36,20 +36,20 @@ function Card({ order, href, role, pending, onMove, now }: { order: OrderRow; hr
     <article
       ref={setNodeRef}
       style={style}
-      className={`flex flex-col gap-2 rounded-[10px] border border-[#e2ddd5] bg-white px-3 pb-2.5 pt-3 shadow-[0_1px_2px_rgba(19,32,31,0.04)] transition-shadow hover:border-[#e2ddd5] hover:shadow-[0_4px_12px_-6px_rgba(19,32,31,0.18)] ${isDragging ? "z-10 opacity-80 shadow-lg" : ""}`}
+      className={`flex flex-col gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-3 pb-2.5 pt-3 shadow-[0_1px_2px_rgba(19,32,31,0.04)] transition-shadow hover:border-[var(--line)] hover:shadow-[0_4px_12px_-6px_rgba(19,32,31,0.18)] ${isDragging ? "z-10 opacity-80 shadow-lg" : ""}`}
     >
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-xs font-medium text-[#8c6239]">{visibleOrderNumber(order)}</span>
+          <span className="font-mono text-xs font-medium text-[var(--link)]">{visibleOrderNumber(order)}</span>
           <div className="flex items-center gap-1">
             <span className="rounded px-1.5 py-1 text-[11px] font-semibold" style={{ color: riskTone.fg, background: riskTone.bg }} title={forecast.reason}>{RISK_LABEL[forecast.risk]}</span>
-            {targets.length > 0 ? <button type="button" aria-label={`Arrastar OS ${visibleOrderNumber(order)}`} className="flex h-11 w-9 cursor-grab items-center justify-center rounded text-[#6e6a63] touch-none active:cursor-grabbing" {...listeners} {...attributes}><GripVertical size={16} /></button> : null}
+            {targets.length > 0 ? <button type="button" aria-label={`Arrastar OS ${visibleOrderNumber(order)}`} className="flex h-11 w-9 cursor-grab items-center justify-center rounded text-[var(--muted)] touch-none active:cursor-grabbing" {...listeners} {...attributes}><GripVertical size={16} /></button> : null}
           </div>
         </div>
         <div className="flex items-center gap-2.5">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="break-words text-sm font-semibold">{order.client_name}</span>
-            <span className="break-words text-xs text-[#6e6a63]">
+            <span className="break-words text-xs text-[var(--muted)]">
               {order.laboratory_name || "Sem laboratório"} · {order.seller_name || "Sem vendedor"}
               {order.store_name ? ` · ${order.store_name}` : ""}
             </span>
@@ -57,31 +57,31 @@ function Card({ order, href, role, pending, onMove, now }: { order: OrderRow; hr
           <LensGauge value={forecast.progress} risk={forecast.risk} size={46} />
         </div>
         {order.status === "aguardando_lentes" ? (
-          <div className="rounded-md bg-[#fbf3e4] px-2 py-[5px] text-xs font-medium text-[#87601f]">Aguardando lentes, montagem não iniciada</div>
+          <div className="rounded-md bg-[var(--warning-soft)] px-2 py-[5px] text-xs font-medium text-[var(--warning)]">Aguardando lentes, montagem não iniciada</div>
         ) : null}
-        {order.priority === "critica" ? <span className="text-xs font-semibold text-[#b83a3a]">Prioridade crítica</span> : null}
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#6e6a63]">
+        {order.priority === "critica" ? <span className="text-xs font-semibold text-[var(--danger)]">Prioridade crítica</span> : null}
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
           <span>Montagem: {order.steps_done ?? 0}/5 etapas</span>
           {order.lens_arrived_at ? <span>Lentes recebidas</span> : order.status === "aguardando_lentes" ? <span>{order.lens_expected_at ? `Chegada: ${new Date(order.lens_expected_at).toLocaleDateString("pt-BR")}` : "Lentes sem previsão"}</span> : null}
           {order.lens_supplier_ref ? <span>Pedido: {order.lens_supplier_ref}</span> : null}
         </div>
         {forecast.risk === "risco" ? (
-          <div className="rounded-md bg-[#f9eaea] px-2 py-[5px] text-xs font-semibold text-[#b83a3a]" title={forecast.reason}>
+          <div className="rounded-md bg-[var(--danger-soft)] px-2 py-[5px] text-xs font-semibold text-[var(--danger)]" title={forecast.reason}>
             Risco de atraso · priorizar
           </div>
         ) : null}
       </div>
-      {targets.length > 0 ? <label className="flex items-center gap-2 text-xs text-[#6e6a63]">Mover para
-        <select aria-label={`Mover OS ${visibleOrderNumber(order)} para`} value="" disabled={pending} onChange={(event) => { if (event.target.value) onMove(order, event.target.value as OrderStatus); }} className="min-h-11 min-w-0 flex-1 rounded-md border border-[#e2ddd5] bg-white px-2 text-[#222222] disabled:opacity-50">
+      {targets.length > 0 ? <label className="flex items-center gap-2 text-xs text-[var(--muted)]">Mover para
+        <select aria-label={`Mover OS ${visibleOrderNumber(order)} para`} value="" disabled={pending} onChange={(event) => { if (event.target.value) onMove(order, event.target.value as OrderStatus); }} className="min-h-11 min-w-0 flex-1 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 text-[var(--ink)] disabled:opacity-50">
           <option value="">Escolher etapa</option>{targets.map((status) => <option key={status} value={status}>{STATUS_LABEL[status]}</option>)}
         </select>
       </label> : null}
-      <div className="flex items-center justify-between border-t border-[#efece6] pt-2 text-xs">
+      <div className="flex items-center justify-between border-t border-[var(--line)] pt-2 text-xs">
         <span className="flex items-center gap-[5px]" style={deadlineStyle(order)}>
           <Clock size={13} />
           {order.status === "pronto" ? "Disponível para retirada" : dueDeltaLabel(order.due_at, now, order.status)}
         </span>
-        <Link href={href} className="inline-flex min-h-11 items-center px-1 font-semibold text-[#8c6239] hover:underline md:min-h-0" onPointerDown={(event) => event.stopPropagation()}>
+        <Link href={href} className="inline-flex min-h-11 items-center px-1 font-semibold text-[var(--link)] hover:underline md:min-h-0" onPointerDown={(event) => event.stopPropagation()}>
           Abrir
         </Link>
       </div>
@@ -94,14 +94,14 @@ function Column({ status, orders, hrefBase, drawerBase, limit, total, collapsed,
   const wip = wipState(total, limit);
   const tone =
     wip === "estourado"
-      ? "bg-[#fbe4e1] ring-2 ring-[#b83a3a]/50"
+      ? "bg-[var(--bg-fbe4e1)] ring-2 ring-[var(--danger)]/50"
       : wip === "no_limite"
-        ? "bg-[#fbf1dc]"
-        : "bg-[#efece6]";
+        ? "bg-[var(--bg-fbf1dc)]"
+        : "bg-[var(--surface-secondary)]";
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-h-60 w-[min(86vw,280px)] shrink-0 snap-start flex-col gap-2 rounded-xl p-2.5 transition-[box-shadow,background-color] duration-300 md:w-[292px] ${tone} ${isOver ? "ring-2 ring-[#8c6239]" : ""}`}
+      className={`flex min-h-60 w-[min(86vw,280px)] shrink-0 snap-start flex-col gap-2 rounded-xl p-2.5 transition-[box-shadow,background-color] duration-300 md:w-[292px] ${tone} ${isOver ? "ring-2 ring-[var(--focus)]" : ""}`}
     >
       <div className="flex items-center gap-2 px-1 pb-1.5 pt-1">
         <span className="h-2 w-2 rounded-[2px]" style={{ background: STATUS_TONE[status].dot }} />
@@ -110,24 +110,24 @@ function Column({ status, orders, hrefBase, drawerBase, limit, total, collapsed,
           <span
             title="Limite WIP (trabalho em processo) desta coluna"
             className={`flex items-center gap-1 rounded-md px-1.5 py-px font-mono text-xs font-semibold ${
-              wip === "estourado" ? "bg-[#b83a3a] text-white" : wip === "no_limite" ? "bg-[#87601f] text-white" : "bg-white text-[#6e6a63]"
+              wip === "estourado" ? "bg-[var(--danger-solid)] text-white" : wip === "no_limite" ? "bg-[var(--bg-87601f)] text-white" : "bg-[var(--surface)] text-[var(--muted)]"
             }`}
           >
             <Gauge size={12} />
             {total}/{limit}
           </span>
         ) : (
-          <span className="font-mono text-xs text-[#6e6a63]">{orders.length}</span>
+          <span className="font-mono text-xs text-[var(--muted)]">{orders.length}</span>
         )}
       </div>
       {wip === "estourado" ? (
-        <div className="rounded-md bg-[#b83a3a] px-2 py-1 text-[11px] font-semibold text-white">Acima do limite WIP: termine antes de puxar mais</div>
+        <div className="rounded-md bg-[var(--danger-solid)] px-2 py-1 text-[11px] font-semibold text-white">Acima do limite WIP: termine antes de puxar mais</div>
       ) : null}
       {!collapsed && orders.map((order) => (
         <Card key={order.id} order={order} role={role} pending={pending} onMove={onMove} now={now} href={drawerBase ? `${drawerBase}${drawerBase.includes("?") ? "&" : "?"}os=${order.id}` : `${hrefBase}/${order.id}`} />
       ))}
       {!collapsed && orders.length === 0 ? (
-        <div className="rounded-[10px] border border-dashed border-[#e2ddd5] px-3 py-[18px] text-center text-xs text-[#6e6a63]">Nenhuma OS</div>
+        <div className="rounded-[10px] border border-dashed border-[var(--line)] px-3 py-[18px] text-center text-xs text-[var(--muted)]">Nenhuma OS</div>
       ) : null}
     </div>
   );
@@ -201,19 +201,19 @@ export function OrderKanban({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-[#e2ddd5] bg-white p-3">
-        <label className="min-w-48 flex-1 text-xs font-medium text-[#6e6a63]">Buscar no quadro
-          <div className="mt-1 flex items-center gap-2 rounded-md border border-[#e2ddd5] px-3"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="OS, cliente, vendedor ou pedido" className="min-h-11 w-full min-w-0 bg-transparent text-sm outline-none" /></div>
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3">
+        <label className="min-w-48 flex-1 text-xs font-medium text-[var(--muted)]">Buscar no quadro
+          <div className="mt-1 flex items-center gap-2 rounded-md border border-[var(--line)] px-3"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="OS, cliente, vendedor ou pedido" className="min-h-11 w-full min-w-0 bg-transparent text-sm outline-none" /></div>
         </label>
-        <label className="text-xs font-medium text-[#6e6a63]">Vendedor<select value={sellerId} onChange={(event) => setSellerId(event.target.value)} className="mt-1 block min-h-11 max-w-48 rounded-md border border-[#e2ddd5] bg-white px-2 text-sm"><option value="">Todos os vendedores</option>{sellers.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></label>
-        <label className="text-xs font-medium text-[#6e6a63]">Ordenação<select value={sort} onChange={(event) => setSort(event.target.value as BoardSort)} className="mt-1 block min-h-11 rounded-md border border-[#e2ddd5] bg-white px-2 text-sm"><option value="risk">Maior risco primeiro</option><option value="deadline">Prazo mais próximo</option><option value="oldest">Entrada mais antiga</option></select></label>
+        <label className="text-xs font-medium text-[var(--muted)]">Vendedor<select value={sellerId} onChange={(event) => setSellerId(event.target.value)} className="mt-1 block min-h-11 max-w-48 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 text-sm"><option value="">Todos os vendedores</option>{sellers.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></label>
+        <label className="text-xs font-medium text-[var(--muted)]">Ordenação<select value={sort} onChange={(event) => setSort(event.target.value as BoardSort)} className="mt-1 block min-h-11 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 text-sm"><option value="risk">Maior risco primeiro</option><option value="deadline">Prazo mais próximo</option><option value="oldest">Entrada mais antiga</option></select></label>
       </div>
       <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Foco do quadro">
-        {([["all", "Todas"], ["risk", "Atenção aos prazos"], ["critical", "Prioridade crítica"], ["missing_eta", "Lentes sem previsão"]] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={focus === value} onClick={() => setFocus(value)} className={`min-h-11 rounded-lg border px-3 text-xs font-semibold ${focus === value ? "border-[#8c6239] bg-[#f3ece2] text-[#8c6239]" : "border-[#e2ddd5] bg-white text-[#6e6a63]"}`}>{label}</button>)}
-        <span className="ml-auto text-xs text-[#6e6a63]" role="status">{visible.length} de {loaded.length} OS carregadas{pending ? " · Salvando…" : ""}</span>
-        {query || sellerId || focus !== "all" ? <button type="button" onClick={() => { setQuery(""); setSellerId(""); setFocus("all"); }} className="min-h-11 px-2 text-xs font-semibold text-[#8c6239]">Limpar filtros</button> : null}
+        {([["all", "Todas"], ["risk", "Atenção aos prazos"], ["critical", "Prioridade crítica"], ["missing_eta", "Lentes sem previsão"]] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={focus === value} onClick={() => setFocus(value)} className={`min-h-11 rounded-lg border px-3 text-xs font-semibold ${focus === value ? "border-[var(--focus)] bg-[var(--accent-soft)] text-[var(--link)]" : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]"}`}>{label}</button>)}
+        <span className="ml-auto text-xs text-[var(--muted)]" role="status">{visible.length} de {loaded.length} OS carregadas{pending ? " · Salvando…" : ""}</span>
+        {query || sellerId || focus !== "all" ? <button type="button" onClick={() => { setQuery(""); setSellerId(""); setFocus("all"); }} className="min-h-11 px-2 text-xs font-semibold text-[var(--link)]">Limpar filtros</button> : null}
       </div>
-      <p className="text-xs text-[#6e6a63]">Use a alça para arrastar ou escolha “Mover para” no cartão. Filtros e ordenação se aplicam às OS carregadas; a capacidade considera todo o quadro carregado.</p>
+      <p className="text-xs text-[var(--muted)]">Use a alça para arrastar ou escolha “Mover para” no cartão. Filtros e ordenação se aplicam às OS carregadas; a capacidade considera todo o quadro carregado.</p>
       <Feedback error={error} />
       <DndContext id={boardId} sensors={sensors} onDragEnd={onDragEnd}>
         <div className="-mx-3 flex items-start gap-3.5 overflow-x-auto px-3 pb-2 snap-x snap-mandatory md:mx-0 md:px-0 md:snap-none">

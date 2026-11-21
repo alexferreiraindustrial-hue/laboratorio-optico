@@ -41,9 +41,9 @@ class LaOsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-      decoration: const BoxDecoration(
-        color: LaColors.branco,
+      padding: EdgeInsets.fromLTRB(16, 12, 12, 12),
+      decoration: BoxDecoration(
+        color: LaColors.surface(context),
         borderRadius: LaRadius.rCartao,
       ),
       child: Column(
@@ -59,7 +59,7 @@ class LaOsCard extends StatelessWidget {
               onTap: onAbrir,
               borderRadius: LaRadius.rBotao,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: LaSize.toque),
+                constraints: BoxConstraints(minHeight: LaSize.toque),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -73,9 +73,9 @@ class LaOsCard extends StatelessWidget {
                         if (emCorrecao) LaBadge.emCorrecao(),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(cliente, style: LaType.corpoForte),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(detalhe, style: LaType.apoio),
                   ],
                 ),
@@ -83,7 +83,7 @@ class LaOsCard extends StatelessWidget {
             ),
           ),
           if (onAcao != null) ...[
-            const SizedBox(height: LaSpace.m),
+            SizedBox(height: LaSpace.m),
             LaButton(
               label: acaoLabel,
               height: LaSize.toque,

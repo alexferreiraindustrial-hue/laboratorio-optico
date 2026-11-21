@@ -126,28 +126,28 @@ class _LoginScreenState extends State<LoginScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         LaSegmented(
-          opcoes: const ['Laboratório', 'Vendedor'],
+          opcoes: ['Laboratório', 'Vendedor'],
           selecionado: sellerMode ? 1 : 0,
           onChanged: (index) => setState(() {
             sellerMode = index == 1;
             error = null;
           }),
         ),
-        const SizedBox(height: LaSpace.secao),
+        SizedBox(height: LaSpace.secao),
         if (!sellerMode) ...[
           TextField(
             controller: email,
             keyboardType: TextInputType.emailAddress,
-            autofillHints: const [AutofillHints.username, AutofillHints.email],
-            decoration: const InputDecoration(labelText: 'E-mail'),
+            autofillHints: [AutofillHints.username, AutofillHints.email],
+            decoration: InputDecoration(labelText: 'E-mail'),
             textInputAction: TextInputAction.next,
           ),
-          const SizedBox(height: LaSpace.item),
+          SizedBox(height: LaSpace.item),
           TextField(
             controller: password,
             obscureText: true,
-            autofillHints: const [AutofillHints.password],
-            decoration: const InputDecoration(labelText: 'Senha'),
+            autofillHints: [AutofillHints.password],
+            decoration: InputDecoration(labelText: 'Senha'),
             onSubmitted: (_) => submitLab(),
           ),
         ] else ...[
@@ -155,29 +155,29 @@ class _LoginScreenState extends State<LoginScreen> {
             'Acompanhe somente os seus serviços. Use o código e a senha criados pelo laboratório.',
             style: LaType.corpo,
           ),
-          const SizedBox(height: LaSpace.item),
+          SizedBox(height: LaSpace.item),
           TextField(
             controller: sellerLogin,
             autocorrect: false,
             enableSuggestions: false,
             textCapitalization: TextCapitalization.none,
-            autofillHints: const [AutofillHints.username],
+            autofillHints: [AutofillHints.username],
             style: LaType.tituloSecao,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Código do vendedor',
               hintText: 'Ex.: v3',
             ),
             textInputAction: TextInputAction.next,
           ),
-          const SizedBox(height: LaSpace.item),
+          SizedBox(height: LaSpace.item),
           TextField(
             controller: sellerPin,
             obscureText: true,
             keyboardType: TextInputType.visiblePassword,
             autocorrect: false,
             enableSuggestions: false,
-            autofillHints: const [AutofillHints.password],
-            decoration: const InputDecoration(
+            autofillHints: [AutofillHints.password],
+            decoration: InputDecoration(
               labelText: 'Senha do vendedor',
               helperText: 'Use a senha definida pelo laboratório.',
             ),
@@ -191,9 +191,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: portal,
                 minLines: 2,
                 maxLines: 4,
-                decoration: const InputDecoration(labelText: 'Cole o link'),
+                decoration: InputDecoration(labelText: 'Cole o link'),
               ),
-              const SizedBox(height: LaSpace.item),
+              SizedBox(height: LaSpace.item),
               LaButton(
                 label: 'Abrir pelo link',
                 variant: LaButtonVariant.contorno,
@@ -203,12 +203,12 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ],
         if (error != null) ...[
-          const SizedBox(height: LaSpace.item),
-          Text(error!, style: LaType.rotulo.copyWith(color: LaColors.perigo)),
+          SizedBox(height: LaSpace.item),
+          Text(error!, style: LaType.rotulo.copyWith(color: LaColors.adapt(context, LaColors.perigo))),
         ],
-        const SizedBox(height: LaSpace.secao),
+        SizedBox(height: LaSpace.secao),
         LaButton(
-          key: const ValueKey('entrar'),
+          key: ValueKey('entrar'),
           label: sellerMode ? 'Ver meus serviços' : 'Entrar',
           height: 58,
           loading: pending,
@@ -223,20 +223,20 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _brand() => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      const LaMonogram(size: 48),
-      const SizedBox(height: 20),
+      LaMonogram(size: 48),
+      SizedBox(height: 20),
       Text('Lab Gold', style: LaType.tituloTela),
-      const SizedBox(height: 8),
+      SizedBox(height: 8),
       Text(
         'Cada OS no lugar. Cada etapa no tempo.',
-        style: LaType.corpoForte.copyWith(color: LaColors.acento),
+        style: LaType.corpoForte.copyWith(color: LaColors.adapt(context, LaColors.acento)),
       ),
-      const SizedBox(height: 8),
+      SizedBox(height: 8),
       Text(
         sellerMode
             ? 'Área do vendedor: suas OS, prazos e serviços prontos.'
             : 'Entre para continuar a produção do laboratório.',
-        style: LaType.corpo.copyWith(color: LaColors.regua),
+        style: LaType.corpo.copyWith(color: LaColors.adapt(context, LaColors.regua)),
       ),
     ],
   );
@@ -254,14 +254,14 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Align(
               alignment: Alignment.topCenter,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 920),
+                constraints: BoxConstraints(maxWidth: 920),
                 child: wide
                     ? Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.only(
+                              padding: EdgeInsets.only(
                                 top: 40,
                                 right: 40,
                               ),
@@ -275,7 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _brand(),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 24),
                           _loginCard(),
                         ],
                       ),
@@ -288,11 +288,11 @@ class _LoginScreenState extends State<LoginScreen> {
   );
 
   Widget _loginCard() => Material(
-    color: LaColors.branco,
-    shape: const RoundedRectangleBorder(
+    color: LaColors.surface(context),
+    shape: RoundedRectangleBorder(
       borderRadius: LaRadius.rCartao,
-      side: BorderSide(color: LaColors.filete),
+      side: BorderSide(color: LaColors.adapt(context, LaColors.filete)),
     ),
-    child: Padding(padding: const EdgeInsets.all(20), child: _form()),
+    child: Padding(padding: EdgeInsets.all(20), child: _form()),
   );
 }

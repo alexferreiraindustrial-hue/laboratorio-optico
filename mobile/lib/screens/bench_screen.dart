@@ -88,7 +88,7 @@ class _BenchScreenState extends State<BenchScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('OS $numero movida para $destino'),
-          duration: const Duration(seconds: 5),
+          duration: Duration(seconds: 5),
           action: action.kind == 'status'
               ? SnackBarAction(
                   label: 'Desfazer',
@@ -138,10 +138,10 @@ class _BenchScreenState extends State<BenchScreen> {
         .where((order) => benchStatuses.contains('${order['status']}'))
         .length;
     return RefreshIndicator(
-      color: LaColors.grafite,
+      color: LaColors.adapt(context, LaColors.grafite),
       onRefresh: load,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           LaSpace.tela,
           LaSpace.l,
           LaSpace.tela,
@@ -158,22 +158,22 @@ class _BenchScreenState extends State<BenchScreen> {
                   '$total',
                   style: LaType.tituloSecao.copyWith(fontSize: 28),
                 ),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
+                  padding: EdgeInsets.only(bottom: 4),
                   child: Text('OS', style: LaType.apoio),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: LaSpace.secao),
+          SizedBox(height: LaSpace.secao),
           if (error != null) ...[
             LaErrorBanner(
               titulo: 'Bancada',
               mensagem: error!,
               onTentarDeNovo: load,
             ),
-            const SizedBox(height: LaSpace.item),
+            SizedBox(height: LaSpace.item),
           ],
           LaAdaptiveGrid(
             minWidth: 150,
@@ -188,7 +188,7 @@ class _BenchScreenState extends State<BenchScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: LaSpace.secao),
+          SizedBox(height: LaSpace.secao),
           if (items.isEmpty)
             LaEmptyState(
               titulo: current == 'em_correcao'
@@ -199,7 +199,7 @@ class _BenchScreenState extends State<BenchScreen> {
           else
             for (final order in items) ...[
               _card(order, role),
-              const SizedBox(height: LaSpace.item),
+              SizedBox(height: LaSpace.item),
             ],
         ],
       ),
@@ -249,10 +249,10 @@ class _Station extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = selected ? LaColors.grafite : LaColors.branco;
+    final bg = selected ? Color(0xFF222222) : LaColors.surface(context);
     final fg = selected
         ? LaColors.branco
-        : (alert ? LaColors.alerta : LaColors.grafite);
+        : (alert ? LaColors.adapt(context, LaColors.alerta) : LaColors.adapt(context, LaColors.grafite));
     final number = selected ? LaColors.branco : fg;
     return Semantics(
       button: true,
@@ -265,7 +265,7 @@ class _Station extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,

@@ -155,7 +155,7 @@ html {
 }
 
 
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
 button:not(:disabled), summary, select { cursor: pointer; }
 table { font-variant-numeric: tabular-nums; }
 thead th { position: relative; white-space: nowrap; }
@@ -164,14 +164,14 @@ details > summary::-webkit-details-marker { display: none; }
 /* Lab Gold: luminous navigation, restrained oak accents. */
 .lab-sidebar { background: var(--surface); color: var(--ink); }
 .lab-sidebar nav a { color: var(--muted); }
-.lab-sidebar nav a:hover { background: #f3ece2; color: #6e4b2a; }
-.lab-sidebar nav a[aria-current="page"] { background: #f3ece2; color: #6e4b2a; box-shadow: none; }
+.lab-sidebar nav a:hover { background: var(--accent-soft); color: var(--link); }
+.lab-sidebar nav a[aria-current="page"] { background: var(--accent-soft); color: var(--link); box-shadow: none; }
 .lab-sidebar nav p { color: var(--muted); }
 .lab-sidebar nav details[open] summary { color: var(--ink); }
 .lab-sidebar .lab-brand, .lab-sidebar .lab-account { border-color: var(--line); }
 .lab-sidebar .lab-brand .display { color: var(--ink); }
 .lab-sidebar .lab-brand small, .lab-sidebar .lab-account span, .lab-sidebar .lab-account button { color: var(--muted); }
-.lab-sidebar .lab-account button:hover { background: #f3ece2; }
+.lab-sidebar .lab-account button:hover { background: var(--accent-soft); }
 .lab-workspace section { scroll-margin-top: 88px; }
 .lab-drawer form { padding-bottom: 24px; }
 .lab-drawer form > .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -184,3 +184,165 @@ body:has(.lab-simple) { font-size: 16px; }
 .lab-simple .lab-workspace h1 { font-size: clamp(26px, 5vw, 34px); }
 .lab-simple .lab-workspace :is(button, a, input, select) { min-height: 2.75rem; }
 .lab-simple .lab-workspace label { font-size: 15px; }
+
+/* Theme pairs are explicit: no inversion, and primary white labels stay white. */
+:root {
+ --link: #8c6239; --focus: #8c6239; --surface-secondary: #efece6;
+ --danger-solid: #b83a3a; --solid-ink: #222222;
+ --ok-soft: #e8f3ee; --warning-soft: #fbf3e4; --danger-soft: #f9eaea;
+ --ok: #286f51;
+ --bg-08463f: #08463f;
+ --bg-102e34: #102e34;
+ --bg-18723f: #18723f;
+ --bg-188046: #188046;
+ --bg-1c4148: #1c4148;
+ --bg-2e7d5b: #2e7d5b;
+ --bg-6e4b2a: #6e4b2a;
+ --bg-87601f: #87601f;
+ --bg-963030: #963030;
+ --bg-c3e7e5: #c3e7e5;
+ --bg-dfe8e8: #dfe8e8;
+ --bg-e2ddd5: #e2ddd5;
+ --bg-e3ecec: #e3ecec;
+ --bg-e4e9ee: #e4e9ee;
+ --bg-e8eeee: #e8eeee;
+ --bg-e8f1fb: #e8f1fb;
+ --bg-efe9f7: #efe9f7;
+ --bg-f0f7f3: #f0f7f3;
+ --bg-f3e8e8: #f3e8e8;
+ --bg-f6faf9: #f6faf9;
+ --bg-f8d7d7: #f8d7d7;
+ --bg-f8efd2: #f8efd2;
+ --bg-fafbfc: #fafbfc;
+ --bg-fbe4e1: #fbe4e1;
+ --bg-fbf1dc: #fbf1dc;
+ --bg-fbfaf7: #fbfaf7;
+ --bg-fdf3f2: #fdf3f2;
+ --bg-fff4e0: #fff4e0;
+ --bg-fff8eb: #fff8eb;
+ --edge-222222: #222222;
+ --edge-29474d: #29474d;
+ --edge-2e7d5b: #2e7d5b;
+ --edge-6e6a63: #6e6a63;
+ --edge-9fd5b4: #9fd5b4;
+ --edge-b4c4c2: #b4c4c2;
+ --edge-b5ddd0: #b5ddd0;
+ --edge-bcd9d4: #bcd9d4;
+ --edge-c5d1d2: #c5d1d2;
+ --edge-c5d6d3: #c5d6d3;
+ --edge-cfe6d8: #cfe6d8;
+ --edge-d5dde0: #d5dde0;
+ --edge-d5e3e1: #d5e3e1;
+ --edge-dfe6e7: #dfe6e7;
+ --edge-dfe8e7: #dfe8e7;
+ --edge-e7a39b: #e7a39b;
+ --edge-f0e2c8: #f0e2c8;
+ --edge-f1c4be: #f1c4be;
+ --edge-f3c4be: #f3c4be;
+ --edge-f3c9c4: #f3c9c4;
+ --fg-1b1405: #1b1405;
+ --fg-1d4f8a: #1d4f8a;
+ --fg-2d4a50: #2d4a50;
+ --fg-3b4650: #3b4650;
+ --fg-3d4b5c: #3d4b5c;
+ --fg-5a3d86: #5a3d86;
+ --fg-6b7680: #6b7680;
+ --fg-7a2a22: #7a2a22;
+ --fg-7a5a10: #7a5a10;
+ --fg-8a5300: #8a5300;
+ --fg-963030: #963030;
+ --fg-9bb0b4: #9bb0b4;
+ --fg-a86e00: #a86e00;
+ --fg-b4bec2: #b4bec2;
+ --fg-e2ddd5: #e2ddd5;
+ --fg-e4f0f1: #e4f0f1;
+}
+:root[data-theme="dark"] {
+ color-scheme: dark;
+ --background: #181715; --surface: #23211e; --surface-secondary: #2c2924;
+ --ink: #f2eee7; --muted: #c5bdb1; --line: #514a41;
+ --accent: #8c6239; --accent-strong: #734f2d; --link: #e2bd87; --focus: #e2bd87;
+ --accent-soft: #382f22; --danger: #efaaaa; --warning: #e2bd87; --ok: #8ad3b0;
+ --ok-soft: #20362c; --warning-soft: #382f22; --danger-soft: #3a2828;
+ --shadow-soft: 0 4px 18px -8px rgba(0,0,0,.25);
+ --bg-08463f: #25313a;
+ --bg-102e34: #25313a;
+ --bg-18723f: #20362c;
+ --bg-188046: #20362c;
+ --bg-1c4148: #25313a;
+ --bg-2e7d5b: #20362c;
+ --bg-6e4b2a: #382f22;
+ --bg-87601f: #382f22;
+ --bg-963030: #3a2828;
+ --bg-c3e7e5: #25313a;
+ --bg-dfe8e8: #25313a;
+ --bg-e2ddd5: #382f22;
+ --bg-e3ecec: #25313a;
+ --bg-e4e9ee: #25313a;
+ --bg-e8eeee: #25313a;
+ --bg-e8f1fb: #25313a;
+ --bg-efe9f7: #332a3d;
+ --bg-f0f7f3: #20362c;
+ --bg-f3e8e8: #3a2828;
+ --bg-f6faf9: #20362c;
+ --bg-f8d7d7: #3a2828;
+ --bg-f8efd2: #382f22;
+ --bg-fafbfc: #25313a;
+ --bg-fbe4e1: #3a2828;
+ --bg-fbf1dc: #382f22;
+ --bg-fbfaf7: #382f22;
+ --bg-fdf3f2: #3a2828;
+ --bg-fff4e0: #382f22;
+ --bg-fff8eb: #382f22;
+ --edge-222222: #514a41;
+ --edge-29474d: #514a41;
+ --edge-2e7d5b: #514a41;
+ --edge-6e6a63: #514a41;
+ --edge-9fd5b4: #514a41;
+ --edge-b4c4c2: #514a41;
+ --edge-b5ddd0: #514a41;
+ --edge-bcd9d4: #514a41;
+ --edge-c5d1d2: #514a41;
+ --edge-c5d6d3: #514a41;
+ --edge-cfe6d8: #514a41;
+ --edge-d5dde0: #514a41;
+ --edge-d5e3e1: #514a41;
+ --edge-dfe6e7: #514a41;
+ --edge-dfe8e7: #514a41;
+ --edge-e7a39b: #514a41;
+ --edge-f0e2c8: #514a41;
+ --edge-f1c4be: #514a41;
+ --edge-f3c4be: #514a41;
+ --edge-f3c9c4: #514a41;
+ --fg-1b1405: #e2bd87;
+ --fg-1d4f8a: #b8cddd;
+ --fg-2d4a50: #b8cddd;
+ --fg-3b4650: #b8cddd;
+ --fg-3d4b5c: #b8cddd;
+ --fg-5a3d86: #d7bde5;
+ --fg-6b7680: #f2eee7;
+ --fg-7a2a22: #efaaaa;
+ --fg-7a5a10: #e2bd87;
+ --fg-8a5300: #e2bd87;
+ --fg-963030: #efaaaa;
+ --fg-9bb0b4: #f2eee7;
+ --fg-a86e00: #e2bd87;
+ --fg-b4bec2: #f2eee7;
+ --fg-e2ddd5: #e2bd87;
+ --fg-e4f0f1: #b8cddd;
+}
+:root[data-theme="dark"] .lab-sidebar nav a:hover,
+:root[data-theme="dark"] .lab-sidebar nav a[aria-current="page"] { background: var(--accent-soft); color: var(--link); }
+:root[data-theme="dark"] .lab-sidebar .lab-account button:hover { background: var(--accent-soft); }
+@media print {
+ :root[data-theme="dark"] { color-scheme: light; --background: #fff; --surface: #fff; --ink: #222; --muted: #555; --line: #ddd; }
+ .theme-toggle { display: none !important; }
+}
+
+:root { --fg-5a3d86: #5a3d86; --fg-3d4b5c: #3d4b5c; }
+:root[data-theme="dark"] { --fg-5a3d86: #d7bde5; --fg-3d4b5c: #b8cddd; }
+
+@media print { :root[data-theme="dark"] { --background:#f7f6f3;--surface:#ffffff;--ink:#222222;--muted:#6e6a63;--line:#e2ddd5;--accent:#8c6239;--accent-strong:#734f2d;--accent-soft:#f3ece2;--danger:#b83a3a;--warning:#87601f;--ok:#286f51;--ease-out:cubic-bezier(0.23, 1, 0.32, 1);--ease-in-out:cubic-bezier(0.77, 0, 0.175, 1);--shadow-soft:0 4px 18px -8px rgba(34, 34, 34, 0.06);--link:#8c6239;--focus:#8c6239;--surface-secondary:#efece6;--danger-solid:#b83a3a;--solid-ink:#222222;--ok-soft:#e8f3ee;--warning-soft:#fbf3e4;--danger-soft:#f9eaea;--bg-08463f:#08463f;--bg-102e34:#102e34;--bg-18723f:#18723f;--bg-188046:#188046;--bg-1c4148:#1c4148;--bg-2e7d5b:#2e7d5b;--bg-6e4b2a:#6e4b2a;--bg-87601f:#87601f;--bg-963030:#963030;--bg-c3e7e5:#c3e7e5;--bg-dfe8e8:#dfe8e8;--bg-e2ddd5:#e2ddd5;--bg-e3ecec:#e3ecec;--bg-e4e9ee:#e4e9ee;--bg-e8eeee:#e8eeee;--bg-e8f1fb:#e8f1fb;--bg-efe9f7:#efe9f7;--bg-f0f7f3:#f0f7f3;--bg-f3e8e8:#f3e8e8;--bg-f6faf9:#f6faf9;--bg-f8d7d7:#f8d7d7;--bg-f8efd2:#f8efd2;--bg-fafbfc:#fafbfc;--bg-fbe4e1:#fbe4e1;--bg-fbf1dc:#fbf1dc;--bg-fbfaf7:#fbfaf7;--bg-fdf3f2:#fdf3f2;--bg-fff4e0:#fff4e0;--bg-fff8eb:#fff8eb;--edge-222222:#222222;--edge-29474d:#29474d;--edge-2e7d5b:#2e7d5b;--edge-6e6a63:#6e6a63;--edge-9fd5b4:#9fd5b4;--edge-b4c4c2:#b4c4c2;--edge-b5ddd0:#b5ddd0;--edge-bcd9d4:#bcd9d4;--edge-c5d1d2:#c5d1d2;--edge-c5d6d3:#c5d6d3;--edge-cfe6d8:#cfe6d8;--edge-d5dde0:#d5dde0;--edge-d5e3e1:#d5e3e1;--edge-dfe6e7:#dfe6e7;--edge-dfe8e7:#dfe8e7;--edge-e7a39b:#e7a39b;--edge-f0e2c8:#f0e2c8;--edge-f1c4be:#f1c4be;--edge-f3c4be:#f3c4be;--edge-f3c9c4:#f3c9c4;--fg-1b1405:#1b1405;--fg-1d4f8a:#1d4f8a;--fg-2d4a50:#2d4a50;--fg-3b4650:#3b4650;--fg-3d4b5c:#3d4b5c;--fg-5a3d86:#5a3d86;--fg-6b7680:#6b7680;--fg-7a2a22:#7a2a22;--fg-7a5a10:#7a5a10;--fg-8a5300:#8a5300;--fg-963030:#963030;--fg-9bb0b4:#9bb0b4;--fg-a86e00:#a86e00;--fg-b4bec2:#b4bec2;--fg-e2ddd5:#e2ddd5;--fg-e4f0f1:#e4f0f1; } }
+
+/* Solid action fills retain AA white labels in either theme. */
+:root[data-theme="dark"] { --bg-0b423f:#0b423f; --bg-18723f:#18723f; --bg-188046:#188046; --bg-2e7d5b:#2e7d5b; --bg-6e4b2a:#6e4b2a; --bg-87601f:#87601f; --bg-963030:#963030; }

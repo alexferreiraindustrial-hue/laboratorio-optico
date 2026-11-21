@@ -26,16 +26,16 @@ class LaBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: fundo,
+        color: texto == "Urgente" ? fundo : LaColors.adapt(context, fundo),
         borderRadius: LaRadius.rChip,
-        border: borda == null ? null : Border.all(color: borda!, width: 1.5),
+        border: borda == null ? null : Border.all(color: LaColors.adapt(context, borda!), width: 1.5),
       ),
       child: Text(
         texto,
         style: LaType.rotulo.copyWith(
           fontSize: 13,
           fontWeight: FontWeight.w700,
-          color: cor,
+          color: LaColors.adapt(context, cor),
         ),
       ),
     );
@@ -83,7 +83,7 @@ class LaPrazoTag extends StatelessWidget {
             style: LaType.rotulo.copyWith(
               fontSize: tamanho,
               fontWeight: FontWeight.w700,
-              color: cor,
+              color: LaColors.adapt(context, cor),
             ),
           ),
         ),

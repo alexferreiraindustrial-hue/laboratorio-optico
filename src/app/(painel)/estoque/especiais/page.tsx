@@ -34,13 +34,13 @@ export default async function SpecialStockPage() {
       <PageHeading title="Graus especiais" description="Combinações fora da grade principal, com as mesmas movimentações, mínimo e QR Code.">
         <Button variant="secondary" asChild><Link href="/estoque">Voltar à grade</Link></Button>
       </PageHeading>
-      {error ? <p className="text-sm text-[#b83a3a]">{error.message}</p> : null}
+      {error ? <p className="text-sm text-[var(--danger)]">{error.message}</p> : null}
       {items.length === 0 ? (
         <EmptyState title="Nenhum grau especial" text="Cadastre abaixo quando a receita ficar fora da faixa configurada." />
       ) : (
         <Panel className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="text-xs uppercase text-[#6e6a63]">
+            <thead className="text-xs uppercase text-[var(--muted)]">
               <tr>
                 <th className="px-3 py-2">Código</th>
                 <th className="px-3 py-2">Grau</th>
@@ -51,8 +51,8 @@ export default async function SpecialStockPage() {
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr key={item.id} className="border-t border-[#efece6]">
-                  <td className="px-3 py-2"><Link className="text-[#8c6239] underline" href={`/estoque/${item.id}`}>{item.public_code}</Link></td>
+                <tr key={item.id} className="border-t border-[var(--line)]">
+                  <td className="px-3 py-2"><Link className="text-[var(--link)] underline" href={`/estoque/${item.id}`}>{item.public_code}</Link></td>
                   <td className="px-3 py-2">{formatDiopter(item.sphere_cents)} / {formatDiopter(item.cylinder_cents)}</td>
                   <td className="px-3 py-2">{item.current_qty}</td>
                   <td className="px-3 py-2">{stockTone(item.current_qty, item.min_qty, item.ideal_qty)}</td>

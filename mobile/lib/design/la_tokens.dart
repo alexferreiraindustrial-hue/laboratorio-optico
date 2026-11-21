@@ -4,6 +4,21 @@ import 'package:flutter/material.dart';
 
 /// Cores. Use sempre o token, nunca o hex solto.
 abstract final class LaColors {
+  static Color surface(BuildContext context) => Theme.of(context).colorScheme.surface;
+  static Color adapt(BuildContext context, Color color) => forBrightness(Theme.of(context).brightness, color);
+  static Color forBrightness(Brightness brightness, Color color) {
+    if (brightness != Brightness.dark) return color;
+    if (color == piso) return const Color(0xFF181715);
+    if (color == grafite) return const Color(0xFFF2EEE7);
+    if (color == regua || color == abaInativa) return const Color(0xFFC5BDB1);
+    if (color == borda || color == filete || color == linha) return const Color(0xFF514A41);
+    if (color == acentoSuave || color == alertaFundo) return const Color(0xFF382F22);
+    if (color == perigoFundo) return const Color(0xFF3A2828);
+    if (color == perigo || color == pontoAtrasada) return const Color(0xFFEFAAAA);
+    if (color == alerta || color == alertaBorda || color == pontoProximo || color == acento) return const Color(0xFFE2BD87);
+    if (color == noPrazo || color == pontoNoPrazo) return const Color(0xFF8AD3B0);
+    return color;
+  }
   static const acento = Color(0xFF8C6239);
   static const acentoSuave = Color(0xFFF3ECE2);
   static const navegacao = Color(0xFF222222);
@@ -74,7 +89,7 @@ abstract final class LaType {
     FontWeight w = FontWeight.w700,
     double? h,
     double? ls,
-    Color c = LaColors.grafite,
+    Color? c,
   }) => TextStyle(
     fontFamily: 'Manrope',
     fontSize: size,
@@ -88,7 +103,7 @@ abstract final class LaType {
     double size, {
     FontWeight w = FontWeight.w500,
     double? h,
-    Color c = LaColors.grafite,
+    Color? c,
   }) => TextStyle(
     fontFamily: 'Manrope',
     fontSize: size,
@@ -113,9 +128,9 @@ abstract final class LaType {
   static TextStyle get botao => _ui(16, w: FontWeight.w700);
   static TextStyle get botaoGrande => _ui(18, w: FontWeight.w700);
   static TextStyle get rotulo => _ui(14, w: FontWeight.w600);
-  static TextStyle get apoio => _ui(13, w: FontWeight.w400, c: LaColors.regua);
+  static TextStyle get apoio => _ui(13, w: FontWeight.w400);
   static TextStyle get aba =>
-      _ui(12, w: FontWeight.w600, c: LaColors.abaInativa);
+      _ui(12, w: FontWeight.w600);
   static TextStyle get abaAtiva =>
       _ui(12, w: FontWeight.w700, c: LaColors.branco);
 }

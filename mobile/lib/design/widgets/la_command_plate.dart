@@ -17,23 +17,23 @@ class LaCommandPlate extends StatelessWidget {
   final VoidCallback onConfigurarRotina;
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(14),
+    padding: EdgeInsets.all(14),
     decoration: BoxDecoration(
-      color: LaColors.branco,
+      color: LaColors.surface(context),
       borderRadius: LaRadius.rCartao,
-      border: Border.all(color: LaColors.filete),
+      border: Border.all(color: LaColors.adapt(context, LaColors.filete)),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text('Começar um serviço', style: LaType.corpoForte),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, box) {
             final primary = LaButton(
               label: 'Entrada rápida',
               variant: LaButtonVariant.principal,
-              leading: const Icon(Icons.add, color: LaColors.branco),
+              leading: Icon(Icons.add, color: LaColors.branco),
               onPressed: onLancarOs,
             );
             final secondary = LaButton(
@@ -45,32 +45,32 @@ class LaCommandPlate extends StatelessWidget {
                 MediaQuery.textScalerOf(context).scale(16) > 22) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [primary, const SizedBox(height: 8), secondary],
+                children: [primary, SizedBox(height: 8), secondary],
               );
             }
             return Row(
               children: [
                 Expanded(child: primary),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(child: secondary),
               ],
             );
           },
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: TextButton.icon(
                 onPressed: onRotina,
-                icon: const Icon(Icons.checklist),
-                label: const Text('Rotina do dia'),
+                icon: Icon(Icons.checklist),
+                label: Text('Rotina do dia'),
               ),
             ),
             IconButton(
               tooltip: 'Configurar rotina',
               onPressed: onConfigurarRotina,
-              icon: const Icon(Icons.settings_outlined),
+              icon: Icon(Icons.settings_outlined),
             ),
           ],
         ),

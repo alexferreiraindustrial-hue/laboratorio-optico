@@ -44,24 +44,24 @@ class LaButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final (Color bg, Color fg, BorderSide side) = switch (variant) {
       LaButtonVariant.principal => (
-        LaColors.acento,
+        Color(0xFF8C6239),
         LaColors.branco,
         BorderSide.none,
       ),
       LaButtonVariant.escuro => (
-        LaColors.grafite,
+        Color(0xFF222222),
         LaColors.branco,
         BorderSide.none,
       ),
       LaButtonVariant.contorno => (
-        LaColors.branco,
-        LaColors.grafite,
-        const BorderSide(color: LaColors.grafite, width: 2),
+        LaColors.surface(context),
+        LaColors.adapt(context, LaColors.grafite),
+        BorderSide(color: LaColors.adapt(context, LaColors.grafite), width: 2),
       ),
       LaButtonVariant.perigo => (
-        LaColors.branco,
-        LaColors.perigo,
-        const BorderSide(color: LaColors.perigo, width: 2),
+        LaColors.surface(context),
+        LaColors.adapt(context, LaColors.perigo),
+        BorderSide(color: LaColors.adapt(context, LaColors.perigo), width: 2),
       ),
     };
     final enabled = onPressed != null && !loading;
@@ -77,7 +77,7 @@ class LaButton extends StatelessWidget {
             children: [
               if (leading != null) ...[
                 leading!,
-                const SizedBox(width: LaSpace.item),
+                SizedBox(width: LaSpace.item),
               ],
               Flexible(
                 child: Text(
@@ -87,7 +87,7 @@ class LaButton extends StatelessWidget {
                 ),
               ),
               if (trailing != null) ...[
-                const SizedBox(width: LaSpace.item),
+                SizedBox(width: LaSpace.item),
                 trailing!,
               ],
             ],
@@ -108,7 +108,7 @@ class LaButton extends StatelessWidget {
           child: InkWell(
             onTap: enabled ? onPressed : null,
             overlayColor: WidgetStatePropertyAll(
-              LaColors.grafite.withValues(alpha: 0.08),
+              LaColors.adapt(context, LaColors.grafite).withValues(alpha: 0.08),
             ),
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -116,7 +116,7 @@ class LaButton extends StatelessWidget {
                 minWidth: expand ? double.infinity : 0,
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   horizontal: LaSpace.interno,
                   vertical: 12,
                 ),

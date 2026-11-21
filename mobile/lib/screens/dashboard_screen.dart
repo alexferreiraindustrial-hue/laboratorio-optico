@@ -31,7 +31,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     load();
-    _timer = Timer.periodic(const Duration(seconds: 20), (_) {
+    _timer = Timer.periodic(Duration(seconds: 20), (_) {
       if (mounted) load(silent: true);
     });
   }
@@ -84,11 +84,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return SafeArea(
       bottom: false,
       child: RefreshIndicator(
-        color: LaColors.grafite,
-        backgroundColor: LaColors.branco,
+        color: LaColors.adapt(context, LaColors.grafite),
+        backgroundColor: LaColors.surface(context),
         onRefresh: load,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             LaSpace.tela,
             LaSpace.l,
             LaSpace.tela,
@@ -97,8 +97,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Row(
               children: [
-                const LaMonogram(size: 44),
-                const SizedBox(width: LaSpace.l),
+                LaMonogram(size: 44),
+                SizedBox(width: LaSpace.l),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,16 +114,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         dataPorExtenso(DateTime.now()),
                         style: LaType.rotulo.copyWith(
                           fontWeight: FontWeight.w500,
-                          color: LaColors.regua,
+                          color: LaColors.adapt(context, LaColors.regua),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const NoticeBell(),
+                NoticeBell(),
               ],
             ),
-            const SizedBox(height: LaSpace.secao),
+            SizedBox(height: LaSpace.secao),
             LaCommandPlate(
               onLancarOs: () => context.go('/lancar'),
               onOsCompleta: () => context.push('/os/nova'),
@@ -132,7 +132,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 canSettingsWrite(role) ? '/configuracoes' : '/mais',
               ),
             ),
-            const SizedBox(height: LaSpace.secao),
+            SizedBox(height: LaSpace.secao),
             if (error != null)
               LaErrorBanner(
                 titulo: 'Painel indisponível',
@@ -140,10 +140,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 onTentarDeNovo: load,
               ),
             if (loading)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.all(40),
                 child: Center(
-                  child: CircularProgressIndicator(color: LaColors.grafite),
+                  child: CircularProgressIndicator(color: LaColors.adapt(context, LaColors.grafite)),
                 ),
               )
             else
@@ -159,13 +159,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                 ],
               ),
-            const SizedBox(height: LaSpace.secao),
+            SizedBox(height: LaSpace.secao),
             _StockNotice(
               alert: alert,
               lowStock: lowStock,
               onTap: () => context.push('/estoque'),
             ),
-            const SizedBox(height: LaSpace.item),
+            SizedBox(height: LaSpace.item),
             _ProfileChip(name: _name, onTap: () => context.go('/mais')),
           ],
         ),
@@ -208,11 +208,11 @@ class _StockNotice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: LaColors.branco,
+      color: LaColors.surface(context),
       shape: RoundedRectangleBorder(
         borderRadius: LaRadius.rCartao,
         side: BorderSide(
-          color: alert ? LaColors.alertaBorda : LaColors.linha,
+          color: alert ? LaColors.adapt(context, LaColors.alertaBorda) : LaColors.adapt(context, LaColors.linha),
           width: alert ? 1.5 : 1,
         ),
       ),
@@ -222,7 +222,7 @@ class _StockNotice extends StatelessWidget {
         child: SizedBox(
           height: LaSize.toque + 8,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: LaSpace.interno),
+            padding: EdgeInsets.symmetric(horizontal: LaSpace.interno),
             child: Row(
               children: [
                 Container(
@@ -230,19 +230,19 @@ class _StockNotice extends StatelessWidget {
                   height: 10,
                   decoration: BoxDecoration(
                     color: alert
-                        ? LaColors.pontoProximo
-                        : LaColors.pontoNoPrazo,
+                        ? LaColors.adapt(context, LaColors.pontoProximo)
+                        : LaColors.adapt(context, LaColors.pontoNoPrazo),
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: LaSpace.m),
+                SizedBox(width: LaSpace.m),
                 Expanded(
                   child: Text(
                     alert ? '$lowStock lentes no mínimo' : 'Estoque em dia',
                     style: LaType.corpoForte,
                   ),
                 ),
-                const Icon(Icons.north_east, color: LaColors.grafite, size: 20),
+                Icon(Icons.north_east, color: LaColors.adapt(context, LaColors.grafite), size: 20),
               ],
             ),
           ),
@@ -260,24 +260,24 @@ class _ProfileChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: LaColors.branco,
+      color: LaColors.surface(context),
       borderRadius: LaRadius.rCartao,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 10, 16, 10),
+          padding: EdgeInsets.fromLTRB(10, 10, 16, 10),
           child: Row(
             children: [
               CircleAvatar(
                 radius: 22,
-                backgroundColor: LaColors.grafite,
+                backgroundColor: Color(0xFF222222),
                 child: Text(
                   iniciaisDe(name),
                   style: LaType.rotulo.copyWith(color: LaColors.branco),
                 ),
               ),
-              const SizedBox(width: LaSpace.l),
+              SizedBox(width: LaSpace.l),
               Expanded(
                 child: Text(
                   name,

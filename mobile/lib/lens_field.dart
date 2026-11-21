@@ -17,8 +17,8 @@ class LensField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: LaColors.piso,
-      child: child ?? const SizedBox.expand(),
+      color: LaColors.adapt(context, LaColors.piso),
+      child: child ?? SizedBox.expand(),
     );
   }
 }
@@ -35,8 +35,8 @@ class GlassPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: LaColors.branco,
+      decoration: BoxDecoration(
+        color: LaColors.surface(context),
         borderRadius: LaRadius.rCartao,
       ),
       child: Padding(padding: padding, child: child),

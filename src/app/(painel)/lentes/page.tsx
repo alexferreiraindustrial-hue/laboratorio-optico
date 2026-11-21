@@ -30,10 +30,10 @@ export default async function LentesPage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-    <div className="lab-reference-lenses flex flex-col gap-5">
-      <PageHeading stacked
+    <div className="lab-reference-lenses flex flex-col gap-3">
+      <PageHeading
         title={<>Lentes <span className="lab-reference-heading-accent">a chegar</span></>}
-        description="OS vendidas cuja lente ainda está no laboratório externo. A lente precisa chegar com pelo menos 1 dia de folga antes do prazo prometido ao cliente para dar tempo de montar."
+        description="Acompanhe os pedidos por prioridade. Ao receber a lente, envie a OS para montagem."
       >
         <Button asChild>
           <Link href="/laboratorio/rapido?modo=lentes">
@@ -44,7 +44,7 @@ export default async function LentesPage({ searchParams }: { searchParams: Promi
       {error ? (
         <p className="rounded-lg border border-[var(--edge-f3c9c4)] bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">Não foi possível carregar as previsões. Verifique se a migração do fluxo de produção foi aplicada.</p>
       ) : null}
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="lab-lens-metrics grid grid-cols-2 gap-2 xl:grid-cols-4">
         <Kpi label="Aguardando lente" value={String(rows.length)} hint="OS paradas esperando o laboratório" tool="Fila" />
         <Kpi label="Lente atrasada" value={String(late)} tone={late ? "bad" : "ok"} hint="previsão do laboratório já passou" tool="Cobrar" />
         <Kpi label="Vão estourar o prazo" value={String(willMiss)} tone={willMiss ? "bad" : "ok"} hint="avise o vendedor e renegocie" tool="Risco" />

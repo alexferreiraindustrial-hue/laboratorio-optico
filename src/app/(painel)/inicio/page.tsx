@@ -49,8 +49,8 @@ export default async function InicioPage() {
     {
       step: "1",
       href: "/laboratorio/rapido",
-      title: "Lançar OS",
-      when: "Chegou uma OS nova da loja ou da vendedora? Comece aqui.",
+      title: "Lançar serviço",
+      when: "OS nova ou manutenção rápida, mesmo sem número de OS.",
       icon: Zap,
       count: -1,
       countText: () => "",

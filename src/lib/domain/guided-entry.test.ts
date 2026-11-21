@@ -26,3 +26,21 @@ describe("cadastro guiado", () => {
     expect(validateGuidedEntry({ ...input, dueAt }, now)).toBeNull();
   });
 });
+
+describe("manutenção sem OS",()=>{
+ const maintenance={...input,serviceKind:"manutencao" as const,laboratoryId:"",orderRef:"",clientName:"",serviceDescription:"Troca de plaquetas"};
+ it("aceita manutenção sem OS, cliente ou fornecedor externo",()=>{expect(validateGuidedEntry(maintenance,now)).toBeNull();});
+ it("continua exigindo responsável, descrição e prazo válido",()=>{
+  expect(validateGuidedEntry({...maintenance,sellerId:""},now)).not.toBeNull();
+  for(const serviceDescription of ["","  ","ab","x".repeat(501)])expect(validateGuidedEntry({...maintenance,serviceDescription},now)).not.toBeNull();
+  expect(validateGuidedEntry({...maintenance,dueAt:now.toISOString()},now)).not.toBeNull();
+ });
+ it("não dispensa a OS de pedidos de lentes e rejeita tipo inválido",()=>{
+  expect(validateGuidedEntry({...maintenance,serviceKind:"lentes",laboratoryId:"lab"},now)).toContain("número da OS");
+  expect(validateGuidedEntry({...input,serviceKind:"outro" as "lentes"},now)).toContain("tipo de serviço");
+ });
+ it("limita a identificação do cliente e a OS",()=>{
+  expect(validateGuidedEntry({...maintenance,clientName:"x".repeat(201)},now)).not.toBeNull();
+  expect(validateGuidedEntry({...maintenance,orderRef:"x".repeat(81)},now)).not.toBeNull();
+ });
+});

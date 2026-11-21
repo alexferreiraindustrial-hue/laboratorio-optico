@@ -215,7 +215,7 @@ export default async function DashboardPage({
       <PageHeading title="Fila de hoje" description="Mesma organização do app: toque na etapa, depois na loja e na vendedora. Produção e qualidade seguem o período selecionado.">
         {can(role, "orders.write") ? (
           <Button variant="secondary" asChild>
-            <Link href="/laboratorio/rapido">Lançar OS</Link>
+            <Link href="/laboratorio/rapido">Lançar serviço</Link>
           </Button>
         ) : null}
         {can(role, "orders.write") ? (

@@ -44,16 +44,16 @@ function Labels() {
     <div>
       <div className="no-print mb-4">
         <Button type="button" onClick={() => window.print()}>Imprimir ou salvar PDF</Button>
-        {error ? <p className="mt-2 text-sm text-[#b83a3a]">{error}</p> : null}
+        {error ? <p className="mt-2 text-sm text-[var(--danger)]">{error}</p> : null}
       </div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         {items.map((item) => (
-          <article key={item.id} className="rounded border border-[#e2ddd5] bg-white p-3 text-center">
+          <article key={item.id} className="rounded border border-[var(--line)] bg-[var(--surface)] p-3 text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={item.src} alt="" className="mx-auto h-28 w-28" />
             <p className="mt-2 font-mono text-sm">{item.public_code}</p>
             <p className="text-sm">{formatDiopter(item.sphere_cents)} / {formatDiopter(item.cylinder_cents)}</p>
-            <p className="text-xs text-[#6e6a63]">{item.location || "Sem localização"}</p>
+            <p className="text-xs text-[var(--muted)]">{item.location || "Sem localização"}</p>
           </article>
         ))}
       </div>

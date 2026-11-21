@@ -156,15 +156,15 @@ export default async function MelhoriaPage() {
               const bg = { bad: "#f9eaea", warn: "#fbf3e4", ok: "#e8f3ee" }[action.tone];
               return (
                 <li key={action.title}>
-                  <Link href={action.href} className="group flex items-start gap-3 rounded-lg border border-[#efece6] p-3 transition-colors hover:border-[#e2ddd5] hover:bg-[#f7f6f3]">
+                  <Link href={action.href} className="group flex items-start gap-3 rounded-lg border border-[var(--line)] p-3 transition-colors hover:border-[var(--line)] hover:bg-[var(--background)]">
                     <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg" style={{ background: bg, color }}>
                       <Icon size={18} />
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <span className="text-sm font-semibold">{action.title}</span>
-                      <span className="text-[13px] leading-snug text-[#6e6a63]">{action.text}</span>
+                      <span className="text-[13px] leading-snug text-[var(--muted)]">{action.text}</span>
                     </span>
-                    <ArrowRight size={16} className="mt-1 shrink-0 text-[#6e6a63] transition-transform group-hover:translate-x-0.5 group-hover:text-[#8c6239]" />
+                    <ArrowRight size={16} className="mt-1 shrink-0 text-[var(--muted)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--link)]" />
                   </Link>
                 </li>
               );
@@ -176,7 +176,7 @@ export default async function MelhoriaPage() {
           title="Kaizen em andamento"
           subtitle="Pequenas melhorias contínuas no ciclo PDCA"
           action={
-            <Link href="/melhoria/kaizen" className="text-[13px] font-semibold text-[#8c6239] hover:underline">
+            <Link href="/melhoria/kaizen" className="text-[13px] font-semibold text-[var(--link)] hover:underline">
               Abrir quadro
             </Link>
           }
@@ -184,17 +184,17 @@ export default async function MelhoriaPage() {
           <div className="flex flex-col items-center gap-4 sm:flex-row">
             <PdcaWheel counts={counts} />
             <div className="grid w-full gap-3">
-              <div className="rounded-lg bg-[#f7f6f3] p-3">
-                <p className="text-xs font-medium text-[#6e6a63]">Melhorias padronizadas</p>
+              <div className="rounded-lg bg-[var(--background)] p-3">
+                <p className="text-xs font-medium text-[var(--muted)]">Melhorias padronizadas</p>
                 <p className="tabular text-2xl font-semibold">{standardized.length}</p>
               </div>
-              <div className="rounded-lg bg-[#f7f6f3] p-3">
-                <p className="text-xs font-medium text-[#6e6a63]">Tempo devolvido à equipe</p>
+              <div className="rounded-lg bg-[var(--background)] p-3">
+                <p className="text-xs font-medium text-[var(--muted)]">Tempo devolvido à equipe</p>
                 <p className="tabular text-2xl font-semibold">
-                  {gain} <span className="text-sm font-medium text-[#6e6a63]">min/dia</span>
+                  {gain} <span className="text-sm font-medium text-[var(--muted)]">min/dia</span>
                 </p>
               </div>
-              <Link href="/melhoria/kaizen?nova=1" className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#8c6239] px-3.5 text-sm font-semibold text-white hover:bg-[#734f2d]">
+              <Link href="/melhoria/kaizen?nova=1" className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-3.5 text-sm font-semibold text-white hover:bg-[var(--accent-strong)]">
                 <Lightbulb size={16} /> Registrar ideia
               </Link>
             </div>
@@ -211,15 +211,15 @@ export default async function MelhoriaPage() {
         ].map((item) => {
           const Icon = item.icon;
           return (
-            <Link key={item.href} href={item.href} className="group flex flex-col gap-2 rounded-xl border border-[#e2ddd5] bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-[#bcd9d4] hover:shadow-[0_10px_28px_-18px_rgba(14,107,98,0.6)]">
+            <Link key={item.href} href={item.href} className="group flex flex-col gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4 transition-all hover:-translate-y-0.5 hover:border-[var(--edge-bcd9d4)] hover:shadow-[0_10px_28px_-18px_rgba(14,107,98,0.6)]">
               <span className="flex items-center gap-2 text-sm font-semibold">
-                <Icon size={16} className="text-[#8c6239]" />
+                <Icon size={16} className="text-[var(--link)]" />
                 {item.tool}
               </span>
-              <span className="text-[13px] leading-snug text-[#6e6a63]">{item.text}</span>
+              <span className="text-[13px] leading-snug text-[var(--muted)]">{item.text}</span>
               <span className="mt-auto flex items-center justify-between pt-1">
                 <Pill>{item.value}</Pill>
-                <ArrowRight size={15} className="text-[#6e6a63] transition-transform group-hover:translate-x-0.5 group-hover:text-[#8c6239]" />
+                <ArrowRight size={15} className="text-[var(--muted)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--link)]" />
               </span>
             </Link>
           );

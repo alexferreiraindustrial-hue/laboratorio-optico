@@ -80,7 +80,7 @@ class _LensesScreenState extends State<LensesScreen> {
       return;
     }
     setState(() => buscando = true);
-    _debounce = Timer(const Duration(milliseconds: 280), () async {
+    _debounce = Timer(Duration(milliseconds: 280), () async {
       try {
         final next = await api.findOrders(texto);
         if (!mounted || busca.text.trim() != texto) return;
@@ -124,8 +124,8 @@ class _LensesScreenState extends State<LensesScreen> {
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: LaColors.branco,
-      shape: const RoundedRectangleBorder(borderRadius: LaRadius.rFolhaTopo),
+      backgroundColor: LaColors.surface(context),
+      shape: RoundedRectangleBorder(borderRadius: LaRadius.rFolhaTopo),
       builder: (context) => _PedidoSheet(row: row, api: api),
     );
     if (saved == true) await load();
@@ -146,10 +146,10 @@ class _LensesScreenState extends State<LensesScreen> {
       children: [
         Expanded(
           child: RefreshIndicator(
-            color: LaColors.grafite,
+            color: LaColors.adapt(context, LaColors.grafite),
             onRefresh: load,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(
+              padding: EdgeInsets.fromLTRB(
                 LaSpace.tela,
                 LaSpace.l,
                 LaSpace.tela,
@@ -164,26 +164,26 @@ class _LensesScreenState extends State<LensesScreen> {
                   'O prazo do cliente manda. O pedido confirma a chegada.',
                   style: LaType.apoio,
                 ),
-                const SizedBox(height: LaSpace.secao),
+                SizedBox(height: LaSpace.secao),
                 TextField(
                   controller: busca,
                   onChanged: onBusca,
                   textInputAction: TextInputAction.search,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Buscar OS, cliente ou pedido',
                     filled: true,
-                    fillColor: LaColors.branco,
+                    fillColor: LaColors.surface(context),
                   ),
                 ),
                 if (error != null) ...[
-                  const SizedBox(height: LaSpace.item),
+                  SizedBox(height: LaSpace.item),
                   LaErrorBanner(
                     titulo: 'Lentes',
                     mensagem: error!,
                     onTentarDeNovo: load,
                   ),
                 ],
-                const SizedBox(height: LaSpace.secao),
+                SizedBox(height: LaSpace.secao),
                 if (pesquisando)
                   _Busca(
                     carregando: buscando,
@@ -195,7 +195,7 @@ class _LensesScreenState extends State<LensesScreen> {
                     selecionada: casa,
                     onChanged: (value) => setState(() => casa = value),
                   ),
-                  const SizedBox(height: LaSpace.secao),
+                  SizedBox(height: LaSpace.secao),
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final wide = constraints.maxWidth >= 840;
@@ -228,7 +228,7 @@ class _LensesScreenState extends State<LensesScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             pedidoBloco,
-                            const SizedBox(height: LaSpace.xxl),
+                            SizedBox(height: LaSpace.xxl),
                             lenteBloco,
                           ],
                         );
@@ -237,7 +237,7 @@ class _LensesScreenState extends State<LensesScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(child: pedidoBloco),
-                          const SizedBox(width: LaSpace.l),
+                          SizedBox(width: LaSpace.l),
                           Expanded(child: lenteBloco),
                         ],
                       );
@@ -250,7 +250,7 @@ class _LensesScreenState extends State<LensesScreen> {
         ),
         if (!pesquisando && selected.isNotEmpty && podeReceber)
           Padding(
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               LaSpace.tela,
               0,
               LaSpace.tela,
@@ -306,25 +306,25 @@ class _Chip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? LaColors.grafite : LaColors.branco,
+      color: selected ? Color(0xFF222222) : LaColors.surface(context),
       borderRadius: LaRadius.rChip,
       child: InkWell(
         onTap: onTap,
         borderRadius: LaRadius.rChip,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(
+          constraints: BoxConstraints(
             minHeight: LaSize.toque,
             minWidth: LaSize.toque,
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            padding: EdgeInsets.symmetric(horizontal: 14),
             child: Center(
               widthFactor: 1,
               child: Text(
                 label,
                 style: LaType.rotulo.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: selected ? LaColors.branco : LaColors.grafite,
+                  color: selected ? LaColors.branco : LaColors.adapt(context, LaColors.grafite),
                 ),
               ),
             ),
@@ -349,15 +349,15 @@ class _Busca extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (carregando && achados.isEmpty) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
         child: Center(
-          child: CircularProgressIndicator(color: LaColors.grafite),
+          child: CircularProgressIndicator(color: LaColors.adapt(context, LaColors.grafite)),
         ),
       );
     }
     if (achados.isEmpty) {
-      return const LaEmptyState(
+      return LaEmptyState(
         titulo: 'Nenhuma OS',
         mensagem: 'Nada com esse número, cliente ou pedido.',
       );
@@ -366,7 +366,7 @@ class _Busca extends StatelessWidget {
       children: [
         for (final row in achados) ...[
           _BuscaCard(row: row, onAbrir: () => onAbrir(row)),
-          const SizedBox(height: LaSpace.item),
+          SizedBox(height: LaSpace.item),
         ],
       ],
     );
@@ -382,15 +382,15 @@ class _BuscaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: LaColors.branco,
+      color: LaColors.surface(context),
       borderRadius: LaRadius.rCartao,
       child: InkWell(
         onTap: onAbrir,
         borderRadius: LaRadius.rCartao,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: LaSize.toque),
+          constraints: BoxConstraints(minHeight: LaSize.toque),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -399,7 +399,7 @@ class _BuscaCard extends StatelessWidget {
                   '${row['client_name'] ?? 'Sem nome'}',
                   style: LaType.corpo.copyWith(fontWeight: FontWeight.w600),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   ondeEsta(row),
                   style: LaType.corpo.copyWith(fontWeight: FontWeight.w700),
@@ -454,7 +454,7 @@ class _Coluna extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: LaSpace.item),
+        SizedBox(height: LaSpace.item),
         if (rows.isEmpty)
           LaEmptyState(
             titulo: vazio,
@@ -466,17 +466,17 @@ class _Coluna extends StatelessWidget {
               store.$1,
               style: LaType.rotulo.copyWith(fontWeight: FontWeight.w700),
             ),
-            const SizedBox(height: LaSpace.s),
+            SizedBox(height: LaSpace.s),
             for (final seller in store.$2) ...[
               Text('Gaveta · ${seller.$1}', style: LaType.apoio),
-              const SizedBox(height: LaSpace.s),
+              SizedBox(height: LaSpace.s),
               for (final house in _gavetas(seller.$2)) ...[
                 if (house.$1 != null) ...[
                   Text(
                     house.$1!,
-                    style: LaType.rotulo.copyWith(color: LaColors.regua),
+                    style: LaType.rotulo.copyWith(color: LaColors.adapt(context, LaColors.regua)),
                   ),
-                  const SizedBox(height: LaSpace.s),
+                  SizedBox(height: LaSpace.s),
                 ],
                 for (final row in house.$2) ...[
                   _LenteCard(
@@ -488,7 +488,7 @@ class _Coluna extends StatelessWidget {
                     onPedido: () => onPedido(row),
                     onAbrir: () => onAbrir(row),
                   ),
-                  const SizedBox(height: LaSpace.item),
+                  SizedBox(height: LaSpace.item),
                 ],
               ],
             ],
@@ -552,9 +552,9 @@ class _LenteCard extends StatelessWidget {
     final faltaPedido = pedido.isEmpty;
     final faltaData = dia.isEmpty;
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 12, 12, 12),
-      decoration: const BoxDecoration(
-        color: LaColors.branco,
+      padding: EdgeInsets.fromLTRB(8, 12, 12, 12),
+      decoration: BoxDecoration(
+        color: LaColors.surface(context),
         borderRadius: LaRadius.rCartao,
       ),
       child: Column(
@@ -569,15 +569,15 @@ class _LenteCard extends StatelessWidget {
                   height: LaSize.toque,
                   child: InkWell(
                     onTap: onToggle,
-                    customBorder: const CircleBorder(),
+                    customBorder: CircleBorder(),
                     child: Icon(
                       marcada ? Icons.check_circle : Icons.circle_outlined,
-                      color: LaColors.grafite,
+                      color: LaColors.adapt(context, LaColors.grafite),
                     ),
                   ),
                 )
               else
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
               Expanded(
                 child: InkWell(
                   onTap: onPedido,
@@ -600,12 +600,12 @@ class _LenteCard extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       LaPrazoTag(
                         status: prazoDe(row),
                         texto: 'Cliente · ${prazoCurto(row)}',
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       Text(
                         faltaPedido
                             ? 'Falta o número do pedido'
@@ -613,8 +613,8 @@ class _LenteCard extends StatelessWidget {
                         style: LaType.corpo.copyWith(
                           fontWeight: FontWeight.w700,
                           color: faltaPedido
-                              ? LaColors.alerta
-                              : LaColors.grafite,
+                              ? LaColors.adapt(context, LaColors.alerta)
+                              : LaColors.adapt(context, LaColors.grafite),
                         ),
                       ),
                       Text(
@@ -623,14 +623,14 @@ class _LenteCard extends StatelessWidget {
                             : 'Laboratório $dia',
                         style: LaType.corpo.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: faltaData ? LaColors.alerta : LaColors.regua,
+                          color: faltaData ? LaColors.adapt(context, LaColors.alerta) : LaColors.adapt(context, LaColors.regua),
                         ),
                       ),
                       if (_mostraRisco(risco.watch))
                         Text(
                           risco.label,
                           style: LaType.apoio.copyWith(
-                            color: _riscoCor(risco.watch),
+                            color: _riscoCor(context, risco.watch),
                           ),
                         ),
                     ],
@@ -640,7 +640,7 @@ class _LenteCard extends StatelessWidget {
               IconButton(
                 onPressed: onAbrir,
                 tooltip: 'Abrir OS',
-                icon: const Icon(Icons.north_east, color: LaColors.grafite),
+                icon: Icon(Icons.north_east, color: LaColors.adapt(context, LaColors.grafite)),
               ),
             ],
           ),
@@ -663,18 +663,18 @@ bool _mostraRisco(LensWatch watch) {
   }
 }
 
-Color _riscoCor(LensWatch watch) {
+Color _riscoCor(BuildContext context, LensWatch watch) {
   switch (watch) {
     case LensWatch.atrasada:
     case LensWatch.estoura:
-      return LaColors.perigo;
+      return LaColors.adapt(context, LaColors.perigo);
     case LensWatch.apertado:
-      return LaColors.alerta;
+      return LaColors.adapt(context, LaColors.alerta);
     case LensWatch.noPrazo:
-      return LaColors.noPrazo;
+      return LaColors.adapt(context, LaColors.noPrazo);
     case LensWatch.semPrevisao:
     case LensWatch.semPrazo:
-      return LaColors.regua;
+      return LaColors.adapt(context, LaColors.regua);
   }
 }
 
@@ -776,14 +776,14 @@ class _PedidoSheetState extends State<_PedidoSheet> {
         children: [
           Text(visibleOrderNumber(widget.row), style: LaType.tituloSecao),
           Text('${widget.row['client_name'] ?? ''}', style: LaType.apoio),
-          const SizedBox(height: LaSpace.m),
+          SizedBox(height: LaSpace.m),
           LaPrazoTag(
             status: prazoDe(widget.row),
             texto: 'Cliente · ${prazoCurto(widget.row)}',
           ),
-          const SizedBox(height: LaSpace.secao),
+          SizedBox(height: LaSpace.secao),
           Text('Casa da gaveta', style: LaType.rotulo),
-          const SizedBox(height: LaSpace.s),
+          SizedBox(height: LaSpace.s),
           Wrap(
             spacing: LaSpace.item,
             runSpacing: LaSpace.item,
@@ -797,23 +797,23 @@ class _PedidoSheetState extends State<_PedidoSheet> {
                 ),
             ],
           ),
-          const SizedBox(height: LaSpace.secao),
+          SizedBox(height: LaSpace.secao),
           TextField(
             controller: numero,
             textCapitalization: TextCapitalization.characters,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Número do pedido',
               filled: true,
-              fillColor: LaColors.piso,
+              fillColor: LaColors.adapt(context, LaColors.piso),
             ),
           ),
-          const SizedBox(height: LaSpace.item),
+          SizedBox(height: LaSpace.item),
           OutlinedButton(
             onPressed: escolherDia,
             style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(LaSize.toque),
-              foregroundColor: LaColors.grafite,
-              side: const BorderSide(color: LaColors.grafite, width: 2),
+              minimumSize: Size.fromHeight(LaSize.toque),
+              foregroundColor: LaColors.adapt(context, LaColors.grafite),
+              side: BorderSide(color: LaColors.adapt(context, LaColors.grafite), width: 2),
             ),
             child: Text(
               dia == null
@@ -828,30 +828,30 @@ class _PedidoSheetState extends State<_PedidoSheet> {
                 onPressed: () => setState(() => dia = null),
                 child: Text(
                   'Limpar data',
-                  style: LaType.apoio.copyWith(color: LaColors.regua),
+                  style: LaType.apoio.copyWith(color: LaColors.adapt(context, LaColors.regua)),
                 ),
               ),
             ),
-          const SizedBox(height: LaSpace.s),
+          SizedBox(height: LaSpace.s),
           Text(
             risco.label,
             style: LaType.corpo.copyWith(
               fontWeight: FontWeight.w700,
-              color: _riscoCor(risco.watch),
+              color: _riscoCor(context, risco.watch),
             ),
           ),
           if (erro != null) ...[
-            const SizedBox(height: LaSpace.item),
-            Text(erro!, style: LaType.apoio.copyWith(color: LaColors.perigo)),
+            SizedBox(height: LaSpace.item),
+            Text(erro!, style: LaType.apoio.copyWith(color: LaColors.adapt(context, LaColors.perigo))),
           ],
-          const SizedBox(height: LaSpace.secao),
+          SizedBox(height: LaSpace.secao),
           LaButton(
             label: 'Salvar pedido',
             variant: LaButtonVariant.principal,
             loading: salvando,
             onPressed: salvando ? null : salvar,
           ),
-          const SizedBox(height: LaSpace.item),
+          SizedBox(height: LaSpace.item),
           LaButton(
             label: 'Abrir OS',
             variant: LaButtonVariant.contorno,

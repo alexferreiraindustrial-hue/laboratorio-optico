@@ -155,6 +155,9 @@ export async function quickMoveOrders(
   }
   revalidatePath("/laboratorio");
   revalidatePath("/montagem");
+  revalidatePath("/lentes");
+  revalidatePath("/inicio");
+  revalidatePath("/entrega");
   revalidatePath("/dashboard");
   const done = results.filter((item) => item.ok).length;
   return { ok: done > 0, message: `${done} de ${results.length} OS atualizadas.`, results };

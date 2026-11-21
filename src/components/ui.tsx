@@ -9,9 +9,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "border-[var(--accent)] bg-[var(--accent)] text-white shadow-[0_10px_24px_-16px_rgba(34,34,34,.10)] hover:bg-[var(--accent-strong)]",
-        secondary: "border-[var(--line)] bg-[var(--surface)] font-medium text-[var(--ink)] hover:bg-[#f3ece2]",
-        ghost: "font-medium text-[#6e6a63] hover:bg-[#f3ece2]",
-        danger: "border-[var(--danger)] bg-[var(--danger)] text-white hover:bg-[#963030]",
+        secondary: "border-[var(--line)] bg-[var(--surface)] font-medium text-[var(--ink)] hover:bg-[var(--accent-soft)]",
+        ghost: "font-medium text-[var(--muted)] hover:bg-[var(--accent-soft)]",
+        danger: "border-[var(--danger)] bg-[var(--danger-solid)] text-white hover:bg-[var(--bg-963030)]",
       },
       size: {
         default: "h-11 px-4 md:h-9 md:px-3.5",
@@ -35,7 +35,7 @@ export function Button({
 }
 
 const fieldBase =
-  "w-full rounded-lg border border-[#e2ddd5] bg-[var(--surface)] text-sm text-[var(--ink)] outline-none transition-[border-color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] placeholder:text-[#6e6a63] focus:border-[var(--accent)]";
+  "w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] text-sm text-[var(--ink)] outline-none transition-[border-color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] placeholder:text-[var(--muted)] focus:border-[var(--accent)]";
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={cn(fieldBase, "h-11 px-3 md:h-9", props.className)} />;
@@ -84,7 +84,7 @@ export function PanelHeader({ title, children }: { title: string; children?: Rea
 
 export function EmptyState({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-[#e2ddd5] bg-[var(--surface)] px-4 py-10 text-center">
+    <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface)] px-4 py-10 text-center">
       <p className="font-semibold">{title}</p>
       <p className="mx-auto mt-1 max-w-lg text-sm text-[var(--muted)]">{text}</p>
     </div>

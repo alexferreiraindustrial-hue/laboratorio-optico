@@ -247,7 +247,7 @@ class _LaunchScreenState extends State<LaunchScreen> {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               LaSpace.tela,
               LaSpace.l,
               LaSpace.tela,
@@ -258,7 +258,7 @@ class _LaunchScreenState extends State<LaunchScreen> {
                 bottom: false,
                 child: Text('Lançar', style: LaType.tituloTela),
               ),
-              const SizedBox(height: LaSpace.secao),
+              SizedBox(height: LaSpace.secao),
               TextField(
                 controller: line,
                 focusNode: focus,
@@ -271,22 +271,22 @@ class _LaunchScreenState extends State<LaunchScreen> {
                   alignLabelWithHint: true,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: LaRadius.rBotao,
-                    borderSide: const BorderSide(
-                      color: LaColors.grafite,
+                    borderSide: BorderSide(
+                      color: LaColors.adapt(context, LaColors.grafite),
                       width: 2,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: LaRadius.rBotao,
-                    borderSide: const BorderSide(
-                      color: LaColors.grafite,
+                    borderSide: BorderSide(
+                      color: LaColors.adapt(context, LaColors.grafite),
                       width: 2,
                     ),
                   ),
                 ),
                 onSubmitted: submitText,
               ),
-              const SizedBox(height: LaSpace.item),
+              SizedBox(height: LaSpace.item),
               Row(
                 children: [
                   Expanded(
@@ -296,20 +296,20 @@ class _LaunchScreenState extends State<LaunchScreen> {
                           : '$recognized OS reconhecidas',
                       style: LaType.rotulo.copyWith(
                         color: recognized == 0
-                            ? LaColors.regua
-                            : LaColors.noPrazo,
+                            ? LaColors.adapt(context, LaColors.regua)
+                            : LaColors.adapt(context, LaColors.noPrazo),
                       ),
                     ),
                   ),
                   TextButton(
                     onPressed: line.text.isEmpty ? null : line.clear,
-                    child: const Text('Limpar'),
+                    child: Text('Limpar'),
                   ),
                 ],
               ),
-              const SizedBox(height: LaSpace.secao),
+              SizedBox(height: LaSpace.secao),
               Text('Loja', style: LaType.rotulo),
-              const SizedBox(height: LaSpace.item),
+              SizedBox(height: LaSpace.item),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -332,9 +332,9 @@ class _LaunchScreenState extends State<LaunchScreen> {
                     ),
                 ],
               ),
-              const SizedBox(height: LaSpace.secao),
+              SizedBox(height: LaSpace.secao),
               Text('Vendedora', style: LaType.rotulo),
-              const SizedBox(height: LaSpace.item),
+              SizedBox(height: LaSpace.item),
               if (externalStore)
                 Text(
                   'Esta loja é externa: a OS fica só com a loja.',
@@ -359,7 +359,7 @@ class _LaunchScreenState extends State<LaunchScreen> {
                       ),
                   ],
                 ),
-              const SizedBox(height: LaSpace.secao),
+              SizedBox(height: LaSpace.secao),
               Theme(
                 data: Theme.of(context)
                     .copyWith(dividerColor: Colors.transparent),
@@ -380,7 +380,7 @@ class _LaunchScreenState extends State<LaunchScreen> {
                               onTap: () =>
                                   setState(() => labId = lab['id'] as String),
                             ),
-                          for (final option in const [
+                          for (final option in [
                             (24, '24 h'),
                             (48, '48 h'),
                             (72, '72 h'),
@@ -417,16 +417,16 @@ class _LaunchScreenState extends State<LaunchScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: LaSpace.item),
+                    SizedBox(height: LaSpace.item),
                     TextField(
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Previsão da lente (AAAA-MM-DD)',
                       ),
                       onChanged: (value) => lensDate = value.trim(),
                     ),
-                    const SizedBox(height: LaSpace.item),
+                    SizedBox(height: LaSpace.item),
                     TextField(
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Nº do pedido no laboratório',
                       ),
                       onChanged: (value) => lensRef = value,
@@ -436,29 +436,29 @@ class _LaunchScreenState extends State<LaunchScreen> {
               ),
               if (hint != null)
                 Padding(
-                  padding: const EdgeInsets.only(top: LaSpace.item),
+                  padding: EdgeInsets.only(top: LaSpace.item),
                   child: Text(
                     hint!,
-                    style: LaType.rotulo.copyWith(color: LaColors.noPrazo),
+                    style: LaType.rotulo.copyWith(color: LaColors.adapt(context, LaColors.noPrazo)),
                   ),
                 ),
               if (error != null) ...[
-                const SizedBox(height: LaSpace.item),
+                SizedBox(height: LaSpace.item),
                 LaErrorBanner(titulo: 'Lote não lançado', mensagem: error!),
               ],
               if (launched.isNotEmpty) ...[
-                const SizedBox(height: LaSpace.secao),
+                SizedBox(height: LaSpace.secao),
                 Text('Neste lote', style: LaType.tituloSecao),
                 for (final row in launched)
                   Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: EdgeInsets.only(top: 8),
                     child: Text(
                       '${row['orderRef'] ?? row['number']} · ${row['store']} · ${row['seller']}',
                       style: LaType.corpo,
                     ),
                   ),
               ],
-              const SizedBox(height: LaSpace.item),
+              SizedBox(height: LaSpace.item),
               Text(
                 status == 'aguardando_montagem'
                     ? 'As OS entram em Aguardando montagem.'
@@ -469,14 +469,14 @@ class _LaunchScreenState extends State<LaunchScreen> {
                 alignment: Alignment.centerLeft,
                 child: TextButton(
                   onPressed: () => context.push('/os/nova'),
-                  child: const Text('OS completa'),
+                  child: Text('OS completa'),
                 ),
               ),
             ],
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             LaSpace.tela,
             0,
             LaSpace.tela,
@@ -488,15 +488,15 @@ class _LaunchScreenState extends State<LaunchScreen> {
             height: LaSize.botaoPrincipal,
             loading: pending,
             trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: LaColors.grafite,
+                color: LaColors.adapt(context, LaColors.grafite),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
                 '$recognized',
                 style: LaType.numeroLista.copyWith(
-                  color: LaColors.faixa,
+                  color: LaColors.adapt(context, LaColors.faixa),
                   fontSize: 18,
                 ),
               ),
@@ -522,19 +522,19 @@ class _Pick extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? LaColors.grafite : LaColors.branco,
+      color: selected ? Color(0xFF222222) : LaColors.surface(context),
       borderRadius: LaRadius.rBotao,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: LaSize.toque),
+          constraints: BoxConstraints(minHeight: LaSize.toque),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Text(
               label,
               style: LaType.rotulo.copyWith(
-                color: selected ? LaColors.branco : LaColors.grafite,
+                color: selected ? LaColors.branco : LaColors.adapt(context, LaColors.grafite),
               ),
             ),
           ),

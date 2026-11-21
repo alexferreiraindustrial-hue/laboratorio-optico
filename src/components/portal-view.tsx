@@ -29,21 +29,21 @@ function portalForecast(order: { status: string; due_at: string | null }): Forec
 function forecastLine(order: { status: string; due_at: string | null }, forecast: Forecast) {
   switch (forecast.risk) {
     case "pronta":
-      return { text: "Pronta para retirada", tone: "text-[#286f51]", icon: CheckCircle2 };
+      return { text: "Pronta para retirada", tone: "text-[var(--ok)]", icon: CheckCircle2 };
     case "entregue":
-      return { text: "Entregue", tone: "text-[#3b4650]", icon: PackageCheck };
+      return { text: "Entregue", tone: "text-[var(--fg-3b4650)]", icon: PackageCheck };
     case "cancelada":
-      return { text: "OS cancelada", tone: "text-[#6b7680]", icon: Clock3 };
+      return { text: "OS cancelada", tone: "text-[var(--fg-6b7680)]", icon: Clock3 };
     case "atrasada":
-      return { text: `${dueDeltaLabel(order.due_at, new Date(), order.status as OrderStatus)} · o laboratório está priorizando`, tone: "text-[#b83a3a]", icon: TriangleAlert };
+      return { text: `${dueDeltaLabel(order.due_at, new Date(), order.status as OrderStatus)} · o laboratório está priorizando`, tone: "text-[var(--danger)]", icon: TriangleAlert };
     case "risco":
-      return { text: `Pode passar do prazo (${formatForecastDate(order.due_at)}). Nova estimativa: ${formatForecastDate(forecast.projectedReadyAt)}`, tone: "text-[#b83a3a]", icon: TriangleAlert };
+      return { text: `Pode passar do prazo (${formatForecastDate(order.due_at)}). Nova estimativa: ${formatForecastDate(forecast.projectedReadyAt)}`, tone: "text-[var(--danger)]", icon: TriangleAlert };
     case "atencao":
-      return { text: `Prazo apertado · previsto para ${formatForecastDate(order.due_at)}`, tone: "text-[#87601f]", icon: Clock3 };
+      return { text: `Prazo apertado · previsto para ${formatForecastDate(order.due_at)}`, tone: "text-[var(--warning)]", icon: Clock3 };
     case "sem_prazo":
-      return { text: "Sem prazo combinado", tone: "text-[#6e6a63]", icon: Clock3 };
+      return { text: "Sem prazo combinado", tone: "text-[var(--muted)]", icon: Clock3 };
     default:
-      return { text: `Previsto para ${formatForecastDate(order.due_at)}`, tone: "text-[#6e6a63]", icon: Clock3 };
+      return { text: `Previsto para ${formatForecastDate(order.due_at)}`, tone: "text-[var(--muted)]", icon: Clock3 };
   }
 }
 
@@ -53,7 +53,7 @@ function Brand({ subtitle }: { subtitle: string }) {
       <LensMark size={36} />
       <div className="flex flex-col leading-tight">
         <span className="text-[15px] font-bold tracking-tight">Laboratório Óptico</span>
-        <span className="text-xs text-[#6e6a63]">{subtitle}</span>
+        <span className="text-xs text-[var(--muted)]">{subtitle}</span>
       </div>
     </div>
   );
@@ -100,13 +100,13 @@ export function PortalHome({
       <header className="flex flex-wrap items-center justify-between gap-3">
         <Brand subtitle={sessionAccess ? "Área do vendedor · somente seus serviços" : "Acompanhamento de serviços"} />
         {sessionAccess ? <form action={sellerSignOut}><Button type="submit" variant="secondary">Sair do acompanhamento</Button></form> : null}
-        <span className="flex items-center gap-1.5 text-xs text-[#6e6a63]">
+        <span className="flex items-center gap-1.5 text-xs text-[var(--muted)]">
           <RefreshCw size={13} /> Atualiza sozinho a cada minuto
         </span>
       </header>
       <RefreshSoon />
 
-      <section className="rounded-2xl bg-[#8c6239] px-5 py-5 text-white sm:px-6">
+      <section className="rounded-2xl bg-[var(--accent)] px-5 py-5 text-white sm:px-6">
         <p className="text-sm text-white/75">{kind === "loja" ? "Loja" : "Vendedor"}</p>
         <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
         <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
@@ -118,49 +118,49 @@ export function PortalHome({
       </section>
 
       {alerts.length > 0 ? (
-        <div className="flex items-start gap-3 rounded-xl border border-[#f3c4be] bg-[#f9eaea] px-4 py-3 text-[13px] text-[#7a2a22]">
-          <TriangleAlert size={18} className="mt-0.5 shrink-0 text-[#b83a3a]" />
+        <div className="flex items-start gap-3 rounded-xl border border-[var(--edge-f3c4be)] bg-[var(--danger-soft)] px-4 py-3 text-[13px] text-[var(--fg-7a2a22)]">
+          <TriangleAlert size={18} className="mt-0.5 shrink-0 text-[var(--danger)]" />
           <span>
-            <strong className="text-[#b83a3a]">{alerts.length} serviço{alerts.length > 1 ? "s" : ""} pode{alerts.length > 1 ? "m" : ""} atrasar.</strong> O laboratório já
+            <strong className="text-[var(--danger)]">{alerts.length} serviço{alerts.length > 1 ? "s" : ""} pode{alerts.length > 1 ? "m" : ""} atrasar.</strong> O laboratório já
             foi alertado e está priorizando. Se precisar, mande um recado pela OS.
           </span>
         </div>
       ) : null}
 
-      <form className="flex flex-col gap-2.5 rounded-2xl border border-[#e2ddd5] bg-white p-3 sm:p-4">
+      <form className="flex flex-col gap-2.5 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 sm:p-4">
         <div className="flex gap-2.5">
-          <label className="flex h-11 flex-1 items-center gap-2 rounded-xl border border-[#e2ddd5] bg-white px-3 text-[#6e6a63] focus-within:border-[#8c6239]">
+          <label className="flex h-11 flex-1 items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 text-[var(--muted)] focus-within:border-[var(--focus)]">
             <Search size={17} />
-            <input name="q" defaultValue={filters.q} placeholder="Número da OS, do pedido ou nome do cliente" className="min-w-0 flex-1 border-0 bg-transparent text-[15px] text-[#222222] shadow-none outline-none focus:shadow-none" />
+            <input name="q" defaultValue={filters.q} placeholder="Número da OS, do pedido ou nome do cliente" className="min-w-0 flex-1 border-0 bg-transparent text-[15px] text-[var(--ink)] shadow-none outline-none focus:shadow-none" />
           </label>
           <Button type="submit" className="h-11 px-5">Buscar</Button>
         </div>
         <details className="group">
-          <summary className="flex cursor-pointer list-none items-center gap-1 text-[13px] font-semibold text-[#8c6239]">
+          <summary className="flex cursor-pointer list-none items-center gap-1 text-[13px] font-semibold text-[var(--link)]">
             Mais filtros <ChevronDown size={15} className="transition-transform group-open:rotate-180" />
           </summary>
           <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             {kind === "loja" ? (
-              <select name="seller" defaultValue={filters.seller ?? ""} className="h-10 rounded-lg border border-[#e2ddd5] bg-white px-2.5 text-sm">
+              <select name="seller" defaultValue={filters.seller ?? ""} className="h-10 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 text-sm">
                 <option value="">Todos os vendedores</option>
                 {sellers.map((seller) => <option key={seller.id} value={seller.id}>{seller.name}</option>)}
               </select>
             ) : null}
-            <select name="status" defaultValue={filters.status ?? ""} className="h-10 rounded-lg border border-[#e2ddd5] bg-white px-2.5 text-sm">
+            <select name="status" defaultValue={filters.status ?? ""} className="h-10 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 text-sm">
               <option value="">Todas as situações</option>
               {Object.entries(STATUS_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
-            <input name="from" type="date" defaultValue={filters.from} aria-label="Entrada a partir de" className="h-10 rounded-lg border border-[#e2ddd5] bg-white px-2.5 text-sm" />
-            <input name="to" type="date" defaultValue={filters.to} aria-label="Entrada até" className="h-10 rounded-lg border border-[#e2ddd5] bg-white px-2.5 text-sm" />
+            <input name="from" type="date" defaultValue={filters.from} aria-label="Entrada a partir de" className="h-10 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 text-sm" />
+            <input name="to" type="date" defaultValue={filters.to} aria-label="Entrada até" className="h-10 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 text-sm" />
           </div>
         </details>
         {filtered ? (
-          <Link href={base} className="self-start text-[13px] font-semibold text-[#8c6239] hover:underline">Limpar filtros</Link>
+          <Link href={base} className="self-start text-[13px] font-semibold text-[var(--link)] hover:underline">Limpar filtros</Link>
         ) : null}
       </form>
 
       {orders.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-[#e2ddd5] bg-white px-4 py-10 text-center text-sm text-[#6e6a63]">Nenhum serviço neste filtro.</p>
+        <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] px-4 py-10 text-center text-sm text-[var(--muted)]">Nenhum serviço neste filtro.</p>
       ) : null}
 
       <OrderSection title="Prontas para retirar" icon={PackageCheck} items={ready} base={base} />
@@ -176,10 +176,10 @@ function Summary({ href, label, value, highlight, alert }: { href: string; label
       href={href}
       className={cn(
         "flex flex-col gap-1 rounded-xl px-3.5 py-3 transition-colors",
-        alert ? "bg-[#b83a3a] hover:bg-[#b83a3a]" : highlight ? "bg-white text-[#6e4b2a] hover:bg-white/90" : "bg-white/10 hover:bg-white/20",
+        alert ? "bg-[var(--danger-solid)] hover:bg-[var(--danger-solid)]" : highlight ? "bg-[var(--surface)] text-[var(--link)] hover:bg-[var(--surface)]/90" : "bg-[var(--surface)]/10 hover:bg-[var(--surface)]/20",
       )}
     >
-      <span className={cn("text-xs", highlight && !alert ? "text-[#6e6a63]" : "text-white/80")}>{label}</span>
+      <span className={cn("text-xs", highlight && !alert ? "text-[var(--muted)]" : "text-white/80")}>{label}</span>
       <span className="tabular text-[28px] font-semibold leading-none">{value}</span>
     </Link>
   );
@@ -201,8 +201,8 @@ function OrderSection({
   if (items.length === 0) return null;
   return (
     <section className="flex flex-col gap-2.5">
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-[#6e6a63]">
-        <Icon size={16} /> {title} <span className="rounded-md bg-[#efece6] px-1.5 text-xs">{items.length}</span>
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--muted)]">
+        <Icon size={16} /> {title} <span className="rounded-md bg-[var(--surface-secondary)] px-1.5 text-xs">{items.length}</span>
       </h2>
       <div className="grid gap-2.5 md:grid-cols-2">
         {items.map(({ order, forecast }) => (
@@ -224,7 +224,7 @@ function MiniJourney({ status }: { status: string }) {
           title={label}
           className={cn(
             "h-1.5 flex-1 rounded-full",
-            index < current || delivered ? "bg-[#8c6239]" : index === current ? "bg-[#8c6239]/45" : "bg-[#e2ddd5]",
+            index < current || delivered ? "bg-[var(--accent)]" : index === current ? "bg-[var(--accent)]/45" : "bg-[var(--bg-e2ddd5)]",
           )}
         />
       ))}
@@ -240,14 +240,14 @@ function OrderCard({ order, forecast, href, muted }: { order: PortalOrderRow; fo
     <Link
       href={href}
       className={cn(
-        "flex flex-col gap-3 rounded-2xl border bg-white p-4 transition-shadow hover:shadow-[0_8px_24px_-12px_rgba(19,32,31,0.25)]",
-        forecast.risk === "pronta" ? "border-[#9fd5b4]" : forecast.risk === "atrasada" || forecast.risk === "risco" ? "border-[#f3c4be]" : "border-[#e2ddd5]",
+        "flex flex-col gap-3 rounded-2xl border bg-[var(--surface)] p-4 transition-shadow hover:shadow-[0_8px_24px_-12px_rgba(19,32,31,0.25)]",
+        forecast.risk === "pronta" ? "border-[var(--edge-9fd5b4)]" : forecast.risk === "atrasada" || forecast.risk === "risco" ? "border-[var(--edge-f3c4be)]" : "border-[var(--line)]",
         muted && "opacity-80",
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="font-mono text-xs font-medium text-[#8c6239]">
+          <span className="font-mono text-xs font-medium text-[var(--link)]">
             {visibleOrderNumber(order)}
           </span>
           <span className="truncate text-base font-semibold">{order.client_name}</span>
@@ -256,14 +256,14 @@ function OrderCard({ order, forecast, href, muted }: { order: PortalOrderRow; fo
       </div>
       <MiniJourney status={order.status} />
       <div className="flex flex-wrap items-center justify-between gap-2 text-[13px]">
-        <span className="font-medium text-[#6e6a63]">{STATUS_LABEL[order.status as OrderStatus] ?? order.status}</span>
-        {urgent ? <span className="rounded-md bg-[#f9eaea] px-1.5 py-0.5 text-[11px] font-semibold text-[#b83a3a]">Urgente</span> : null}
+        <span className="font-medium text-[var(--muted)]">{STATUS_LABEL[order.status as OrderStatus] ?? order.status}</span>
+        {urgent ? <span className="rounded-md bg-[var(--danger-soft)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--danger)]">Urgente</span> : null}
       </div>
       <span className={cn("flex items-start gap-1.5 text-[13px] font-medium", line.tone)}>
         <LineIcon size={15} className="mt-0.5 shrink-0" />
         {line.text}
       </span>
-      <span className="text-xs text-[#6e6a63]">
+      <span className="text-xs text-[var(--muted)]">
         Entrada {formatDate(order.entered_at)}
         {order.seller_name ? ` · ${order.seller_name}` : ""}
         {order.store_name ? ` · ${order.store_name}` : ""}
@@ -303,25 +303,25 @@ export function PortalOrder({
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 pb-16 pt-5 sm:px-6">
       <header className="flex items-center justify-between gap-3">
-        <Link href={basePath ?? `/acompanhar/${kind}/${token}`} className="flex items-center gap-1.5 text-sm font-semibold text-[#8c6239] hover:underline">
+        <Link href={basePath ?? `/acompanhar/${kind}/${token}`} className="flex items-center gap-1.5 text-sm font-semibold text-[var(--link)] hover:underline">
           <ArrowLeft size={16} /> Meus serviços
         </Link>
-        <span className="flex items-center gap-1.5 text-xs text-[#6e6a63]"><RefreshCw size={13} /> Ao vivo</span>
+        <span className="flex items-center gap-1.5 text-xs text-[var(--muted)]"><RefreshCw size={13} /> Ao vivo</span>
       </header>
       <RefreshSoon />
 
-      <section className="flex flex-col gap-4 rounded-2xl border border-[#e2ddd5] bg-white p-5">
+      <section className="flex flex-col gap-4 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
-            <span className="font-mono text-sm font-medium text-[#8c6239]">
+            <span className="font-mono text-sm font-medium text-[var(--link)]">
               {visibleOrderNumber(detail)}
             </span>
             <h1 className="text-[22px] font-semibold leading-tight tracking-tight">{detail.client_name}</h1>
-            <p className="text-sm text-[#6e6a63]">{detail.service_description}</p>
+            <p className="text-sm text-[var(--muted)]">{detail.service_description}</p>
           </div>
           <LensGauge value={forecast.progress} risk={forecast.risk} size={108} label="concluído" />
         </div>
-        <div className={cn("flex items-start gap-2 rounded-xl px-3.5 py-3 text-sm font-medium", forecast.risk === "pronta" ? "bg-[#e8f3ee]" : forecast.risk === "atrasada" || forecast.risk === "risco" ? "bg-[#f9eaea]" : forecast.risk === "atencao" ? "bg-[#fbf3e4]" : "bg-[#f7f6f3]", line.tone)}>
+        <div className={cn("flex items-start gap-2 rounded-xl px-3.5 py-3 text-sm font-medium", forecast.risk === "pronta" ? "bg-[var(--ok-soft)]" : forecast.risk === "atrasada" || forecast.risk === "risco" ? "bg-[var(--danger-soft)]" : forecast.risk === "atencao" ? "bg-[var(--warning-soft)]" : "bg-[var(--background)]", line.tone)}>
           <LineIcon size={18} className="mt-0.5 shrink-0" />
           {line.text}
         </div>
@@ -337,27 +337,27 @@ export function PortalOrder({
                   <span
                     className={cn(
                       "grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold",
-                      done ? "bg-[#8c6239] text-white" : now ? "bg-white text-[#8c6239] ring-2 ring-[#8c6239]" : "bg-[#efece6] text-[#6e6a63]",
+                      done ? "bg-[var(--accent)] text-white" : now ? "bg-[var(--surface)] text-[var(--link)] ring-2 ring-[var(--focus)]" : "bg-[var(--surface-secondary)] text-[var(--muted)]",
                     )}
                   >
                     {done ? "✓" : index + 1}
                   </span>
-                  {index < JOURNEY.length - 1 ? <span className={cn("min-h-5 w-0.5 flex-1", done ? "bg-[#8c6239]" : "bg-[#e2ddd5]")} /> : null}
+                  {index < JOURNEY.length - 1 ? <span className={cn("min-h-5 w-0.5 flex-1", done ? "bg-[var(--accent)]" : "bg-[var(--bg-e2ddd5)]")} /> : null}
                 </div>
                 <div className="pb-4 pt-1">
-                  <p className={cn("text-sm", now ? "font-semibold text-[#222222]" : done ? "font-medium text-[#222222]" : "text-[#6e6a63]")}>
+                  <p className={cn("text-sm", now ? "font-semibold text-[var(--ink)]" : done ? "font-medium text-[var(--ink)]" : "text-[var(--muted)]")}>
                     {label}
-                    {now ? <span className="ml-2 rounded-md bg-[#f3ece2] px-1.5 py-0.5 text-[11px] font-semibold text-[#6e4b2a]">agora</span> : null}
+                    {now ? <span className="ml-2 rounded-md bg-[var(--accent-soft)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--link)]">agora</span> : null}
                   </p>
-                  {at && (done || now) ? <p className="text-xs text-[#6e6a63]">{formatDateTime(at)}</p> : null}
-                  {index === 4 && !done && !now && detail.due_at ? <p className="text-xs text-[#6e6a63]">Previsto {formatForecastDate(detail.due_at)}</p> : null}
+                  {at && (done || now) ? <p className="text-xs text-[var(--muted)]">{formatDateTime(at)}</p> : null}
+                  {index === 4 && !done && !now && detail.due_at ? <p className="text-xs text-[var(--muted)]">Previsto {formatForecastDate(detail.due_at)}</p> : null}
                 </div>
               </li>
             );
           })}
         </ol>
 
-        <dl className="grid grid-cols-2 gap-3 border-t border-[#efece6] pt-4 text-sm sm:grid-cols-4">
+        <dl className="grid grid-cols-2 gap-3 border-t border-[var(--line)] pt-4 text-sm sm:grid-cols-4">
           <Info label="Entrada" value={formatDateTime(detail.entered_at)} />
           <Info label="Prazo" value={formatDateTime(detail.due_at)} />
           <Info label="Vendedor" value={detail.seller_name || "—"} />
@@ -373,7 +373,7 @@ export function PortalOrder({
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs text-[#6e6a63]">{label}</dt>
+      <dt className="text-xs text-[var(--muted)]">{label}</dt>
       <dd className="font-medium">{value}</dd>
     </div>
   );
@@ -397,27 +397,27 @@ function MessageBox({
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-[#e2ddd5] bg-white p-5">
+    <section className="flex flex-col gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
       <h2 className="flex items-center gap-2 text-[15px] font-semibold">
         <MessageSquare size={17} /> Conversa com o laboratório
       </h2>
       {messages.length === 0 ? (
-        <p className="text-sm text-[#6e6a63]">Precisa de algo? Mande um recado — a equipe vê na hora no painel.</p>
+        <p className="text-sm text-[var(--muted)]">Precisa de algo? Mande um recado — a equipe vê na hora no painel.</p>
       ) : (
         <ul className="flex flex-col gap-2.5">
           {messages.map((item) => (
             <li key={item.id} className="flex flex-col gap-1.5">
-              <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-[#8c6239] px-3.5 py-2.5 text-sm text-white">
+              <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-[var(--accent)] px-3.5 py-2.5 text-sm text-white">
                 <p className="whitespace-pre-wrap">{item.body}</p>
                 <p className="mt-1 text-right text-[11px] text-white/70">
                   {formatDateTime(item.created_at)} · {item.status === "novo" ? "enviado" : item.status === "visualizado" ? "visto" : "respondido"}
                 </p>
               </div>
               {item.reply_body ? (
-                <div className="mr-auto max-w-[85%] rounded-2xl rounded-bl-md bg-[#efece6] px-3.5 py-2.5 text-sm">
-                  <p className="text-[11px] font-semibold text-[#6e4b2a]">Laboratório</p>
+                <div className="mr-auto max-w-[85%] rounded-2xl rounded-bl-md bg-[var(--surface-secondary)] px-3.5 py-2.5 text-sm">
+                  <p className="text-[11px] font-semibold text-[var(--link)]">Laboratório</p>
                   <p className="whitespace-pre-wrap">{item.reply_body}</p>
-                  {item.replied_at ? <p className="mt-1 text-[11px] text-[#6e6a63]">{formatDateTime(item.replied_at)}</p> : null}
+                  {item.replied_at ? <p className="mt-1 text-[11px] text-[var(--muted)]">{formatDateTime(item.replied_at)}</p> : null}
                 </div>
               ) : null}
             </li>
@@ -453,7 +453,7 @@ function MessageBox({
           minLength={5}
           maxLength={800}
           placeholder="Ex.: cliente pediu para adiantar, troca de armação, dúvida no grau..."
-          className="min-h-20 rounded-xl border border-[#e2ddd5] px-3.5 py-2.5 text-[15px] outline-none focus:border-[#8c6239]"
+          className="min-h-20 rounded-xl border border-[var(--line)] px-3.5 py-2.5 text-[15px] outline-none focus:border-[var(--focus)]"
         />
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={pending} className="h-10 px-5">{pending ? "Enviando..." : "Enviar recado"}</Button>
@@ -469,9 +469,9 @@ export function PortalDenied({ message }: { message: string }) {
     <div className="mx-auto flex max-w-lg flex-col items-center gap-3 px-4 py-20 text-center">
       <Brand subtitle="Acompanhamento de serviços" />
       <h1 className="mt-4 text-xl font-semibold">Acompanhamento indisponível</h1>
-      <p className="text-sm text-[#6e6a63]">{message}</p>
-      <Link href="/vendedor/login" className="flex min-h-11 items-center font-semibold text-[#8c6239]">Entrar como vendedor</Link>
-      <p className="text-xs text-[#6e6a63]">Entre novamente com seu código e PIN ou peça um novo link ao laboratório.</p>
+      <p className="text-sm text-[var(--muted)]">{message}</p>
+      <Link href="/vendedor/login" className="flex min-h-11 items-center font-semibold text-[var(--link)]">Entrar como vendedor</Link>
+      <p className="text-xs text-[var(--muted)]">Entre novamente com seu código e PIN ou peça um novo link ao laboratório.</p>
     </div>
   );
 }

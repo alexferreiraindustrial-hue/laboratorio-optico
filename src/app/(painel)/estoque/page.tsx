@@ -30,7 +30,7 @@ export default async function EstoquePage() {
         <Button variant="secondary" asChild><Link href="/estoque/especiais">Graus especiais</Link></Button>
         <Button variant="secondary" asChild><Link href="/estoque/leitura">Ler QR Code</Link></Button>
       </PageHeading>
-      {error ? <p className="mb-3 text-sm text-[#b83a3a]">{error.message}</p> : null}
+      {error ? <p className="mb-3 text-sm text-[var(--danger)]">{error.message}</p> : null}
       <StockBoard items={(data ?? []) as StockRow[]} gridValue={settings.stock_grid} role={role} />
     </div>
   );

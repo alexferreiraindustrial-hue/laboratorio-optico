@@ -7,6 +7,7 @@ export type OrderFilters = {
   q?: string;
   status?: string;
   laboratory?: string;
+  seller?: string;
   urgency?: string;
   from?: string;
   to?: string;
@@ -125,6 +126,7 @@ export async function loadOrders(filters: OrderFilters, options?: { statuses?: O
       `number.ilike.%${q}%,client_name.ilike.%${q}%,seller_name.ilike.%${q}%,laboratory_name.ilike.%${q}%,external_order_id.ilike.%${q}%,store_name.ilike.%${q}%`,
     );
   }
+  if (filters.seller && /^[0-9a-f-]{36}$/i.test(filters.seller)) query = query.eq("seller_id", filters.seller);
   if (filters.status) query = query.eq("status", filters.status);
   else if (filters.tab && isOrderTab(filters.tab)) {
     const tab = filters.tab as OrderTab;

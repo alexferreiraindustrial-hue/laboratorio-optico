@@ -198,7 +198,7 @@ class _OsChatState extends State<OsChat> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text('Conversa', style: LaType.tituloSecao),
-        const SizedBox(height: LaSpace.item),
+        SizedBox(height: LaSpace.item),
         if (items.isEmpty)
           Text('Nenhuma conversa nesta OS.', style: LaType.apoio)
         else
@@ -210,10 +210,10 @@ class _OsChatState extends State<OsChat> {
                   ? null
                   : () => play(item.id, item.audioUrl!),
             ),
-            const SizedBox(height: LaSpace.s),
+            SizedBox(height: LaSpace.s),
           ],
         if (widget.canWrite) ...[
-          const SizedBox(height: LaSpace.item),
+          SizedBox(height: LaSpace.item),
           Wrap(
             spacing: 4,
             children: [
@@ -224,25 +224,25 @@ class _OsChatState extends State<OsChat> {
                   child: InkWell(
                     onTap: () => text.text = '${text.text}$emoji',
                     child: Center(
-                      child: Text(emoji, style: const TextStyle(fontSize: 22)),
+                      child: Text(emoji, style: TextStyle(fontSize: 22)),
                     ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: LaSpace.s),
+          SizedBox(height: LaSpace.s),
           TextField(
             controller: text,
             minLines: 1,
             maxLines: 4,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Escrever na OS',
               filled: true,
-              fillColor: LaColors.branco,
+              fillColor: LaColors.surface(context),
             ),
           ),
-          const SizedBox(height: LaSpace.item),
+          SizedBox(height: LaSpace.item),
           Row(
             children: [
               SizedBox(
@@ -253,11 +253,11 @@ class _OsChatState extends State<OsChat> {
                   onPressed: sending ? null : toggleAudio,
                   icon: Icon(
                     recording ? Icons.stop_circle : Icons.mic_none,
-                    color: recording ? LaColors.perigo : LaColors.grafite,
+                    color: recording ? LaColors.adapt(context, LaColors.perigo) : LaColors.adapt(context, LaColors.grafite),
                   ),
                 ),
               ),
-              const SizedBox(width: LaSpace.item),
+              SizedBox(width: LaSpace.item),
               Expanded(
                 child: LaButton(
                   label: recording ? 'Enviar áudio' : 'Enviar',
@@ -271,8 +271,8 @@ class _OsChatState extends State<OsChat> {
             ],
           ),
           if (error != null) ...[
-            const SizedBox(height: LaSpace.s),
-            Text(error!, style: LaType.apoio.copyWith(color: LaColors.perigo)),
+            SizedBox(height: LaSpace.s),
+            Text(error!, style: LaType.apoio.copyWith(color: LaColors.adapt(context, LaColors.perigo))),
           ],
         ],
       ],
@@ -311,28 +311,28 @@ class _BubbleView extends StatelessWidget {
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 320),
+        constraints: BoxConstraints(maxWidth: 320),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: mine ? LaColors.grafite : LaColors.branco,
+            color: mine ? Color(0xFF222222) : LaColors.surface(context),
             borderRadius: LaRadius.rCartao,
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            padding: EdgeInsets.fromLTRB(12, 8, 12, 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   item.label,
                   style: LaType.rotulo.copyWith(
-                    color: mine ? LaColors.faixa : LaColors.regua,
+                    color: mine ? LaColors.adapt(context, LaColors.faixa) : LaColors.adapt(context, LaColors.regua),
                   ),
                 ),
                 if (item.body.isNotEmpty)
                   Text(
                     item.body,
                     style: LaType.corpo.copyWith(
-                      color: mine ? LaColors.branco : LaColors.grafite,
+                      color: mine ? LaColors.branco : LaColors.adapt(context, LaColors.grafite),
                     ),
                   ),
                 if (onPlay != null)
@@ -341,14 +341,14 @@ class _BubbleView extends StatelessWidget {
                     child: Text(
                       playing ? 'Parar' : 'Ouvir áudio',
                       style: LaType.rotulo.copyWith(
-                        color: mine ? LaColors.branco : LaColors.grafite,
+                        color: mine ? LaColors.branco : LaColors.adapt(context, LaColors.grafite),
                       ),
                     ),
                   ),
                 Text(
                   formatWhen(item.at),
                   style: LaType.apoio.copyWith(
-                    color: mine ? LaColors.linha : LaColors.regua,
+                    color: mine ? LaColors.adapt(context, LaColors.linha) : LaColors.adapt(context, LaColors.regua),
                   ),
                 ),
               ],

@@ -30,18 +30,18 @@ class LaStageBar extends StatelessWidget {
       child: Row(
         children: [
           for (var i = 1; i <= 6; i++) ...[
-            if (i > 1) const SizedBox(width: 3),
+            if (i > 1) SizedBox(width: 3),
             Expanded(
               child: Container(
                 height: altura,
                 decoration: BoxDecoration(
                   color: encerrada || i < etapaAtual
-                      ? LaColors.grafite
+                      ? LaColors.adapt(context, LaColors.grafite)
                       : i == etapaAtual
-                          ? LaColors.faixa
-                          : LaColors.filete,
+                          ? LaColors.adapt(context, LaColors.faixa)
+                          : LaColors.adapt(context, LaColors.filete),
                   borderRadius: BorderRadius.circular(2),
-                  border: !encerrada && i == etapaAtual && altura >= 8 ? Border.all(color: LaColors.grafite, width: 2) : null,
+                  border: !encerrada && i == etapaAtual && altura >= 8 ? Border.all(color: LaColors.adapt(context, LaColors.grafite), width: 2) : null,
                 ),
               ),
             ),

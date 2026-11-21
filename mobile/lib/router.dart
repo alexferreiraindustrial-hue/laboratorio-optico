@@ -27,6 +27,7 @@ import 'domain.dart';
 import 'session.dart';
 import 'access_routing.dart';
 import 'theme.dart';
+import 'theme_preference.dart';
 import 'widgets.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
@@ -65,23 +66,23 @@ GoRouter createRouter(Session session) {
         routes: [
           GoRoute(
             path: '/painel',
-            builder: (context, state) => const SizedBox.shrink(),
+            builder: (context, state) => SizedBox.shrink(),
           ),
           GoRoute(
             path: '/lancar',
-            builder: (context, state) => const SizedBox.shrink(),
+            builder: (context, state) => SizedBox.shrink(),
           ),
           GoRoute(
             path: '/bancada',
-            builder: (context, state) => const SizedBox.shrink(),
+            builder: (context, state) => SizedBox.shrink(),
           ),
           GoRoute(
             path: '/lentes',
-            builder: (context, state) => const SizedBox.shrink(),
+            builder: (context, state) => SizedBox.shrink(),
           ),
           GoRoute(
             path: '/mais',
-            builder: (context, state) => const SizedBox.shrink(),
+            builder: (context, state) => SizedBox.shrink(),
           ),
         ],
       ),
@@ -127,7 +128,7 @@ GoRouter createRouter(Session session) {
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: '/os/nova',
-        builder: (context, state) => const OrderFormScreen(),
+        builder: (context, state) => OrderFormScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
@@ -173,7 +174,7 @@ GoRouter createRouter(Session session) {
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: '/lojas/nova',
-        builder: (context, state) => const PartyEditScreen(kind: 'lojas'),
+        builder: (context, state) => PartyEditScreen(kind: 'lojas'),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
@@ -190,7 +191,7 @@ GoRouter createRouter(Session session) {
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: '/vendedores/nova',
-        builder: (context, state) => const PartyEditScreen(kind: 'vendedores'),
+        builder: (context, state) => PartyEditScreen(kind: 'vendedores'),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
@@ -201,7 +202,7 @@ GoRouter createRouter(Session session) {
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: '/recados',
-        builder: (context, state) => const MessagesScreen(),
+        builder: (context, state) => MessagesScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
@@ -211,27 +212,27 @@ GoRouter createRouter(Session session) {
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: '/ranking',
-        builder: (context, state) => const RankingScreen(),
+        builder: (context, state) => RankingScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: '/kaizen',
-        builder: (context, state) => const KaizenScreen(),
+        builder: (context, state) => KaizenScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: '/relatorios',
-        builder: (context, state) => const ReportsScreen(),
+        builder: (context, state) => ReportsScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: '/indicadores',
-        builder: (context, state) => const IndicatorsScreen(),
+        builder: (context, state) => IndicatorsScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: '/auditoria-5s',
-        builder: (context, state) => const FiveSScreen(),
+        builder: (context, state) => FiveSScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,
@@ -253,19 +254,48 @@ class LabApp extends StatefulWidget {
 class _LabAppState extends State<LabApp> {
   late final GoRouter router = createRouter(widget.session);
 
+  final themePreference = ThemePreference();
+  @override
+  void initState() {
+    super.initState();
+    themePreference.load();
+  }
+  @override
+  void dispose() {
+    themePreference.dispose();
+    router.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
+    return ListenableBuilder(listenable: themePreference, builder: (context, _) => MaterialApp.router(
       title: 'Lab Gold',
       theme: labTheme(),
-      locale: const Locale('pt', 'BR'),
-      supportedLocales: const [Locale('pt', 'BR')],
-      localizationsDelegates: const [
+      darkTheme: labTheme(dark: true),
+      themeMode: themePreference.dark ? ThemeMode.dark : ThemeMode.light,
+      builder: (context, child) => Stack(children: [
+        if (child != null) child,
+        Positioned(right: 12, bottom: 88 + MediaQuery.paddingOf(context).bottom,
+          child: SafeArea(child: Material(
+            color: Theme.of(context).colorScheme.surface,
+            elevation: 2, borderRadius: BorderRadius.circular(28),
+            child: IconButton(
+              tooltip: themePreference.dark ? 'Usar tema claro' : 'Usar tema escuro',
+              isSelected: themePreference.dark,
+              icon: Icon(themePreference.dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+              onPressed: themePreference.toggle,
+            ),
+          )),
+        ),
+      ]),
+      locale: Locale('pt', 'BR'),
+      supportedLocales: [Locale('pt', 'BR')],
+      localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: router,
-    );
+    ));
   }
 }

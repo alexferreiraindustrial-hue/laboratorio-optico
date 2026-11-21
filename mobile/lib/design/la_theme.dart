@@ -3,24 +3,29 @@ import 'package:flutter/material.dart';
 
 import 'la_tokens.dart';
 
-ThemeData laTheme() {
-  const scheme = ColorScheme.light(
+ThemeData laTheme({Brightness brightness = Brightness.light}) {
+  final dark = brightness == Brightness.dark;
+  Color tone(Color color) => LaColors.forBrightness(brightness, color);
+  final surface = dark ? Color(0xFF23211E) : LaColors.branco;
+  final scheme = ColorScheme(
+    brightness: brightness,
     primary: LaColors.acento,
     onPrimary: LaColors.branco,
     secondary: LaColors.faixa,
+    onSurfaceVariant: tone(LaColors.regua),
     onSecondary: LaColors.branco,
-    error: LaColors.perigo,
+    error: tone(LaColors.perigo),
     onError: LaColors.branco,
-    surface: LaColors.branco,
-    onSurface: LaColors.grafite,
-    outline: LaColors.borda,
+    surface: surface,
+    onSurface: tone(LaColors.grafite),
+    outline: tone(LaColors.borda),
   );
 
   final base = ThemeData(useMaterial3: true, colorScheme: scheme);
   final text = base.textTheme.apply(
     fontFamily: 'Manrope',
-    bodyColor: LaColors.grafite,
-    displayColor: LaColors.grafite,
+    bodyColor: tone(LaColors.grafite),
+    displayColor: tone(LaColors.grafite),
   );
 
   OutlineInputBorder borda(Color c, double w) => OutlineInputBorder(
@@ -29,73 +34,73 @@ ThemeData laTheme() {
   );
 
   return base.copyWith(
-    scaffoldBackgroundColor: LaColors.piso,
+    scaffoldBackgroundColor: tone(LaColors.piso),
     textTheme: text,
     materialTapTargetSize: MaterialTapTargetSize.padded,
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size(48, 48),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        shape: const RoundedRectangleBorder(borderRadius: LaRadius.rBotao),
+        minimumSize: Size(48, 48),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: LaRadius.rBotao),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size(48, 48),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        shape: const RoundedRectangleBorder(borderRadius: LaRadius.rBotao),
+        minimumSize: Size(48, 48),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: LaRadius.rBotao),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+      style: TextButton.styleFrom(foregroundColor: tone(LaColors.acento), minimumSize: Size(48, 48)),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: LaColors.branco,
-      indicatorColor: LaColors.acentoSuave,
+      backgroundColor: surface,
+      indicatorColor: tone(LaColors.acentoSuave),
       labelTextStyle: WidgetStatePropertyAll(
-        LaType.aba.copyWith(color: LaColors.grafite),
+        LaType.aba.copyWith(color: tone(LaColors.grafite)),
       ),
       elevation: 0,
     ),
     splashFactory: InkRipple.splashFactory,
     appBarTheme: AppBarTheme(
-      backgroundColor: LaColors.piso,
-      foregroundColor: LaColors.grafite,
+      backgroundColor: tone(LaColors.piso),
+      foregroundColor: tone(LaColors.grafite),
       elevation: 0,
       scrolledUnderElevation: 0,
       titleTextStyle: LaType.corpoForte,
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: LaColors.branco,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      fillColor: surface,
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       labelStyle: LaType.rotulo,
       floatingLabelBehavior: FloatingLabelBehavior.always,
-      hintStyle: LaType.corpo.copyWith(color: LaColors.regua),
-      errorStyle: LaType.rotulo.copyWith(color: LaColors.perigo),
-      enabledBorder: borda(LaColors.borda, 1.5),
-      focusedBorder: borda(LaColors.acento, 2),
-      errorBorder: borda(LaColors.perigo, 2),
-      focusedErrorBorder: borda(LaColors.perigo, 2),
-      disabledBorder: borda(LaColors.filete, 1.5),
+      hintStyle: LaType.corpo.copyWith(color: tone(LaColors.regua)),
+      errorStyle: LaType.rotulo.copyWith(color: tone(LaColors.perigo)),
+      enabledBorder: borda(tone(LaColors.borda), 1.5),
+      focusedBorder: borda(tone(LaColors.acento), 2),
+      errorBorder: borda(tone(LaColors.perigo), 2),
+      focusedErrorBorder: borda(tone(LaColors.perigo), 2),
+      disabledBorder: borda(tone(LaColors.filete), 1.5),
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: LaColors.grafite,
       contentTextStyle: LaType.corpo.copyWith(color: LaColors.branco),
       actionTextColor: LaColors.faixa,
       behavior: SnackBarBehavior.floating,
-      shape: const RoundedRectangleBorder(borderRadius: LaRadius.rBotao),
+      shape: RoundedRectangleBorder(borderRadius: LaRadius.rBotao),
     ),
-    progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: LaColors.grafite,
+    progressIndicatorTheme: ProgressIndicatorThemeData(
+      color: tone(LaColors.grafite),
     ),
-    dividerTheme: const DividerThemeData(
-      color: LaColors.linha,
+    dividerTheme: DividerThemeData(
+      color: tone(LaColors.linha),
       thickness: 1,
       space: 1,
     ),
-    bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: LaColors.branco,
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: surface,
       shape: RoundedRectangleBorder(borderRadius: LaRadius.rFolhaTopo),
     ),
   );

@@ -18,33 +18,33 @@ class LaSegmented extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: LaColors.piso,
+        color: LaColors.adapt(context, LaColors.piso),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
           for (var i = 0; i < opcoes.length; i++) ...[
-            if (i > 0) const SizedBox(width: 4),
+            if (i > 0) SizedBox(width: 4),
             Expanded(
               child: Semantics(
                 selected: i == selecionado,
                 button: true,
                 child: Material(
                   color: i == selecionado
-                      ? LaColors.grafite
+                      ? Color(0xFF222222)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(11),
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
                     onTap: () => onChanged(i),
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(
+                      constraints: BoxConstraints(
                         minHeight: LaSize.toque,
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 12,
                         ),
@@ -55,7 +55,7 @@ class LaSegmented extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                             color: i == selecionado
                                 ? LaColors.branco
-                                : LaColors.regua,
+                                : LaColors.adapt(context, LaColors.regua),
                           ),
                         ),
                       ),

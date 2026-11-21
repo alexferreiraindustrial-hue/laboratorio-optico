@@ -52,7 +52,7 @@ export function OrderForm({
 
   if (laboratories.length === 0) {
     return (
-      <p className="text-sm text-[#6e6a63]">
+      <p className="text-sm text-[var(--muted)]">
         Cadastre um laboratório em Configurações antes de abrir uma OS.
       </p>
     );
@@ -83,16 +83,16 @@ export function OrderForm({
 
         {/* Bloco 1: Tipo de lente — define o prazo automaticamente */}
         {!order ? (
-          <div className="rounded-lg border border-[#e2ddd5] bg-[#f7f6f3] p-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#6e6a63]">Tipo de lente</p>
+          <div className="rounded-lg border border-[var(--line)] bg-[var(--background)] p-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Tipo de lente</p>
             <div className="flex gap-3">
               {(["simples", "multifocal"] as const).map((tipo) => (
                 <label
                   key={tipo}
                   className={`flex flex-1 cursor-pointer items-center gap-2.5 rounded-lg border-2 px-4 py-3 transition-colors ${
                     lensType === tipo
-                      ? "border-[#8c6239] bg-white"
-                      : "border-[#e2ddd5] bg-white hover:border-[#b4c4c2]"
+                      ? "border-[var(--focus)] bg-[var(--surface)]"
+                      : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--edge-b4c4c2)]"
                   }`}
                 >
                   <input
@@ -108,7 +108,7 @@ export function OrderForm({
                   />
                   <div>
                     <p className="font-semibold capitalize">{tipo}</p>
-                    <p className="text-xs text-[#6e6a63]">{tipo === "simples" ? "Prazo: 3 dias úteis" : "Prazo: 5 dias úteis"}</p>
+                    <p className="text-xs text-[var(--muted)]">{tipo === "simples" ? "Prazo: 3 dias úteis" : "Prazo: 5 dias úteis"}</p>
                   </div>
                 </label>
               ))}
@@ -137,7 +137,7 @@ export function OrderForm({
               ))}
             </Select>
           </Field>
-          <Field label="Laboratório">
+          <Field label="Laboratório onde a lente foi pedida">
             <Select name="laboratoryId" required defaultValue={order?.laboratory_id}>
               {laboratories.filter((lab) => lab.active || lab.id === order?.laboratory_id).map((lab) => (
                 <option key={lab.id} value={lab.id}>{lab.name}</option>
@@ -200,16 +200,16 @@ export function OrderForm({
         </Field>
 
         {/* Bloco 4: Receita (expansível) */}
-        <div className="rounded-lg border border-[#e2ddd5]">
+        <div className="rounded-lg border border-[var(--line)]">
           <button
             type="button"
             onClick={() => setShowReceita((v) => !v)}
-            className="flex min-h-12 w-full items-center justify-between px-4 py-3 text-sm font-semibold text-[#6e6a63] hover:bg-[#f7f6f3]"
+            className="flex min-h-12 w-full items-center justify-between px-4 py-3 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--background)]"
           >
             <span>📋 Dados da receita (opcional)</span>
-            <span className="text-xs font-normal text-[#6e6a63]">{showReceita ? "▲ Fechar" : "▼ Abrir"}</span>
+            <span className="text-xs font-normal text-[var(--muted)]">{showReceita ? "▲ Fechar" : "▼ Abrir"}</span>
           </button>
-          <div className={`grid gap-3 border-t border-[#e2ddd5] p-4 sm:grid-cols-4 ${showReceita ? "" : "hidden"}`}>
+          <div className={`grid gap-3 border-t border-[var(--line)] p-4 sm:grid-cols-4 ${showReceita ? "" : "hidden"}`}>
               <Field label="Esférico OD"><Input name="odSphere" defaultValue={spec.od_sphere} placeholder="-2,00" /></Field>
               <Field label="Cilíndrico OD"><Input name="odCylinder" defaultValue={spec.od_cylinder} placeholder="-0,75" /></Field>
               <Field label="Eixo OD"><Input name="odAxis" defaultValue={spec.od_axis} /></Field>
@@ -279,7 +279,7 @@ function QuickParty({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   return (
-    <div className="rounded-md border border-[#e2ddd5] bg-[#f7f6f3] p-3">
+    <div className="rounded-md border border-[var(--line)] bg-[var(--background)] p-3">
       <p className="mb-2 text-sm font-medium">{kind === "store" ? "Nova loja" : "Novo vendedor"}</p>
       <form
         className="grid gap-2 md:grid-cols-2"

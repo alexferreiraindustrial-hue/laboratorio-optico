@@ -18,17 +18,17 @@ class LaEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: LaSpace.xxl, horizontal: LaSpace.xs),
+      padding: EdgeInsets.symmetric(vertical: LaSpace.xxl, horizontal: LaSpace.xs),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const LaFlowSymbol(kind: LaFlowKind.fila, size: 44, vazio: true),
-          const SizedBox(height: LaSpace.item),
+          LaFlowSymbol(kind: LaFlowKind.fila, size: 44, vazio: true),
+          SizedBox(height: LaSpace.item),
           Text(titulo, style: LaType.tituloSecao.copyWith(fontSize: 28)),
-          const SizedBox(height: LaSpace.xs),
-          Text(mensagem, style: LaType.corpo.copyWith(color: LaColors.regua)),
-          if (acao != null) ...[const SizedBox(height: LaSpace.l), acao!],
+          SizedBox(height: LaSpace.xs),
+          Text(mensagem, style: LaType.corpo.copyWith(color: LaColors.adapt(context, LaColors.regua))),
+          if (acao != null) ...[SizedBox(height: LaSpace.l), acao!],
         ],
       ),
     );
@@ -52,20 +52,20 @@ class LaErrorBanner extends StatelessWidget {
       liveRegion: true,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(LaSpace.secao),
+        padding: EdgeInsets.all(LaSpace.secao),
         decoration: BoxDecoration(
-          color: LaColors.perigoFundo,
+          color: LaColors.adapt(context, LaColors.perigoFundo),
           borderRadius: LaRadius.rBotao,
-          border: Border.all(color: LaColors.perigo, width: 2),
+          border: Border.all(color: LaColors.adapt(context, LaColors.perigo), width: 2),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(titulo, style: LaType.corpoForte.copyWith(fontWeight: FontWeight.w700, color: LaColors.perigo)),
-            const SizedBox(height: LaSpace.xs),
+            Text(titulo, style: LaType.corpoForte.copyWith(fontWeight: FontWeight.w700, color: LaColors.adapt(context, LaColors.perigo))),
+            SizedBox(height: LaSpace.xs),
             Text(mensagem, style: LaType.corpo),
             if (onTentarDeNovo != null) ...[
-              const SizedBox(height: LaSpace.m),
+              SizedBox(height: LaSpace.m),
               LaButton(label: 'Tentar de novo', onPressed: onTentarDeNovo, height: LaSize.toque, expand: false),
             ],
           ],

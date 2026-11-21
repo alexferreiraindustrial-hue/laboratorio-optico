@@ -16,9 +16,9 @@ import type { BoRow } from "@/server/flow";
 import { Button, Field, Input, TextArea } from "./ui";
 
 const STAGES: { key: BoStage; title: string; hint: string; color: string }[] = [
-  { key: "avisar", title: "Separado · avisar", hint: "Óculos barrado na bancada. Avise o vendedor ou o gestor.", color: "#b83a3a" },
-  { key: "aguardando_decisao", title: "Aguardando decisão", hint: "Avisado. Esperando a resposta sobre o que fazer.", color: "#87601f" },
-  { key: "em_tratamento", title: "Em tratamento", hint: "Decisão tomada. Conclua quando o óculos voltar ao fluxo.", color: "#6e4b2a" },
+  { key: "avisar", title: "Separado · avisar", hint: "Óculos barrado na bancada. Avise o vendedor ou o gestor.", color: "var(--danger)" },
+  { key: "aguardando_decisao", title: "Aguardando decisão", hint: "Avisado. Esperando a resposta sobre o que fazer.", color: "var(--warning)" },
+  { key: "em_tratamento", title: "Em tratamento", hint: "Decisão tomada. Conclua quando o óculos voltar ao fluxo.", color: "var(--link)" },
 ];
 
 function since(iso: string, now: number) {
@@ -58,38 +58,38 @@ function Card({ row, now, canManage, onDecide, onResolve }: { row: BoRow; now: n
   }
 
   return (
-    <article className={cn("flex flex-col gap-2 rounded-[10px] border bg-white p-3 shadow-[0_1px_2px_rgba(19,32,31,0.04)]", waitingLong ? "border-[#e7a39b]" : "border-[#e2ddd5]", pending && "opacity-60")}>
+    <article className={cn("flex flex-col gap-2 rounded-[10px] border bg-[var(--surface)] p-3 shadow-[0_1px_2px_rgba(19,32,31,0.04)]", waitingLong ? "border-[var(--edge-e7a39b)]" : "border-[var(--line)]", pending && "opacity-60")}>
       <div className="flex items-center justify-between gap-2">
-        <Link href={`/laboratorio/${row.order_id}`} className="font-mono text-xs font-semibold text-[#8c6239] hover:underline">
+        <Link href={`/laboratorio/${row.order_id}`} className="font-mono text-xs font-semibold text-[var(--link)] hover:underline">
           {order ? visibleOrderNumber(order) : "OS"}
         </Link>
-        <span className={cn("flex items-center gap-1 text-[11px]", waitingLong ? "font-semibold text-[#b83a3a]" : "text-[#6e6a63]")}>
+        <span className={cn("flex items-center gap-1 text-[11px]", waitingLong ? "font-semibold text-[var(--danger)]" : "text-[var(--muted)]")}>
           <Clock size={12} /> {since(row.notified_at && stage === "aguardando_decisao" ? row.notified_at : row.occurred_at, now)}
         </span>
       </div>
       <div>
         <p className="text-sm font-semibold">{order?.client_name}</p>
-        <p className="text-xs text-[#6e6a63]">{[order?.seller_name, order?.store_name].filter(Boolean).join(" · ") || "Sem vendedor"}</p>
+        <p className="text-xs text-[var(--muted)]">{[order?.seller_name, order?.store_name].filter(Boolean).join(" · ") || "Sem vendedor"}</p>
       </div>
-      <div className="rounded-md bg-[#fdf3f2] px-2.5 py-2">
-        <p className="text-xs font-semibold text-[#b83a3a]">
+      <div className="rounded-md bg-[var(--bg-fdf3f2)] px-2.5 py-2">
+        <p className="text-xs font-semibold text-[var(--danger)]">
           {row.category_name}
-          {row.step_key ? <span className="font-normal text-[#87601f]"> · na {STEP_LABEL[row.step_key as StepKey].toLowerCase()}</span> : null}
+          {row.step_key ? <span className="font-normal text-[var(--warning)]"> · na {STEP_LABEL[row.step_key as StepKey].toLowerCase()}</span> : null}
         </p>
-        <p className="mt-0.5 line-clamp-3 text-xs text-[#6e6a63]">{row.description}</p>
+        <p className="mt-0.5 line-clamp-3 text-xs text-[var(--muted)]">{row.description}</p>
       </div>
       {row.decision ? (
-        <p className="rounded-md bg-[#f3ece2] px-2.5 py-1.5 text-xs font-semibold text-[#6e4b2a]">
+        <p className="rounded-md bg-[var(--accent-soft)] px-2.5 py-1.5 text-xs font-semibold text-[var(--link)]">
           {BO_DECISIONS[row.decision as BoDecision]?.label ?? row.decision}
-          {row.decision_note ? <span className="block font-normal text-[#6e6a63]">{row.decision_note}</span> : null}
+          {row.decision_note ? <span className="block font-normal text-[var(--muted)]">{row.decision_note}</span> : null}
         </p>
       ) : null}
       {canManage ? (
-        <div className="flex flex-col gap-2 border-t border-[#efece6] pt-2 sm:flex-row sm:flex-wrap">
+        <div className="flex flex-col gap-2 border-t border-[var(--line)] pt-2 sm:flex-row sm:flex-wrap">
           {stage === "avisar" ? (
             link ? (
               <>
-                <Button size="sm" onClick={() => notify(true)} disabled={pending} className="w-full bg-[#2e7d5b] hover:bg-[#188046] border-[#2e7d5b] sm:w-auto">
+                <Button size="sm" onClick={() => notify(true)} disabled={pending} className="w-full bg-[var(--bg-2e7d5b)] hover:bg-[var(--bg-188046)] border-[var(--edge-2e7d5b)] sm:w-auto">
                   <MessageCircle size={14} /> Avisar no WhatsApp
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => notify(false)} disabled={pending} className="w-full sm:w-auto">
@@ -156,14 +156,14 @@ export function BoBoard({ rows, canManage, canCancel, nowMs }: { rows: BoRow[]; 
         {STAGES.map((stage) => {
           const list = rows.filter((row) => boStage(row) === stage.key);
           return (
-            <section key={stage.key} className="flex min-h-72 w-[min(86vw,300px)] shrink-0 snap-start flex-col gap-2 rounded-xl bg-[#efece6] p-2.5 lg:w-auto lg:flex-1">
+            <section key={stage.key} className="flex min-h-72 w-[min(86vw,300px)] shrink-0 snap-start flex-col gap-2 rounded-xl bg-[var(--surface-secondary)] p-2.5 lg:w-auto lg:flex-1">
               <header className="flex items-center gap-2 px-1 pb-1 pt-0.5">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: stage.color }} />
                 <div className="flex min-w-0 flex-1 flex-col leading-tight">
                   <h2 className="text-[13px] font-semibold">{stage.title}</h2>
-                  <span className="text-[11px] text-[#6e6a63]">{stage.hint}</span>
+                  <span className="text-[11px] text-[var(--muted)]">{stage.hint}</span>
                 </div>
-                <span className="font-mono text-xs text-[#6e6a63]">{list.length}</span>
+                <span className="font-mono text-xs text-[var(--muted)]">{list.length}</span>
               </header>
               {list.map((row) => (
                 <Card
@@ -183,7 +183,7 @@ export function BoBoard({ rows, canManage, canCancel, nowMs }: { rows: BoRow[]; 
                   }}
                 />
               ))}
-              {list.length === 0 ? <div className="rounded-[10px] border border-dashed border-[#e2ddd5] px-3 py-5 text-center text-xs text-[#6e6a63]">Nada aqui</div> : null}
+              {list.length === 0 ? <div className="rounded-[10px] border border-dashed border-[var(--line)] px-3 py-5 text-center text-xs text-[var(--muted)]">Nada aqui</div> : null}
             </section>
           );
         })}
@@ -191,16 +191,16 @@ export function BoBoard({ rows, canManage, canCancel, nowMs }: { rows: BoRow[]; 
 
       <Dialog.Root open={deciding !== null} onOpenChange={(open) => !open && setDeciding(null)}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-[#222222]/35 backdrop-blur-[2px]" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 grid w-[calc(100%-32px)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl bg-white p-5 shadow-2xl outline-none data-[state=open]:animate-[pagein_.18s_ease-out]">
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-[var(--solid-ink)]/35 backdrop-blur-[2px]" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 grid w-[calc(100%-32px)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl bg-[var(--surface)] p-5 shadow-2xl outline-none data-[state=open]:animate-[pagein_.18s_ease-out]">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <Dialog.Title className="text-lg font-semibold">Decisão sobre o óculos</Dialog.Title>
-                <Dialog.Description className="text-[13px] text-[#6e6a63]">
+                <Dialog.Description className="text-[13px] text-[var(--muted)]">
                   {deciding?.order?.client_name} · {deciding?.category_name}
                 </Dialog.Description>
               </div>
-              <Dialog.Close className="grid h-11 w-11 place-items-center rounded-lg text-[#6e6a63] hover:bg-[#f3ece2]" aria-label="Fechar">
+              <Dialog.Close className="grid h-11 w-11 place-items-center rounded-lg text-[var(--muted)] hover:bg-[var(--accent-soft)]" aria-label="Fechar">
                 <X size={18} />
               </Dialog.Close>
             </div>
@@ -214,11 +214,11 @@ export function BoBoard({ rows, canManage, canCancel, nowMs }: { rows: BoRow[]; 
                     onClick={() => setDecision(key)}
                     className={cn(
                       "flex min-h-12 items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
-                      decision === key ? "border-[#8c6239] bg-[#f3ece2]" : "border-[#e2ddd5] hover:bg-[#f7f6f3]",
+                      decision === key ? "border-[var(--focus)] bg-[var(--accent-soft)]" : "border-[var(--line)] hover:bg-[var(--background)]",
                     )}
                   >
                     <span className="text-sm font-semibold">{BO_DECISIONS[key].label}</span>
-                    <span className="text-xs text-[#6e6a63]">{BO_DECISIONS[key].hint}</span>
+                    <span className="text-xs text-[var(--muted)]">{BO_DECISIONS[key].hint}</span>
                   </button>
                 ))}
             </div>
@@ -244,10 +244,10 @@ export function BoBoard({ rows, canManage, canCancel, nowMs }: { rows: BoRow[]; 
 
       <Dialog.Root open={resolving !== null} onOpenChange={(open) => !open && setResolving(null)}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-[#222222]/35 backdrop-blur-[2px]" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 grid w-[calc(100%-32px)] max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl bg-white p-5 shadow-2xl outline-none">
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-[var(--solid-ink)]/35 backdrop-blur-[2px]" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 grid w-[calc(100%-32px)] max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl bg-[var(--surface)] p-5 shadow-2xl outline-none">
             <Dialog.Title className="text-lg font-semibold">Concluir assistência</Dialog.Title>
-            <Dialog.Description className="text-[13px] text-[#6e6a63]">
+            <Dialog.Description className="text-[13px] text-[var(--muted)]">
               O óculos de {resolving?.order?.client_name} volta ao fluxo normal. A ocorrência fica registrada para a análise mensal (Pareto por etapa).
             </Dialog.Description>
             <Field label="Como foi resolvido">

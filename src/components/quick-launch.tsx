@@ -79,15 +79,15 @@ export function QuickLaunch({
               onClick={() => setMode(item.key)}
               className={cn(
                 "flex items-start gap-3 rounded-xl border px-4 py-3.5 text-left transition-colors",
-                on ? "border-[#8c6239] bg-[#f3ece2] shadow-[0_0_0_3px_rgba(14,107,98,0.12)]" : "border-[#e2ddd5] bg-white hover:border-[#e2ddd5]",
+                on ? "border-[var(--focus)] bg-[var(--accent-soft)] shadow-[0_0_0_3px_rgba(14,107,98,0.12)]" : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--line)]",
               )}
             >
-              <span className={cn("mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg", on ? "bg-[#8c6239] text-white" : "bg-[#efece6] text-[#6e6a63]")}>
+              <span className={cn("mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg", on ? "bg-[var(--accent)] text-white" : "bg-[var(--surface-secondary)] text-[var(--muted)]")}>
                 <Icon size={17} />
               </span>
               <span className="flex flex-col gap-0.5">
                 <span className="text-sm font-semibold">{item.label}</span>
-                <span className="text-xs text-[#6e6a63]">{simple && item.key === "entrada" ? "Informe vendedor, número da OS e prazo." : item.hint}</span>
+                <span className="text-xs text-[var(--muted)]">{simple && item.key === "entrada" ? "Informe vendedor, número da OS e prazo." : item.hint}</span>
               </span>
             </button>
           );
@@ -95,7 +95,7 @@ export function QuickLaunch({
       </div>
 
       {!allowed[mode] ? (
-        <Panel className="px-5 py-8 text-center text-sm text-[#6e6a63]">
+        <Panel className="px-5 py-8 text-center text-sm text-[var(--muted)]">
           {mode === "saida"
             ? "A saída (entrega) é registrada por gestor ou administrador."
             : "Seu perfil não tem permissão para esta operação."}
@@ -183,8 +183,8 @@ function MoveMode({ mode }: { mode: "lentes" | "saida" }) {
     <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
       <div className="flex flex-col gap-5">
         <Panel className="p-5">
-          <label className="text-[13px] font-semibold text-[#6e6a63]" htmlFor="move-input">
-            Bipe a etiqueta ou digite o número da OS <span className="font-normal text-[#6e6a63]">(do sistema, da ótica ou o nome)</span>
+          <label className="text-[13px] font-semibold text-[var(--muted)]" htmlFor="move-input">
+            Bipe a etiqueta ou digite o número da OS <span className="font-normal text-[var(--muted)]">(do sistema, da ótica ou o nome)</span>
           </label>
           <form
             className="mt-2.5 flex items-stretch gap-2.5"
@@ -193,22 +193,22 @@ function MoveMode({ mode }: { mode: "lentes" | "saida" }) {
               search(query);
             }}
           >
-            <div className="flex flex-1 items-center gap-2.5 rounded-xl border-2 border-[#8c6239] bg-white px-3.5 py-3 shadow-[0_0_0_4px_rgba(14,107,98,0.10)]">
-              <ScanLine size={22} className="shrink-0 text-[#8c6239]" />
+            <div className="flex flex-1 items-center gap-2.5 rounded-xl border-2 border-[var(--focus)] bg-[var(--surface)] px-3.5 py-3 shadow-[0_0_0_4px_rgba(14,107,98,0.10)]">
+              <ScanLine size={22} className="shrink-0 text-[var(--link)]" />
               <input
                 id="move-input"
                 ref={inputRef}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder={mode === "saida" ? "OS que está saindo" : "OS cujas lentes chegaram"}
-                className="min-w-0 flex-1 border-0 bg-transparent text-lg font-medium shadow-none outline-none placeholder:font-normal placeholder:text-[#6e6a63] focus:shadow-none"
+                className="min-w-0 flex-1 border-0 bg-transparent text-lg font-medium shadow-none outline-none placeholder:font-normal placeholder:text-[var(--muted)] focus:shadow-none"
               />
             </div>
             <Button type="submit" className="h-auto px-5" disabled={searching || !query.trim()}>
               {searching ? "Buscando..." : "Buscar"}
             </Button>
           </form>
-          {message ? <p className="mt-3 text-[13px] font-medium text-[#6e6a63]">{message}</p> : null}
+          {message ? <p className="mt-3 text-[13px] font-medium text-[var(--muted)]">{message}</p> : null}
           {choices.length > 0 ? (
             <div className="mt-2 flex flex-col gap-1.5">
               {choices.map((order) => (
@@ -216,10 +216,10 @@ function MoveMode({ mode }: { mode: "lentes" | "saida" }) {
                   key={order.id}
                   type="button"
                   onClick={() => add(order)}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-[#e2ddd5] px-3 py-2 text-left hover:border-[#8c6239] hover:bg-[#f7f6f3]"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-[var(--line)] px-3 py-2 text-left hover:border-[var(--focus)] hover:bg-[var(--background)]"
                 >
                   <span className="flex flex-col">
-                    <span className="font-mono text-[13px] font-medium text-[#8c6239]">{visibleOrderNumber(order)}</span>
+                    <span className="font-mono text-[13px] font-medium text-[var(--link)]">{visibleOrderNumber(order)}</span>
                     <span className="text-sm font-semibold">{order.client_name}</span>
                   </span>
                   <StatusBadge status={order.status} />
@@ -230,44 +230,44 @@ function MoveMode({ mode }: { mode: "lentes" | "saida" }) {
         </Panel>
 
         <Panel className="overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-[#e2ddd5] px-5 py-3.5">
+          <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] px-5 py-3.5">
             <h2 className="text-[15px] font-semibold">
               {mode === "saida" ? "OS para dar saída" : "OS com lentes recebidas"}
-              <span className="ml-2 rounded-md bg-[#efece6] px-1.5 text-xs text-[#6e6a63]">{picked.length}</span>
+              <span className="ml-2 rounded-md bg-[var(--surface-secondary)] px-1.5 text-xs text-[var(--muted)]">{picked.length}</span>
             </h2>
             {picked.length > 0 ? (
               <Button type="button" variant="ghost" size="sm" onClick={() => { setPicked([]); setMessage(null); }}>Limpar</Button>
             ) : null}
           </div>
           {picked.length === 0 ? (
-            <p className="px-5 py-10 text-center text-sm text-[#6e6a63]">Cada OS lida entra aqui para conferência.</p>
+            <p className="px-5 py-10 text-center text-sm text-[var(--muted)]">Cada OS lida entra aqui para conferência.</p>
           ) : (
             <ul>
               {picked.map((item) => {
                 const ok = item.status === required;
                 return (
-                  <li key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[#efece6] px-5 py-3 last:border-b-0">
+                  <li key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] px-5 py-3 last:border-b-0">
                     <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="font-mono text-[13px] font-medium text-[#8c6239]">
+                      <span className="font-mono text-[13px] font-medium text-[var(--link)]">
                         {visibleOrderNumber(item)}
                       </span>
                       <span className="truncate text-sm font-semibold">{item.client_name}</span>
-                      <span className="truncate text-xs text-[#6e6a63]">{item.store_name || "—"} · {item.seller_name || "Sem vendedor"}</span>
+                      <span className="truncate text-xs text-[var(--muted)]">{item.store_name || "—"} · {item.seller_name || "Sem vendedor"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {item.result ? (
-                        <span className={cn("flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold", item.result.ok ? "bg-[#e8f3ee] text-[#286f51]" : "bg-[#f9eaea] text-[#b83a3a]")}>
+                        <span className={cn("flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold", item.result.ok ? "bg-[var(--ok-soft)] text-[var(--ok)]" : "bg-[var(--danger-soft)] text-[var(--danger)]")}>
                           {item.result.ok ? <><Check size={13} /> {mode === "saida" ? "Entregue" : "Liberada p/ montagem"}</> : item.result.message}
                         </span>
                       ) : ok ? (
                         <StatusBadge status={item.status} />
                       ) : (
-                        <span className="rounded-md bg-[#fbf3e4] px-2 py-1 text-xs font-semibold text-[#87601f]">
+                        <span className="rounded-md bg-[var(--warning-soft)] px-2 py-1 text-xs font-semibold text-[var(--warning)]">
                           Está em “{STATUS_LABEL[item.status]}”
                         </span>
                       )}
                       {!item.result?.ok ? (
-                        <button type="button" aria-label="Remover" className="grid h-11 w-11 place-items-center rounded-md text-[#6e6a63] hover:bg-[#f3ece2] hover:text-[#b83a3a] md:h-8 md:w-8" onClick={() => setPicked((current) => current.filter((p) => p.id !== item.id))}>
+                        <button type="button" aria-label="Remover" className="grid h-11 w-11 place-items-center rounded-md text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--danger)] md:h-8 md:w-8" onClick={() => setPicked((current) => current.filter((p) => p.id !== item.id))}>
                           <X size={15} />
                         </button>
                       ) : null}
@@ -283,29 +283,29 @@ function MoveMode({ mode }: { mode: "lentes" | "saida" }) {
       <Panel className="flex flex-col gap-4 p-5">
         <h2 className="text-[15px] font-semibold">{mode === "saida" ? "Confirmar saída" : "Liberar para montagem"}</h2>
         <div className="grid grid-cols-2 gap-2.5">
-          <div className="rounded-lg bg-[#e8f3ee] px-3 py-2.5">
-            <p className="text-xs font-semibold text-[#286f51]">Prontas</p>
-            <p className="tabular text-2xl font-semibold text-[#286f51]">{valid.length}</p>
+          <div className="rounded-lg bg-[var(--ok-soft)] px-3 py-2.5">
+            <p className="text-xs font-semibold text-[var(--ok)]">Prontas</p>
+            <p className="tabular text-2xl font-semibold text-[var(--ok)]">{valid.length}</p>
           </div>
-          <div className="rounded-lg bg-[#fbf3e4] px-3 py-2.5">
-            <p className="text-xs font-semibold text-[#87601f]">Bloqueadas</p>
-            <p className="tabular text-2xl font-semibold text-[#87601f]">{picked.filter((item) => item.status !== required && !item.result?.ok).length}</p>
+          <div className="rounded-lg bg-[var(--warning-soft)] px-3 py-2.5">
+            <p className="text-xs font-semibold text-[var(--warning)]">Bloqueadas</p>
+            <p className="tabular text-2xl font-semibold text-[var(--warning)]">{picked.filter((item) => item.status !== required && !item.result?.ok).length}</p>
           </div>
         </div>
         {mode === "saida" ? (
-          <label className="grid gap-1.5 text-[13px] font-medium text-[#6e6a63]">
-            Retirado por <span className="-mt-1 text-[11px] font-normal text-[#6e6a63]">Opcional — vai para o histórico</span>
-            <input value={pickupBy} onChange={(event) => setPickupBy(event.target.value)} placeholder="Motoboy, vendedor, cliente..." className="h-11 rounded-lg border border-[#e2ddd5] bg-white px-3 text-base outline-none focus:border-[#8c6239] md:h-9 md:text-sm" />
+          <label className="grid gap-1.5 text-[13px] font-medium text-[var(--muted)]">
+            Retirado por <span className="-mt-1 text-[11px] font-normal text-[var(--muted)]">Opcional — vai para o histórico</span>
+            <input value={pickupBy} onChange={(event) => setPickupBy(event.target.value)} placeholder="Motoboy, vendedor, cliente..." className="h-11 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 text-base outline-none focus:border-[var(--focus)] md:h-9 md:text-sm" />
           </label>
         ) : (
-          <p className="text-xs text-[#6e6a63]">Só OS em “Aguardando lentes” são liberadas. A montagem passa a vê-las na fila dela.</p>
+          <p className="text-xs text-[var(--muted)]">Só OS em “Aguardando lentes” são liberadas. A montagem passa a vê-las na fila dela.</p>
         )}
         <Button type="button" className="h-11 text-[15px]" disabled={pending || valid.length === 0} onClick={confirm}>
           {pending ? "Registrando..." : mode === "saida" ? `Dar saída em ${valid.length} OS` : `Liberar ${valid.length} OS`}
           <ArrowRight size={16} />
         </Button>
         {mode === "saida" ? (
-          <p className="text-xs text-[#6e6a63]">Só OS “Prontas” saem. O vendedor vê “Entregue” no acompanhamento dele na hora.</p>
+          <p className="text-xs text-[var(--muted)]">Só OS “Prontas” saem. O vendedor vê “Entregue” no acompanhamento dele na hora.</p>
         ) : null}
       </Panel>
     </div>

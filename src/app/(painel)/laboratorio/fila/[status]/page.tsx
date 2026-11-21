@@ -31,6 +31,7 @@ export default async function FilaStatusPage({
       pageSize={pageSize}
       filters={filters}
       laboratories={catalogs.laboratories}
+      sellers={catalogs.sellers}
       role={session.role}
       error={error ?? catalogs.errors[0] ?? null}
       tabCounts={tabCounts}

@@ -3,21 +3,21 @@ import type { Urgency } from "@/lib/domain/urgency";
 import { cn } from "@/lib/utils";
 
 export const STATUS_TONE: Record<OrderStatus, { fg: string; bg: string; dot: string }> = {
-  aguardando_lentes: { fg: "#87601f", bg: "#fbf3e4", dot: "#87601f" },
-  aguardando_montagem: { fg: "#6e6a63", bg: "#efece6", dot: "#8a96a0" },
-  em_montagem: { fg: "#6e4b2a", bg: "#f3ece2", dot: "#8c6239" },
-  em_correcao: { fg: "#b83a3a", bg: "#f9eaea", dot: "#b83a3a" },
-  em_conferencia: { fg: "#6e4b2a", bg: "#f3ece2", dot: "#8c6239" },
-  pronto: { fg: "#2e7d5b", bg: "#e8f3ee", dot: "#2e7d5b" },
-  entregue: { fg: "#3b4650", bg: "#e6e9ec", dot: "#3b4650" },
-  cancelado: { fg: "#6b7680", bg: "#f3f4f6", dot: "#a0a8b0" },
+  aguardando_lentes: { fg: "var(--warning)", bg: "var(--warning-soft)", dot: "var(--warning)" },
+  aguardando_montagem: { fg: "var(--muted)", bg: "var(--surface-secondary)", dot: "#8a96a0" },
+  em_montagem: { fg: "var(--link)", bg: "var(--accent-soft)", dot: "var(--link)" },
+  em_correcao: { fg: "var(--danger)", bg: "var(--danger-soft)", dot: "var(--danger)" },
+  em_conferencia: { fg: "var(--link)", bg: "var(--accent-soft)", dot: "var(--link)" },
+  pronto: { fg: "var(--ok)", bg: "var(--ok-soft)", dot: "var(--ok)" },
+  entregue: { fg: "var(--ink)", bg: "var(--surface-secondary)", dot: "var(--ink)" },
+  cancelado: { fg: "var(--muted)", bg: "var(--surface-secondary)", dot: "#a0a8b0" },
 };
 
 const urgencyTone: Record<Urgency, { dot: string; fg: string; weight: string }> = {
-  vermelho: { dot: "#b83a3a", fg: "#b83a3a", weight: "font-semibold" },
-  amarelo: { dot: "#87601f", fg: "#87601f", weight: "font-semibold" },
-  verde: { dot: "#2e7d5b", fg: "#6e6a63", weight: "font-medium" },
-  cinza: { dot: "#c9d0d4", fg: "#6e6a63", weight: "font-normal" },
+  vermelho: { dot: "var(--danger)", fg: "var(--danger)", weight: "font-semibold" },
+  amarelo: { dot: "var(--warning)", fg: "var(--warning)", weight: "font-semibold" },
+  verde: { dot: "var(--ok)", fg: "var(--muted)", weight: "font-medium" },
+  cinza: { dot: "#c9d0d4", fg: "var(--muted)", weight: "font-normal" },
 };
 
 const urgencyLabel: Record<Urgency, string> = {

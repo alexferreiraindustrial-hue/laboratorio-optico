@@ -34,9 +34,9 @@ export default function PortalGatePage() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-[max(1.5rem,env(safe-area-inset-top))]">
-      <p className="text-sm font-medium text-[#8c6239]">Acompanhamento</p>
+      <p className="text-sm font-medium text-[var(--link)]">Acompanhamento</p>
       <h1 className="mt-1 text-3xl font-semibold leading-tight">Serviços do vendedor</h1>
-      <p className="mt-2 text-sm text-[#6e6a63]">
+      <p className="mt-2 text-sm text-[var(--muted)]">
         O laboratório cria o seu cadastro e a senha. Você vê só as suas OS — prontas, em produção e encerradas.
       </p>
       <form onSubmit={(event) => {
@@ -60,13 +60,13 @@ export default function PortalGatePage() {
         <Field label="Senha do vendedor">
           <Input name="pin" required minLength={4} maxLength={64} value={pin} onChange={(event) => setPin(event.target.value)} autoComplete="current-password" type="password" placeholder="Sua senha" disabled={pending} />
         </Field>
-        {error ? <p role="alert" className="text-sm text-[#b83a3a]">{error}</p> : null}
+        {error ? <p role="alert" className="text-sm text-[var(--danger)]">{error}</p> : null}
         <Button type="submit" className="min-h-12 w-full" disabled={pending}>{pending ? "Entrando…" : "Entrar · ver meus serviços"}</Button>
-        <p className="text-xs leading-relaxed text-[#6e6a63]">Seu acesso é exclusivo para acompanhar as suas OS. O mesmo código e senha funcionam na opção Vendedor do app.</p>
+        <p className="text-xs leading-relaxed text-[var(--muted)]">Seu acesso é exclusivo para acompanhar as suas OS. O mesmo código e senha funcionam na opção Vendedor do app.</p>
       </Panel>
       </form>
-      <details className="mt-4 rounded-2xl border border-[#e2ddd5] bg-white p-4">
-        <summary className="cursor-pointer text-sm font-semibold text-[#8c6239]">Entrar com meu link de acompanhamento</summary>
+      <details className="mt-4 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-[var(--link)]">Entrar com meu link de acompanhamento</summary>
         <div className="mt-3 grid gap-3">
           <Field label="Cole o link">
             <Input value={link} onChange={(event) => setLink(event.target.value)} placeholder="https://lab.oticahub.com/acompanhar/vendedor/…" />
@@ -88,9 +88,9 @@ export default function PortalGatePage() {
           </Button>
         </div>
       </details>
-      <p className="mt-4 text-sm text-[#6e6a63]">
+      <p className="mt-4 text-sm text-[var(--muted)]">
         Não recebeu código e senha? Peça ao laboratório.
-        Equipe do laboratório? <Link className="text-[#8c6239] underline" href="/login">Entrar no sistema</Link>
+        Equipe do laboratório? <Link className="text-[var(--link)] underline" href="/login">Entrar no sistema</Link>
       </p>
     </main>
   );

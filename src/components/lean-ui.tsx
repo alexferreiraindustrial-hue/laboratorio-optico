@@ -20,10 +20,10 @@ export function hours(value: number | null | undefined) {
 type Tone = "ok" | "warn" | "bad" | "neutral";
 
 const toneStyle: Record<Tone, string> = {
-  ok: "bg-[#e8f3ee] text-[#286f51]",
-  warn: "bg-[#fbf3e4] text-[#87601f]",
-  bad: "bg-[#f9eaea] text-[#b83a3a]",
-  neutral: "bg-[#efece6] text-[#6e6a63]",
+  ok: "bg-[var(--ok-soft)] text-[var(--ok)]",
+  warn: "bg-[var(--warning-soft)] text-[var(--warning)]",
+  bad: "bg-[var(--danger-soft)] text-[var(--danger)]",
+  neutral: "bg-[var(--surface-secondary)] text-[var(--muted)]",
 };
 
 export function Pill({ tone = "neutral", children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
@@ -45,18 +45,18 @@ export function Kpi({
   badge?: string;
   tool?: string;
 }) {
-  const bar = { ok: "#2e7d5b", warn: "#87601f", bad: "#b83a3a", neutral: "#e2ddd5" }[tone];
+  const bar = { ok: "var(--ok)", warn: "var(--warning)", bad: "var(--danger)", neutral: "var(--line)" }[tone];
   return (
     <article className="relative overflow-hidden rounded-[22px] border border-[var(--line)] bg-[var(--surface)] p-4 shadow-[var(--shadow-soft)]">
       <span className="absolute inset-y-0 left-0 w-1" style={{ background: bar }} />
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[13px] font-medium text-[#6e6a63]">{label}</p>
-        {tool ? <span className="rounded-full bg-[#f3ece2] px-1.5 py-px text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">{tool}</span> : null}
+        <p className="text-[13px] font-medium text-[var(--muted)]">{label}</p>
+        {tool ? <span className="rounded-full bg-[var(--accent-soft)] px-1.5 py-px text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">{tool}</span> : null}
       </div>
       <p className="display tabular mt-2 text-[28px] leading-none">{value}</p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         {badge ? <Pill tone={tone}>{badge}</Pill> : null}
-        {hint ? <span className="text-xs text-[#6e6a63]">{hint}</span> : null}
+        {hint ? <span className="text-xs text-[var(--muted)]">{hint}</span> : null}
       </div>
     </article>
   );
@@ -68,7 +68,7 @@ export function Card({ title, subtitle, action, children, className }: { title: 
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--line)] px-5 py-3.5">
         <div>
           <h2 className="text-[15px] font-semibold">{title}</h2>
-          {subtitle ? <p className="mt-0.5 text-xs text-[#6e6a63]">{subtitle}</p> : null}
+          {subtitle ? <p className="mt-0.5 text-xs text-[var(--muted)]">{subtitle}</p> : null}
         </div>
         {action}
       </header>

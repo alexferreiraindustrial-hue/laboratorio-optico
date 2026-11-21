@@ -126,3 +126,22 @@ export async function removeRoutineLog(id: string): Promise<ActionResult> {
   revalidatePath("/rotina");
   return { ok: true };
 }
+
+/** Updates only the existing supplier link; never rewrites the OS payload. */
+export async function updateOrderLaboratory(orderId: string, laboratoryId: string): Promise<ActionResult> {
+ const { supabase, role } = await requireProfile();
+ if (!WRITERS.includes(role)) return { ok:false, message:"Sem permissão para alterar o laboratório." };
+ const { data: lab, error: labError } = await supabase.from("laboratories").select("id").eq("id", laboratoryId).eq("active",true).maybeSingle();
+ if (labError || !lab) return { ok:false, message:"Escolha um laboratório ativo." };
+ const { data, error } = await supabase.from("service_orders").update({laboratory_id:lab.id}).eq("id",orderId).select("id").maybeSingle();
+ if (error || !data) return {ok:false,message:error?.message ?? "OS não encontrada ou sem permissão."};
+ refreshFlow(); revalidatePath("/montagem"); revalidatePath(`/laboratorio/${orderId}`);
+ return {ok:true,message:"Laboratório das lentes atualizado."};
+}
+export async function laboratoryOptions() {
+ const {supabase,role}=await requireProfile();
+ if (!WRITERS.includes(role)) return [];
+ const {data,error}=await supabase.from("laboratories").select("id,name").eq("active",true).order("name");
+ if(error) throw new Error("Não foi possível carregar os laboratórios.");
+ return data ?? [];
+}

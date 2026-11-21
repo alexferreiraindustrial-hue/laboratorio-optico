@@ -108,7 +108,7 @@ export function SellerForm({
       </Field>
       <fieldset className="grid gap-2 md:col-span-2">
         <legend className="text-sm font-medium">Lojas vinculadas</legend>
-        {stores.length === 0 ? <p className="text-sm text-[#6e6a63]">Cadastre uma loja antes de vincular.</p> : null}
+        {stores.length === 0 ? <p className="text-sm text-[var(--muted)]">Cadastre uma loja antes de vincular.</p> : null}
         {stores.map((store) => (
           <label key={store.id} className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="storeId" value={store.id} defaultChecked={selected.includes(store.id)} />
@@ -159,8 +159,8 @@ export function SellerAppAccess({ sellerId, login }: { sellerId: string; login: 
       }}
     >
       <input type="hidden" name="sellerId" value={sellerId} />
-      <p className="text-sm text-[#6e6a63]">
-        Código de entrada no site e no app: <strong className="text-[#222222]">{login}</strong>. Defina ou altere a senha com pelo menos 4 caracteres (letras, números e símbolos) e entregue só para este vendedor. Ele acompanha apenas as OS dele. No site, use lab.oticahub.com/vendedor/login; no app, escolha Vendedor.
+      <p className="text-sm text-[var(--muted)]">
+        Código de entrada no site e no app: <strong className="text-[var(--ink)]">{login}</strong>. Defina ou altere a senha com pelo menos 4 caracteres (letras, números e símbolos) e entregue só para este vendedor. Ele acompanha apenas as OS dele. No site, use lab.oticahub.com/vendedor/login; no app, escolha Vendedor.
       </p>
       <Field label="Definir ou alterar senha">
         <Input name="appPin" type="password" minLength={4} maxLength={64} autoComplete="new-password" required placeholder="Digite a nova senha" />
@@ -201,7 +201,7 @@ export function LinkManager({
 
   return (
     <div className="grid gap-3">
-      <p className="text-sm text-[#6e6a63]">
+      <p className="text-sm text-[var(--muted)]">
         Link opcional do PWA. O acesso principal do vendedor no app é a senha que você cria no cadastro. O sistema guarda só o hash do link.
         {active ? ` Prefixo do link ativo: ${active.token_prefix}…` : " Nenhum link ativo."}
       </p>
@@ -259,7 +259,7 @@ export function LinkManager({
             </Button>
             {share ? (
               <a
-                className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#2e7d5b] px-3.5 text-sm font-semibold text-white hover:bg-[#2e7d5b]"
+                className="inline-flex h-9 items-center gap-2 rounded-lg bg-[var(--bg-2e7d5b)] px-3.5 text-sm font-semibold text-white hover:bg-[var(--bg-2e7d5b)]"
                 target="_blank"
                 rel="noreferrer"
                 href={share}

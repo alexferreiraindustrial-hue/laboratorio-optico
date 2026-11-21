@@ -40,10 +40,10 @@ export function LeanSettingsForm({ settings, wipNow }: { settings: LeanSettings;
           const now = wipNow[status] ?? 0;
           const over = limit > 0 && now > limit;
           return (
-            <label key={status} className="flex items-center gap-3 rounded-lg border border-[#e2ddd5] px-3 py-2">
+            <label key={status} className="flex items-center gap-3 rounded-lg border border-[var(--line)] px-3 py-2">
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-[13px] font-medium">{STATUS_LABEL[status]}</span>
-                <span className={`text-xs ${over ? "font-semibold text-[#b83a3a]" : "text-[#6e6a63]"}`}>
+                <span className={`text-xs ${over ? "font-semibold text-[var(--danger)]" : "text-[var(--muted)]"}`}>
                   Agora: {now}
                   {over ? " · acima do limite" : ""}
                 </span>
@@ -62,7 +62,7 @@ export function LeanSettingsForm({ settings, wipNow }: { settings: LeanSettings;
       </div>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <label className="grid gap-1 text-sm">
-          <span className="font-medium text-[#6e6a63]">Minutos produtivos por dia (para o takt time)</span>
+          <span className="font-medium text-[var(--muted)]">Minutos produtivos por dia (para o takt time)</span>
           <Input inputMode="numeric" className="w-32" value={minutes} onChange={(event) => setMinutes(event.target.value.replace(/\D/g, "").slice(0, 4))} />
         </label>
         <Button type="submit" disabled={pending}>

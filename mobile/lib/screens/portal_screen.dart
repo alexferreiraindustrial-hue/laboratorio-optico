@@ -81,12 +81,12 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
     final storeGroups = groupByStoreThenSeller(productionRows);
 
     return Scaffold(
-      backgroundColor: LaColors.piso,
+      backgroundColor: LaColors.adapt(context, LaColors.piso),
       body: SafeArea(
         child: loading
             ? Center(
                 child: error == null
-                    ? const CircularProgressIndicator()
+                    ? CircularProgressIndicator()
                     : LabError(message: error!, onRetry: load),
               )
             : RefreshIndicator(
@@ -95,7 +95,7 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                   slivers: [
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
+                        padding: EdgeInsets.fromLTRB(
                           AppSpace.md,
                           AppSpace.sm,
                           AppSpace.md,
@@ -111,8 +111,8 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const LaMonogram(size: 44),
-                                      const SizedBox(height: 8),
+                                      LaMonogram(size: 44),
+                                      SizedBox(height: 8),
                                       Text(
                                         widget.session.portalName ?? 'Vendedor',
                                         style: LaType.tituloSecao,
@@ -127,11 +127,11 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                                 IconButton(
                                   tooltip: 'Sair',
                                   onPressed: () => widget.session.signOut(),
-                                  icon: const Icon(Icons.logout),
+                                  icon: Icon(Icons.logout),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: AppSpace.md),
+                            SizedBox(height: AppSpace.md),
                             Row(
                               children: [
                                 _SummaryChip(
@@ -142,31 +142,31 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                                     () => filter = SellerFilter.production,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 _SummaryChip(
                                   label: 'Prontas',
                                   value: ready,
-                                  tone: LaColors.noPrazo,
+                                  tone: LaColors.adapt(context, LaColors.noPrazo),
                                   selected: filter == SellerFilter.ready,
                                   onTap: () => setState(
                                     () => filter = SellerFilter.ready,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 _SummaryChip(
                                   label: 'Atenção',
                                   value: alerts,
-                                  tone: LaColors.perigo,
+                                  tone: LaColors.adapt(context, LaColors.perigo),
                                   selected: filter == SellerFilter.alerts,
                                   onTap: () => setState(
                                     () => filter = SellerFilter.alerts,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 _SummaryChip(
                                   label: 'Encerradas',
                                   value: closed,
-                                  tone: LaColors.regua,
+                                  tone: LaColors.adapt(context, LaColors.regua),
                                   selected: filter == SellerFilter.closed,
                                   onTap: () => setState(
                                     () => filter = SellerFilter.closed,
@@ -176,10 +176,10 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                             ),
                             if (alerts > 0 && filter != SellerFilter.closed)
                               Container(
-                                margin: const EdgeInsets.only(top: AppSpace.sm),
-                                padding: const EdgeInsets.all(AppSpace.md),
+                                margin: EdgeInsets.only(top: AppSpace.sm),
+                                padding: EdgeInsets.all(AppSpace.md),
                                 decoration: BoxDecoration(
-                                  color: LaColors.perigoFundo,
+                                  color: LaColors.adapt(context, LaColors.perigoFundo),
                                   borderRadius: BorderRadius.circular(
                                     AppRadius.control,
                                   ),
@@ -187,21 +187,21 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                                 child: Text(
                                   '$alerts serviço${alerts == 1 ? '' : 's'} no prazo apertado. O laboratório já prioriza. Abra a OS para mandar recado.',
                                   style: LaType.rotulo.copyWith(
-                                    color: LaColors.perigo,
+                                    color: LaColors.adapt(context, LaColors.perigo),
                                     height: 1.35,
                                   ),
                                 ),
                               ),
-                            const SizedBox(height: AppSpace.md),
+                            SizedBox(height: AppSpace.md),
                             TextField(
                               controller: search,
                               onChanged: (_) => setState(() {}),
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Buscar OS, pedido ou cliente',
                                 prefixIcon: Icon(Icons.search),
                               ),
                             ),
-                            const SizedBox(height: AppSpace.sm),
+                            SizedBox(height: AppSpace.sm),
                             Align(
                               alignment: Alignment.centerLeft,
                               child: TextButton(
@@ -213,7 +213,7 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                                         filter = SellerFilter.all;
                                         search.clear();
                                       }),
-                                child: const Text('Ver todas'),
+                                child: Text('Ver todas'),
                               ),
                             ),
                             if (error != null) LabError(message: error!),
@@ -222,7 +222,7 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                       ),
                     ),
                     if (visible.isEmpty)
-                      const SliverToBoxAdapter(
+                      SliverToBoxAdapter(
                         child: LabEmpty(title: 'Nenhum serviço neste filtro.'),
                       ),
                     if (filter != SellerFilter.closed && readyRows.isNotEmpty)
@@ -237,7 +237,7 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                       for (final store in storeGroups) ...[
                         SliverToBoxAdapter(
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(
+                            padding: EdgeInsets.fromLTRB(
                               AppSpace.md,
                               AppSpace.md,
                               AppSpace.md,
@@ -247,7 +247,7 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                           ),
                         ),
                         SliverPadding(
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: AppSpace.md,
                           ),
                           sliver: SliverList.separated(
@@ -256,7 +256,7 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                               (sum, seller) => sum + seller.$2.length,
                             ),
                             separatorBuilder: (_, _) =>
-                                const SizedBox(height: 8),
+                                SizedBox(height: 8),
                             itemBuilder: (context, index) {
                               final flat = [
                                 for (final seller in store.$2) ...seller.$2,
@@ -276,7 +276,7 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                         closedRows.take(40).toList(),
                         LaColors.branco,
                       ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                    SliverToBoxAdapter(child: SizedBox(height: 32)),
                   ],
                 ),
               ),
@@ -293,7 +293,7 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
     return [
       SliverToBoxAdapter(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             AppSpace.md,
             AppSpace.md,
             AppSpace.md,
@@ -303,10 +303,10 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
         ),
       ),
       SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpace.md),
+        padding: EdgeInsets.symmetric(horizontal: AppSpace.md),
         sliver: SliverList.separated(
           itemCount: items.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 8),
+          separatorBuilder: (_, _) => SizedBox(height: 8),
           itemBuilder: (context, index) => ColoredBox(
             color: Colors.transparent,
             child: _SellerOrderCard(row: items[index], fill: fill),
@@ -333,9 +333,9 @@ class _SummaryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = selected ? LaColors.grafite : LaColors.branco;
-    final fg = selected ? LaColors.branco : LaColors.grafite;
-    final number = selected ? LaColors.branco : tone;
+    final bg = selected ? Color(0xFF222222) : LaColors.surface(context);
+    final fg = selected ? LaColors.branco : LaColors.adapt(context, LaColors.grafite);
+    final number = selected ? LaColors.branco : LaColors.adapt(context, tone);
     return Expanded(
       child: Semantics(
         button: true,
@@ -348,9 +348,9 @@ class _SummaryChip extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 76),
+              constraints: BoxConstraints(minHeight: 76),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   horizontal: 8,
                   vertical: 10,
                 ),
@@ -394,20 +394,20 @@ class _SellerOrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = '${row['status']}';
     return Material(
-      color: fill ?? LaColors.branco,
+      color: fill ?? LaColors.surface(context),
       borderRadius: LaRadius.rCartao,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => context.push('/portal/os/${row['id']}'),
         child: Padding(
-          padding: const EdgeInsets.all(LaSpace.interno),
+          padding: EdgeInsets.all(LaSpace.interno),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Text(visibleOrderNumber(row), style: LaType.numeroLista),
-                  const SizedBox(width: LaSpace.m),
+                  SizedBox(width: LaSpace.m),
                   Expanded(
                     child: Text(
                       '${row['client_name'] ?? ''}',
@@ -418,11 +418,11 @@ class _SellerOrderCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               Text(statusLabel[status] ?? status, style: LaType.apoio),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               LaPrazoTag(status: prazoDe(row), texto: prazoCurto(row)),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               LaStageBar(
                 etapaAtual: flowEtapa(status),
                 encerrada: flowEncerrada(status),
@@ -513,17 +513,17 @@ class _PortalOrderScreenState extends State<PortalOrderScreen> {
         child: row == null
             ? Center(
                 child: error == null
-                    ? const CircularProgressIndicator()
+                    ? CircularProgressIndicator()
                     : LabError(message: error!, onRetry: load),
               )
             : ListView(
-                padding: const EdgeInsets.all(AppSpace.md),
+                padding: EdgeInsets.all(AppSpace.md),
                 children: [
                   if (error != null) LabError(message: error!),
                   Container(
-                    padding: const EdgeInsets.all(AppSpace.md),
-                    decoration: const BoxDecoration(
-                      color: LaColors.branco,
+                    padding: EdgeInsets.all(AppSpace.md),
+                    decoration: BoxDecoration(
+                      color: LaColors.surface(context),
                       borderRadius: LaRadius.rCartao,
                     ),
                     child: Column(
@@ -533,18 +533,18 @@ class _PortalOrderScreenState extends State<PortalOrderScreen> {
                           '${row['client_name']}',
                           style: LaType.corpoForte.copyWith(fontSize: 22),
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: 6),
                         Text(
                           statusLabel['${row['status']}'] ?? '${row['status']}',
                           style: LaType.rotulo,
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         LaStageBar(
                           etapaAtual: flowEtapa('${row['status']}'),
                           encerrada: flowEncerrada('${row['status']}'),
                           altura: 5,
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         LaPrazoTag(
                           status: prazoDe(row),
                           texto: prazoCurto(row),
@@ -553,29 +553,29 @@ class _PortalOrderScreenState extends State<PortalOrderScreen> {
                         Text('Prazo ${formatWhen(row['due_at'])}'),
                         if (row['service_description'] != null)
                           Padding(
-                            padding: const EdgeInsets.only(top: 8),
+                            padding: EdgeInsets.only(top: 8),
                             child: Text('${row['service_description']}'),
                           ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpace.lg),
+                  SizedBox(height: AppSpace.lg),
                   Text(
                     'Recado para o laboratório',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  const SizedBox(height: AppSpace.sm),
+                  SizedBox(height: AppSpace.sm),
                   TextField(
                     controller: message,
                     maxLines: 3,
-                    decoration: const InputDecoration(labelText: 'Mensagem'),
+                    decoration: InputDecoration(labelText: 'Mensagem'),
                   ),
-                  const SizedBox(height: AppSpace.sm),
+                  SizedBox(height: AppSpace.sm),
                   FilledButton(
                     onPressed: pending ? null : send,
                     child: Text(pending ? 'Enviando...' : 'Enviar recado'),
                   ),
-                  const SizedBox(height: AppSpace.lg),
+                  SizedBox(height: AppSpace.lg),
                   Text(
                     'Histórico',
                     style: Theme.of(context).textTheme.titleMedium,

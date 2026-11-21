@@ -19,31 +19,31 @@ class _PainelExemploState extends State<PainelExemplo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: LaColors.piso,
+      backgroundColor: LaColors.adapt(context, LaColors.piso),
       bottomNavigationBar: LaTabBar(currentIndex: _aba, onTap: (i) => setState(() => _aba = i)),
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(LaSpace.tela, LaSpace.l, LaSpace.tela, LaSpace.xxl),
+          padding: EdgeInsets.fromLTRB(LaSpace.tela, LaSpace.l, LaSpace.tela, LaSpace.xxl),
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: LaSpace.xs),
+              padding: EdgeInsets.symmetric(horizontal: LaSpace.xs),
               child: Row(
                 children: [
-                  const LaMonogram(size: 44),
-                  const SizedBox(width: LaSpace.l),
+                  LaMonogram(size: 44),
+                  SizedBox(width: LaSpace.l),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Lab Gold', style: LaType.corpoForte.copyWith(fontSize: 18, fontWeight: FontWeight.w700)),
-                      Text('Terça, 3 de novembro', style: LaType.rotulo.copyWith(fontWeight: FontWeight.w500, color: LaColors.regua)),
+                      Text('Terça, 3 de novembro', style: LaType.rotulo.copyWith(fontWeight: FontWeight.w500, color: LaColors.adapt(context, LaColors.regua))),
                     ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: LaSpace.secao),
+            SizedBox(height: LaSpace.secao),
 
             LaCommandPlate(
               onLancarOs: () => _ir('lancar'),
@@ -51,7 +51,7 @@ class _PainelExemploState extends State<PainelExemplo> {
               onRotina: () => _ir('rotina'),
               onConfigurarRotina: () => _ir('rotina/config'),
             ),
-            const SizedBox(height: LaSpace.secao),
+            SizedBox(height: LaSpace.secao),
 
             LaFlowList(
               steps: [
@@ -63,7 +63,7 @@ class _PainelExemploState extends State<PainelExemplo> {
                 LaFlowStep(rotulo: 'Pronto', subtitulo: 'Saída', contagem: 11, kind: LaFlowKind.saida, onTap: () => _ir('prontas')),
               ],
             ),
-            const SizedBox(height: LaSpace.l),
+            SizedBox(height: LaSpace.l),
 
             // Aviso de estoque + perfil
             Row(
@@ -71,9 +71,9 @@ class _PainelExemploState extends State<PainelExemplo> {
                 Expanded(
                   child: Material(
                     color: LaColors.branco,
-                    shape: const RoundedRectangleBorder(
+                    shape: RoundedRectangleBorder(
                       borderRadius: LaRadius.rBotao,
-                      side: BorderSide(color: LaColors.alertaBorda, width: 1.5),
+                      side: BorderSide(color: LaColors.adapt(context, LaColors.alertaBorda), width: 1.5),
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: InkWell(
@@ -81,11 +81,11 @@ class _PainelExemploState extends State<PainelExemplo> {
                       child: SizedBox(
                         height: 52,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: LaSpace.secao),
+                          padding: EdgeInsets.symmetric(horizontal: LaSpace.secao),
                           child: Row(
                             children: [
-                              Container(width: 10, height: 10, decoration: const BoxDecoration(color: LaColors.pontoProximo, shape: BoxShape.circle)),
-                              const SizedBox(width: LaSpace.m),
+                              Container(width: 10, height: 10, decoration: BoxDecoration(color: LaColors.adapt(context, LaColors.pontoProximo), shape: BoxShape.circle)),
+                              SizedBox(width: LaSpace.m),
                               Text('3 lentes no mínimo', style: LaType.rotulo.copyWith(fontSize: 15)),
                             ],
                           ),
@@ -94,7 +94,7 @@ class _PainelExemploState extends State<PainelExemplo> {
                     ),
                   ),
                 ),
-                const SizedBox(width: LaSpace.item),
+                SizedBox(width: LaSpace.item),
                 Material(
                   color: LaColors.branco,
                   borderRadius: LaRadius.rBotao,
@@ -104,17 +104,17 @@ class _PainelExemploState extends State<PainelExemplo> {
                     child: SizedBox(
                       height: 52,
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(6, 6, 12, 6),
+                        padding: EdgeInsets.fromLTRB(6, 6, 12, 6),
                         child: Row(
                           children: [
                             Container(
                               width: 40,
                               height: 40,
                               alignment: Alignment.center,
-                              decoration: BoxDecoration(color: LaColors.grafite, borderRadius: BorderRadius.circular(9)),
+                              decoration: BoxDecoration(color: LaColors.adapt(context, LaColors.grafite), borderRadius: BorderRadius.circular(9)),
                               child: Text('AF', style: LaType.numeroLista.copyWith(fontSize: 18, color: LaColors.branco)),
                             ),
-                            const SizedBox(width: LaSpace.item),
+                            SizedBox(width: LaSpace.item),
                             Text('Alex Ferreira', style: LaType.rotulo.copyWith(fontSize: 15)),
                           ],
                         ),

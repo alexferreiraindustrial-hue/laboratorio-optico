@@ -19,7 +19,7 @@ export default async function FiveSPage() {
   return (
     <div className="grid gap-5">
       {error ? (
-        <p className="rounded-lg border border-[#f3c9c4] bg-[#f9eaea] px-3 py-2 text-sm text-[#b83a3a]">
+        <p className="rounded-lg border border-[var(--edge-f3c9c4)] bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">
           O módulo 5S ainda não foi ativado no banco de dados. Execute a migração de melhoria contínua no Supabase.
         </p>
       ) : null}

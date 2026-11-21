@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { OrderLaboratory } from "./order-laboratory";
 import { OrderActions } from "@/components/order-actions";
 import { StatusBadge, UrgencyMark } from "@/components/status-badge";
 import { Button, Feedback, Field, Input, Panel, Select, TextArea } from "@/components/ui";
@@ -78,9 +79,9 @@ export function OrderWorkspace({
         <Panel className="p-4">
           <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="font-mono text-sm text-[#8c6239]">{osNumber}</p>
+              <p className="font-mono text-sm text-[var(--link)]">{osNumber}</p>
               <h1 className="text-xl font-semibold">{order.client_name}</h1>
-              <p className="mt-1 text-sm text-[#6e6a63]">{order.service_description}</p>
+              <p className="mt-1 text-sm text-[var(--muted)]">{order.service_description}</p>
             </div>
             <div className="flex flex-col items-end gap-2">
               <StatusBadge status={order.status} />
@@ -88,20 +89,20 @@ export function OrderWorkspace({
             </div>
           </div>
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-            <div><dt className="text-[#6e6a63]">Loja</dt><dd>{order.store_name || "—"}</dd></div>
-            <div><dt className="text-[#6e6a63]">Laboratório</dt><dd>{order.laboratory_name}</dd></div>
-            <div><dt className="text-[#6e6a63]">Vendedor</dt><dd>{order.seller_name || "—"}</dd></div>
-            <div><dt className="text-[#6e6a63]">Entrada</dt><dd>{formatDateTime(order.entered_at)}</dd></div>
-            <div><dt className="text-[#6e6a63]">Previsão</dt><dd>{formatDateTime(order.due_at)} · {dueDeltaLabel(order.due_at, new Date(), order.status)}</dd></div>
+            <div><dt className="text-[var(--muted)]">Loja</dt><dd>{order.store_name || "—"}</dd></div>
+            <div><dt className="text-[var(--muted)]">Laboratório</dt><dd>{order.laboratory_name}</dd></div>
+            <div><dt className="text-[var(--muted)]">Vendedor</dt><dd>{order.seller_name || "—"}</dd></div>
+            <div><dt className="text-[var(--muted)]">Entrada</dt><dd>{formatDateTime(order.entered_at)}</dd></div>
+            <div><dt className="text-[var(--muted)]">Previsão</dt><dd>{formatDateTime(order.due_at)} · {dueDeltaLabel(order.due_at, new Date(), order.status)}</dd></div>
             {order.external_order_id && order.external_order_id !== osNumber ? (
-              <div><dt className="text-[#6e6a63]">Pedido externo</dt><dd>{order.external_order_id}</dd></div>
+              <div><dt className="text-[var(--muted)]">Pedido externo</dt><dd>{order.external_order_id}</dd></div>
             ) : null}
-            <div><dt className="text-[#6e6a63]">Conclusão da montagem</dt><dd>{formatDateTime(order.completed_at)}</dd></div>
-            <div><dt className="text-[#6e6a63]">Entrega</dt><dd>{formatDateTime(order.delivered_at)}</dd></div>
-            <div><dt className="text-[#6e6a63]">Prioridade</dt><dd>{order.priority === "critica" ? "Crítica" : "Normal"}</dd></div>
+            <div><dt className="text-[var(--muted)]">Conclusão da montagem</dt><dd>{formatDateTime(order.completed_at)}</dd></div>
+            <div><dt className="text-[var(--muted)]">Entrega</dt><dd>{formatDateTime(order.delivered_at)}</dd></div>
+            <div><dt className="text-[var(--muted)]">Prioridade</dt><dd>{order.priority === "critica" ? "Crítica" : "Normal"}</dd></div>
           </dl>
           {order.status === "aguardando_lentes" ? (
-            <p className="mt-3 rounded-md bg-[#f3ece2] px-3 py-2 text-sm text-[#87601f]">
+            <p className="mt-3 rounded-md bg-[var(--accent-soft)] px-3 py-2 text-sm text-[var(--warning)]">
               Esta OS aguarda lentes. A montagem não está em execução.
             </p>
           ) : null}
@@ -119,23 +120,24 @@ export function OrderWorkspace({
           <div className="mt-4">
             <OrderActions orderId={order.id} status={order.status} role={role} />
             {order.status === "em_conferencia" && blockers.length > 0 ? (
-              <ul className="mt-2 list-disc pl-5 text-sm text-[#87601f]">
+              <ul className="mt-2 list-disc pl-5 text-sm text-[var(--warning)]">
                 {blockers.map((item) => <li key={item}>{item}</li>)}
               </ul>
             ) : null}
           </div>
         </Panel>
 
+        {can(role,"orders.write") && <Panel className="p-4"><OrderLaboratory orderId={order.id}/></Panel>}
         <ForecastPanel order={order} steps={steps} seller={seller} messages={messages} role={role} />
 
-        <AttachmentBox
+        <div id="fotos" className="scroll-mt-24"><AttachmentBox
           title="Fotos do serviço"
           entityType="order"
           entityId={order.id}
           orderId={order.id}
           role={role}
           attachments={attachments.filter((item) => item.entity_type === "order")}
-        />
+        /></div>
 
         <Panel className="p-4">
           <h2 className="font-medium">Lentes e armação informadas na OS</h2>
@@ -145,23 +147,23 @@ export function OrderWorkspace({
             <div>Adição {spec.addition || "—"}</div>
             <div>Armação {spec.frame || "—"}</div>
           </dl>
-          {spec.lens_notes ? <p className="mt-2 text-sm text-[#6e6a63]">{spec.lens_notes}</p> : null}
-          <p className="mt-2 text-xs text-[#6e6a63]">Estes dados não dão baixa no estoque. O consumo é uma operação separada.</p>
+          {spec.lens_notes ? <p className="mt-2 text-sm text-[var(--muted)]">{spec.lens_notes}</p> : null}
+          <p className="mt-2 text-xs text-[var(--muted)]">Estes dados não dão baixa no estoque. O consumo é uma operação separada.</p>
         </Panel>
 
         <Panel className="p-4">
           <h2 className="font-medium">Etapas de montagem</h2>
           {order.status === "aguardando_montagem" ? (
-            <p className="mt-2 rounded-md bg-[#f3ece2] px-3 py-2 text-sm text-[#6e4b2a]">
+            <p className="mt-2 rounded-md bg-[var(--accent-soft)] px-3 py-2 text-sm text-[var(--link)]">
               Para liberar as etapas, mova a OS para <strong>Em montagem</strong> no botão “Movimentar” acima.
             </p>
           ) : order.status === "aguardando_lentes" ? (
-            <p className="mt-2 rounded-md bg-[#f3ece2] px-3 py-2 text-sm text-[#87601f]">
+            <p className="mt-2 rounded-md bg-[var(--accent-soft)] px-3 py-2 text-sm text-[var(--warning)]">
               As etapas ficam bloqueadas até as lentes chegarem.
             </p>
           ) : null}
           <div className="mt-3 grid gap-3">
-            {orderedSteps.length === 0 ? <p className="text-sm text-[#6e6a63]">As etapas são criadas com a OS. Se não aparecerem, recarregue após a abertura.</p> : null}
+            {orderedSteps.length === 0 ? <p className="text-sm text-[var(--muted)]">As etapas são criadas com a OS. Se não aparecerem, recarregue após a abertura.</p> : null}
             {orderedSteps.map((step) => (
               <StepCard
                 key={step.id}
@@ -179,7 +181,7 @@ export function OrderWorkspace({
         <Panel className="p-4">
           <h2 className="font-medium">Ocorrências de qualidade</h2>
           <div className="mt-3 grid gap-3">
-            {occurrences.length === 0 ? <p className="text-sm text-[#6e6a63]">Nenhuma ocorrência nesta OS.</p> : null}
+            {occurrences.length === 0 ? <p className="text-sm text-[var(--muted)]">Nenhuma ocorrência nesta OS.</p> : null}
             {occurrences.map((item) => (
               <OccurrenceCard key={item.id} item={item} role={role} orderId={order.id} />
             ))}
@@ -194,21 +196,21 @@ export function OrderWorkspace({
           <h2 className="font-medium">Histórico de status</h2>
           <ol className="mt-3 grid gap-2 text-sm">
             {history.map((item) => (
-              <li key={item.id} className="border-b border-[#efece6] pb-2">
+              <li key={item.id} className="border-b border-[var(--line)] pb-2">
                 <p className="font-medium">
                   {item.from_status ? `${STATUS_LABEL[item.from_status as OrderStatus] ?? item.from_status} → ` : ""}
                   {STATUS_LABEL[item.to_status as OrderStatus] ?? item.to_status}
                 </p>
-                <p className="text-xs text-[#6e6a63]">{formatDateTime(item.created_at)} {item.user_name ? `· ${item.user_name}` : ""}</p>
+                <p className="text-xs text-[var(--muted)]">{formatDateTime(item.created_at)} {item.user_name ? `· ${item.user_name}` : ""}</p>
                 {item.note ? <p className="text-xs">{item.note}</p> : null}
               </li>
             ))}
             {attachments
               .filter((item) => item.entity_type === "order")
               .map((item) => (
-                <li key={`foto-${item.id}`} className="border-b border-[#efece6] pb-2">
+                <li key={`foto-${item.id}`} className="border-b border-[var(--line)] pb-2">
                   <p className="font-medium">Foto anexada</p>
-                  <p className="text-xs text-[#6e6a63]">{formatDateTime(item.created_at)} · {item.file_name}</p>
+                  <p className="text-xs text-[var(--muted)]">{formatDateTime(item.created_at)} · {item.file_name}</p>
                   {item.url && item.mime_type.startsWith("image/") ? (
                     <a className="mt-2 block" href={item.url} target="_blank" rel="noreferrer">
                       <img src={item.url} alt={item.file_name} className="h-20 w-20 rounded-md object-cover" />
@@ -254,7 +256,7 @@ function ForecastPanel({
 
   return (
     <Panel className="overflow-hidden">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2ddd5] px-5 py-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] px-5 py-3.5">
         <h2 className="text-[15px] font-semibold">Previsão e comunicação</h2>
         <RiskChip risk={forecast.risk} />
       </div>
@@ -264,13 +266,13 @@ function ForecastPanel({
             <LensGauge value={forecast.progress} risk={forecast.risk} size={104} label="concluído" />
             <div className="grid gap-2 text-[13px]">
               <div>
-                <p className="text-[#6e6a63]">Estimativa de pronta</p>
+                <p className="text-[var(--muted)]">Estimativa de pronta</p>
                 <p className="text-base font-semibold">
                   {forecast.projectedReadyAt ? formatForecastDate(forecast.projectedReadyAt) : forecast.risk === "pronta" ? "Já está pronta" : "—"}
                 </p>
               </div>
               <div>
-                <p className="text-[#6e6a63]">Prazo combinado</p>
+                <p className="text-[var(--muted)]">Prazo combinado</p>
                 <p className="font-medium">{order.due_at ? formatForecastDate(order.due_at) : "Sem prazo"}</p>
               </div>
             </div>
@@ -282,43 +284,43 @@ function ForecastPanel({
               return (
                 <li key={label} className="flex flex-col items-center gap-1.5 text-center">
                   <span
-                    className={`grid h-6 w-6 place-items-center rounded-full text-[11px] font-bold ${done ? "bg-[#8c6239] text-white" : now ? "bg-white text-[#8c6239] ring-2 ring-[#8c6239]" : "bg-[#efece6] text-[#6e6a63]"}`}
+                    className={`grid h-6 w-6 place-items-center rounded-full text-[11px] font-bold ${done ? "bg-[var(--accent)] text-white" : now ? "bg-[var(--surface)] text-[var(--link)] ring-2 ring-[var(--focus)]" : "bg-[var(--surface-secondary)] text-[var(--muted)]"}`}
                   >
                     {done ? "✓" : index + 1}
                   </span>
-                  <span className={`text-[11px] leading-tight ${now ? "font-semibold text-[#222222]" : "text-[#6e6a63]"}`}>{label}</span>
+                  <span className={`text-[11px] leading-tight ${now ? "font-semibold text-[var(--ink)]" : "text-[var(--muted)]"}`}>{label}</span>
                 </li>
               );
             })}
           </ol>
           <p
-            className={`rounded-lg px-3 py-2.5 text-[13px] ${forecast.risk === "risco" || forecast.risk === "atrasada" ? "bg-[#f9eaea] font-medium text-[#b83a3a]" : forecast.risk === "atencao" ? "bg-[#fbf3e4] text-[#87601f]" : "bg-[#f7f6f3] text-[#6e6a63]"}`}
+            className={`rounded-lg px-3 py-2.5 text-[13px] ${forecast.risk === "risco" || forecast.risk === "atrasada" ? "bg-[var(--danger-soft)] font-medium text-[var(--danger)]" : forecast.risk === "atencao" ? "bg-[var(--warning-soft)] text-[var(--warning)]" : "bg-[var(--background)] text-[var(--muted)]"}`}
           >
             {forecast.reason}
             {forecast.risk === "risco" ? " Priorize esta OS e avise o vendedor agora." : ""}
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 lg:border-l lg:border-[#efece6] lg:pl-5">
+        <div className="flex flex-col gap-3 lg:border-l lg:border-[var(--line)] lg:pl-5">
           <div className="flex flex-col gap-1">
-            <p className="text-[13px] font-medium text-[#6e6a63]">Vendedor</p>
+            <p className="text-[13px] font-medium text-[var(--muted)]">Vendedor</p>
             <p className="text-sm font-semibold">{seller?.name ?? order.seller_name ?? "Não informado"}</p>
-            {seller && !link ? <p className="text-xs text-[#87601f]">Sem WhatsApp no cadastro do vendedor — copie a mensagem.</p> : null}
+            {seller && !link ? <p className="text-xs text-[var(--warning)]">Sem WhatsApp no cadastro do vendedor — copie a mensagem.</p> : null}
           </div>
           {!isReadOnly(role) && (seller || order.seller_name) ? (
             <>
-              <pre className="max-h-36 overflow-auto whitespace-pre-wrap rounded-lg bg-[#f7f6f3] px-3 py-2.5 font-sans text-xs text-[#6e6a63]">{message}</pre>
+              <pre className="max-h-36 overflow-auto whitespace-pre-wrap rounded-lg bg-[var(--background)] px-3 py-2.5 font-sans text-xs text-[var(--muted)]">{message}</pre>
               <NotifySeller message={message} link={link} sellerName={seller?.name ?? order.seller_name} />
             </>
           ) : null}
           <div className="mt-1 flex items-center justify-between">
-            <p className="text-[13px] font-medium text-[#6e6a63]">
-              Recados desta OS {pendingMessages.length > 0 ? <span className="ml-1 rounded-md bg-[#f9eaea] px-1.5 text-xs font-semibold text-[#b83a3a]">{pendingMessages.length} sem resposta</span> : null}
+            <p className="text-[13px] font-medium text-[var(--muted)]">
+              Recados desta OS {pendingMessages.length > 0 ? <span className="ml-1 rounded-md bg-[var(--danger-soft)] px-1.5 text-xs font-semibold text-[var(--danger)]">{pendingMessages.length} sem resposta</span> : null}
             </p>
-            <Link href="/recados" className="text-xs font-semibold text-[#8c6239] hover:underline">Todos os recados</Link>
+            <Link href="/recados" className="text-xs font-semibold text-[var(--link)] hover:underline">Todos os recados</Link>
           </div>
           {messages.length === 0 ? (
-            <p className="text-xs text-[#6e6a63]">Nenhum recado do vendedor ou da loja nesta OS.</p>
+            <p className="text-xs text-[var(--muted)]">Nenhum recado do vendedor ou da loja nesta OS.</p>
           ) : (
             <ul className="flex flex-col gap-2">
               {messages.slice(-4).map((item) => (
@@ -337,11 +339,11 @@ function MessageItem({ item, canReply }: { item: OrderMessage; canReply: boolean
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   return (
-    <li className="rounded-lg border border-[#efece6] px-3 py-2.5 text-[13px]">
-      <p className="text-[11px] text-[#6e6a63]">{item.sender_label} · {formatDateTime(item.created_at)}</p>
+    <li className="rounded-lg border border-[var(--line)] px-3 py-2.5 text-[13px]">
+      <p className="text-[11px] text-[var(--muted)]">{item.sender_label} · {formatDateTime(item.created_at)}</p>
       <p className="mt-0.5 whitespace-pre-wrap">{item.body}</p>
       {item.reply_body ? (
-        <p className="mt-2 whitespace-pre-wrap rounded-md bg-[#f3ece2] px-2.5 py-1.5 text-[#6e4b2a]">
+        <p className="mt-2 whitespace-pre-wrap rounded-md bg-[var(--accent-soft)] px-2.5 py-1.5 text-[var(--link)]">
           <span className="font-semibold">Laboratório:</span> {item.reply_body}
         </p>
       ) : canReply ? (
@@ -363,7 +365,7 @@ function MessageItem({ item, canReply }: { item: OrderMessage; canReply: boolean
             });
           }}
         >
-          <input name="reply" required maxLength={800} placeholder="Responder ao vendedor" className="h-8 min-w-0 flex-1 rounded-md border border-[#e2ddd5] px-2.5 text-[13px] outline-none focus:border-[#8c6239]" />
+          <input name="reply" required maxLength={800} placeholder="Responder ao vendedor" className="h-8 min-w-0 flex-1 rounded-md border border-[var(--line)] px-2.5 text-[13px] outline-none focus:border-[var(--focus)]" />
           <Button type="submit" size="sm" disabled={pending}>{pending ? "..." : "Responder"}</Button>
         </form>
       ) : null}
@@ -396,14 +398,14 @@ function StepCard({
 
   if (step.status === "concluida") {
     return (
-      <details className="group rounded-lg border border-[#e2ddd5] bg-[#f6faf9]">
+      <details className="group rounded-lg border border-[var(--line)] bg-[var(--bg-f6faf9)]">
         <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-2.5">
-          <span className="grid h-6 w-6 place-items-center rounded-full bg-[#8c6239] text-xs font-bold text-white">✓</span>
+          <span className="grid h-6 w-6 place-items-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">✓</span>
           <span className="flex-1 font-medium">{STEP_LABEL[step.step_key]}</span>
-          <span className="text-xs text-[#6e6a63]">Concluída {formatDateTime(step.completed_at)}</span>
-          <span className="text-xs font-semibold text-[#8c6239] group-open:hidden">Detalhes</span>
+          <span className="text-xs text-[var(--muted)]">Concluída {formatDateTime(step.completed_at)}</span>
+          <span className="text-xs font-semibold text-[var(--link)] group-open:hidden">Detalhes</span>
         </summary>
-        <div className="border-t border-[#e2ddd5] px-3 pb-3">
+        <div className="border-t border-[var(--line)] px-3 pb-3">
           {step.notes ? <p className="mt-2 text-sm">{step.notes}</p> : null}
           {can(role, "assembly.write") ? (
             <StepForm orderId={orderId} stepKey={step.step_key} canStart={false} canComplete={false} canReopen />
@@ -416,8 +418,8 @@ function StepCard({
 
   if (!isActive) {
     return (
-      <div className="flex items-center gap-3 rounded-lg border border-dashed border-[#d5dde0] px-3 py-2.5 text-[#6e6a63]">
-        <span className="grid h-6 w-6 place-items-center rounded-full border border-[#e2ddd5] text-xs font-bold">{position}</span>
+      <div className="flex items-center gap-3 rounded-lg border border-dashed border-[var(--edge-d5dde0)] px-3 py-2.5 text-[var(--muted)]">
+        <span className="grid h-6 w-6 place-items-center rounded-full border border-[var(--line)] text-xs font-bold">{position}</span>
         <span className="flex-1 font-medium">{STEP_LABEL[step.step_key]}</span>
         <span className="text-xs">{executable ? "Aguarda a etapa anterior" : "Bloqueada até a montagem começar"}</span>
       </div>
@@ -425,20 +427,20 @@ function StepCard({
   }
 
   return (
-    <article className="rounded-xl border-2 border-[#8c6239] bg-white p-3.5 shadow-[0_6px_18px_-12px_rgba(14,107,98,0.6)]">
+    <article className="rounded-xl border-2 border-[var(--focus)] bg-[var(--surface)] p-3.5 shadow-[0_6px_18px_-12px_rgba(14,107,98,0.6)]">
       <div className="flex items-center gap-3">
-        <span className="grid h-7 w-7 place-items-center rounded-full bg-[#f3ece2] text-sm font-bold text-[#6e4b2a] ring-2 ring-[#8c6239]">{position}</span>
+        <span className="grid h-7 w-7 place-items-center rounded-full bg-[var(--accent-soft)] text-sm font-bold text-[var(--link)] ring-2 ring-[var(--focus)]">{position}</span>
         <h3 className="flex-1 text-[15px] font-semibold">{STEP_LABEL[step.step_key]}</h3>
         <span
           className={cn(
             "rounded-md px-2 py-0.5 text-xs font-semibold",
-            step.status === "reprovada" ? "bg-[#f9eaea] text-[#b83a3a]" : step.status === "em_andamento" ? "bg-[#f3ece2] text-[#6e4b2a]" : "bg-[#efece6] text-[#6e6a63]",
+            step.status === "reprovada" ? "bg-[var(--danger-soft)] text-[var(--danger)]" : step.status === "em_andamento" ? "bg-[var(--accent-soft)] text-[var(--link)]" : "bg-[var(--surface-secondary)] text-[var(--muted)]",
           )}
         >
           {step.status === "pendente" ? "Próxima etapa" : STEP_STATUS_LABEL[step.status]}
         </span>
       </div>
-      {step.started_at ? <p className="mt-1.5 text-xs text-[#6e6a63]">Iniciada {formatDateTime(step.started_at)}</p> : null}
+      {step.started_at ? <p className="mt-1.5 text-xs text-[var(--muted)]">Iniciada {formatDateTime(step.started_at)}</p> : null}
       {step.notes ? <p className="mt-2 text-sm">{step.notes}</p> : null}
       {can(role, "assembly.write") ? (
         <StepForm orderId={orderId} stepKey={step.step_key} canStart={startOk} canComplete={completeOk} canReopen={false} />
@@ -511,7 +513,7 @@ function OccurrenceForm({ orderId, categories }: { orderId: string; categories: 
   if (categories.length === 0) return <p className="mt-3 text-sm">Cadastre uma categoria de defeito em Configurações.</p>;
   return (
     <form
-      className="mt-4 grid gap-2 border-t border-[#efece6] pt-3"
+      className="mt-4 grid gap-2 border-t border-[var(--line)] pt-3"
       onSubmit={(event) => {
         event.preventDefault();
         const form = event.currentTarget;
@@ -556,13 +558,13 @@ function OccurrenceCard({ item, role, orderId }: { item: OccurrenceRow; role: Ap
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   return (
-    <article className="rounded-md border border-[#e2ddd5] p-3 text-sm">
+    <article className="rounded-md border border-[var(--line)] p-3 text-sm">
       <div className="flex justify-between gap-2">
         <strong>{item.category_name}</strong>
         <span>{item.status}</span>
       </div>
       <p className="mt-1">{item.description}</p>
-      <p className="text-xs text-[#6e6a63]">{formatDateTime(item.occurred_at)} · {item.severity} {item.step_key ? `· ${STEP_LABEL[item.step_key]}` : ""}</p>
+      <p className="text-xs text-[var(--muted)]">{formatDateTime(item.occurred_at)} · {item.severity} {item.step_key ? `· ${STEP_LABEL[item.step_key]}` : ""}</p>
       {can(role, "quality.write") ? (
         <form
           className="mt-2 grid gap-2"
@@ -662,17 +664,17 @@ function AttachmentBox({
         {!compact ? (
           <>
             <h2 className="font-medium">{title}</h2>
-            <p className="mt-1 text-xs text-[#6e6a63]">Fica no histórico da OS e sai no relatório impresso.</p>
+            <p className="mt-1 text-xs text-[var(--muted)]">Fica no histórico da OS e sai no relatório impresso.</p>
           </>
         ) : (
-          <p className="mt-2 text-xs font-medium text-[#6e6a63]">{title}</p>
+          <p className="mt-2 text-xs font-medium text-[var(--muted)]">{title}</p>
         )}
-        {attachments.length === 0 && !compact ? <p className="mt-2 text-sm text-[#6e6a63]">Nenhuma foto nesta OS ainda.</p> : null}
+        {attachments.length === 0 && !compact ? <p className="mt-2 text-sm text-[var(--muted)]">Nenhuma foto nesta OS ainda.</p> : null}
         <ul className={compact ? "mt-2 grid gap-2" : "mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3"}>
           {attachments.map((item) => {
             const isImage = item.mime_type.startsWith("image/");
             return (
-              <li key={item.id} className="overflow-hidden rounded-xl border border-[#efece6] bg-white">
+              <li key={item.id} className="overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)]">
                 {item.url && isImage ? (
                   <a href={item.url} target="_blank" rel="noreferrer" className="block">
                     <img src={item.url} alt={item.file_name} className="h-36 w-full object-cover" />
@@ -680,16 +682,16 @@ function AttachmentBox({
                 ) : (
                   <p className="px-3 py-4 text-sm">
                     {item.url ? (
-                      <a className="text-[#8c6239] underline" href={item.url} target="_blank" rel="noreferrer">{item.file_name}</a>
+                      <a className="text-[var(--link)] underline" href={item.url} target="_blank" rel="noreferrer">{item.file_name}</a>
                     ) : (
                       item.file_name
                     )}
                   </p>
                 )}
-                <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs text-[#6e6a63]">
+                <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs text-[var(--muted)]">
                   <span className="truncate">{formatDateTime(item.created_at)}</span>
                   <button
-                    className="shrink-0 text-[#b83a3a]"
+                    className="shrink-0 text-[var(--danger)]"
                     type="button"
                     onClick={() => {
                       startTransition(async () => {
@@ -727,7 +729,7 @@ function AttachmentBox({
             </Field>
           </div>
         ) : null}
-        {pending ? <p className="mt-2 text-xs text-[#6e6a63]">Enviando…</p> : null}
+        {pending ? <p className="mt-2 text-xs text-[var(--muted)]">Enviando…</p> : null}
         <Feedback error={error} />
       </Panel>
     </div>
@@ -744,14 +746,14 @@ function ConsumeBox({ orderId, role, movements }: { orderId: string; role: AppRo
   return (
     <Panel className="p-4">
       <h2 className="font-medium">Consumo de lentes</h2>
-      <p className="mt-1 text-xs text-[#6e6a63]">A baixa não acontece ao mudar o status. Cada OS consome o mesmo item uma única vez.</p>
+      <p className="mt-1 text-xs text-[var(--muted)]">A baixa não acontece ao mudar o status. Cada OS consome o mesmo item uma única vez.</p>
       <ul className="mt-3 grid gap-2 text-sm">
         {movements.map((item) => (
           <li key={item.id}>
             {item.public_code} · {item.movement_type} · {item.signed_delta > 0 ? "+" : ""}{item.signed_delta} · {formatDateTime(item.created_at)}
           </li>
         ))}
-        {movements.length === 0 ? <li className="text-[#6e6a63]">Nenhum consumo registrado.</li> : null}
+        {movements.length === 0 ? <li className="text-[var(--muted)]">Nenhum consumo registrado.</li> : null}
       </ul>
       {can(role, "stock.consume") ? (
         <form

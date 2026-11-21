@@ -12,13 +12,13 @@ export const ASSEMBLY_BUFFER_HOURS = 24;
 export type LensRisk = "sem_previsao" | "sem_prazo" | "lente_atrasada" | "vai_atrasar" | "apertado" | "ok" | "chegou";
 
 export const LENS_RISK: Record<LensRisk, { label: string; fg: string; bg: string; rank: number }> = {
-  lente_atrasada: { label: "Lente atrasada", fg: "#ffffff", bg: "var(--danger)", rank: 0 },
-  vai_atrasar: { label: "Vai estourar o prazo", fg: "var(--danger)", bg: "#fdecea", rank: 1 },
-  apertado: { label: "Prazo apertado", fg: "#8a5a00", bg: "#fdf3dc", rank: 2 },
+  lente_atrasada: { label: "Lente atrasada", fg: "#ffffff", bg: "var(--danger-solid)", rank: 0 },
+  vai_atrasar: { label: "Vai estourar o prazo", fg: "var(--danger)", bg: "var(--danger-soft)", rank: 1 },
+  apertado: { label: "Prazo apertado", fg: "var(--warning)", bg: "var(--warning-soft)", rank: 2 },
   sem_previsao: { label: "Sem previsão do laboratório", fg: "var(--muted)", bg: "var(--surface-secondary)", rank: 3 },
-  ok: { label: "No prazo", fg: "#1c6b43", bg: "var(--ok-soft)", rank: 4 },
+  ok: { label: "No prazo", fg: "var(--ok)", bg: "var(--ok-soft)", rank: 4 },
   sem_prazo: { label: "Sem prazo com o cliente", fg: "var(--muted)", bg: "var(--accent-soft)", rank: 5 },
-  chegou: { label: "Lente chegou", fg: "#1c6b43", bg: "var(--ok-soft)", rank: 6 },
+  chegou: { label: "Lente chegou", fg: "var(--ok)", bg: "var(--ok-soft)", rank: 6 },
 };
 
 export function lensRisk(input: {

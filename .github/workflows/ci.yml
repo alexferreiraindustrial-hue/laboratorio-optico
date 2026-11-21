@@ -32,4 +32,6 @@ jobs:
       - name: Testes das regras de negócio
         run: npm test
       - name: Build de produção
-        run: npm run build
+        # Turbopack Google font resolution fails on clean GitHub runners.
+        # Validate the full production build with Next.js supported webpack mode.
+        run: npm run build -- --webpack

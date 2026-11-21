@@ -1,4 +1,6 @@
 "use server";
+import { PENDING_LABORATORY, PENDING_LABORATORY_CODE, PENDING_LABORATORY_NAME } from "@/lib/domain/laboratories";
+import { resolveLaboratory } from "./laboratory-resolution";
 
 import { revalidatePath } from "next/cache";
 import { dateTimeLocalToIso } from "@/lib/domain/calendar";
@@ -131,7 +133,9 @@ export async function removeRoutineLog(id: string): Promise<ActionResult> {
 export async function updateOrderLaboratory(orderId: string, laboratoryId: string): Promise<ActionResult> {
  const { supabase, role } = await requireProfile();
  if (!WRITERS.includes(role)) return { ok:false, message:"Sem permissão para alterar o laboratório." };
- const { data: lab, error: labError } = await supabase.from("laboratories").select("id").eq("id", laboratoryId).eq("active",true).maybeSingle();
+ const resolvedLab = await resolveLaboratory(supabase, laboratoryId);
+ if (resolvedLab.error) return {ok:false,message:resolvedLab.error};
+ const { data: lab, error: labError } = await supabase.from("laboratories").select("id").eq("id", resolvedLab.id).eq("active",true).maybeSingle();
  if (labError || !lab) return { ok:false, message:"Escolha um laboratório ativo." };
  const { data, error } = await supabase.from("service_orders").update({laboratory_id:lab.id}).eq("id",orderId).select("id").maybeSingle();
  if (error || !data) return {ok:false,message:error?.message ?? "OS não encontrada ou sem permissão."};
@@ -141,7 +145,7 @@ export async function updateOrderLaboratory(orderId: string, laboratoryId: strin
 export async function laboratoryOptions() {
  const {supabase,role}=await requireProfile();
  if (!WRITERS.includes(role)) return [];
- const {data,error}=await supabase.from("laboratories").select("id,name").eq("active",true).order("name");
+ const {data,error}=await supabase.from("laboratories").select("id,name,code").eq("active",true).order("name");
  if(error) throw new Error("Não foi possível carregar os laboratórios.");
- return data ?? [];
+ return [{id:PENDING_LABORATORY,name:PENDING_LABORATORY_NAME}, ...(data ?? []).filter(lab => lab.code !== PENDING_LABORATORY_CODE)];
 }

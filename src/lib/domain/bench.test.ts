@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nextBenchAction, selectBenchOrders, type BenchOrder } from "./bench";
+import { benchDeadlineSignal, nextBenchAction, selectBenchOrders, type BenchOrder } from "./bench";
 import { STEP_KEYS } from "./constants";
 
 const now = new Date("2026-11-16T12:00:00Z");
@@ -54,4 +54,23 @@ describe("organização da bancada", () => {
     expect(selectBenchOrders([historical, running], { ...options, focus: "unassigned" }, now).map((row) => row.id)).toEqual(["past"]);
     expect(selectBenchOrders([running], { ...options, focus: "mine", userId: "" }, now)).toEqual([]);
   });
+});
+
+describe("sinalização do prazo no cartão compacto",()=>{
+ const withHours=(hours:number)=>order({dueAt:new Date(now.getTime()+hours*3600000).toISOString(),steps:complete,status:"em_conferencia"});
+ it("avança de normal para amarelo, laranja, vermelho e atraso nos limites",()=>{
+  for(const [hours,level] of [[49,"normal"],[48,"attention"],[24,"soon"],[4,"critical"],[0,"critical"],[-.01,"late"]] as const) expect(benchDeadlineSignal(withHours(hours),now).level).toBe(level);
+ });
+ it("destaca prioridade crítica mesmo longe do prazo ou sem prazo",()=>{
+  expect(benchDeadlineSignal({...withHours(100),urgent:true},now).level).toBe("critical");
+  expect(benchDeadlineSignal(order({dueAt:null,urgent:true}),now).label).toBe("Prioridade crítica");
+ });
+ it("não inventa um prazo para data ausente ou inválida",()=>{
+  for(const dueAt of [null,"inválida"]) expect(benchDeadlineSignal(order({dueAt}),now)).toMatchObject({level:"none",label:"Sem prazo informado"});
+ });
+ it("alerta risco de trabalho restante antes de vencer e mantém atraso acima da prioridade",()=>{
+  const atRisk=order({status:"aguardando_montagem",dueAt:new Date(now.getTime()+5*3600000).toISOString(),steps:base.steps});
+  expect(benchDeadlineSignal(atRisk,now).level).toBe("critical");
+  expect(benchDeadlineSignal({...withHours(-1),urgent:true},now).level).toBe("late");
+ });
 });

@@ -5,17 +5,17 @@ import { can } from "@/lib/domain/permissions";
 import { Check, ChevronDown, ChevronRight, GripVertical, LayoutList, Play, ScanLine, Wrench } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useMemo, useState, useTransition } from "react";
+import { useEffect, useId, useMemo, useState, useTransition } from "react";
 import { useOperationMode } from "./operation-mode";
 import { RiskChip } from "@/components/forecast-ui";
-import { LensGauge } from "@/components/lens";
 import { Feedback } from "@/components/ui";
-import { DndContext, MouseSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { DndContext, DragOverlay, KeyboardSensor, closestCenter, pointerWithin, MouseSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { toast } from "sonner";
-import { BENCH_LANES, benchForecast, nextBenchAction, selectBenchOrders, type BenchOrder, type BenchFocus, type BenchSort } from "@/lib/domain/bench";
+import { BENCH_LANES, benchDeadlineSignal, benchForecast, nextBenchAction, selectBenchOrders, type BenchOrder, type BenchFocus, type BenchSort } from "@/lib/domain/bench";
 export type { BenchOrder } from "@/lib/domain/bench";
 import { STEP_KEYS, STEP_LABEL, STEP_STATUS_LABEL, STATUS_LABEL, type AppRole, type StepKey } from "@/lib/domain/constants";
 import { formatHoursShort } from "@/lib/domain/forecast";
+import { dueDeltaLabel } from "@/lib/domain/urgency";
 import { formatDateTime } from "@/lib/format";
 import { visibleOrderNumber } from "@/lib/domain/orders";
 import { allowedTargets, canTransition } from "@/lib/domain/status";
@@ -43,12 +43,21 @@ export function BenchBoard({ orders, role, error, nowIso, userId = "" }: { order
   const [notice, setNotice] = useState<string | null>(null);
   const [moveError, setMoveError] = useState<string | null>(null);
   const [pending, startMove] = useTransition();
-  const now = useMemo(() => new Date(nowIso), [nowIso]);
+  const [clock,setClock] = useState(nowIso);
+  const [draggingId,setDraggingId] = useState<string|null>(null);
+  const draggingOrder = orders.find(order=>order.id===draggingId);
+  useEffect(()=>{
+    const tick=()=>setClock(new Date().toISOString());
+    const timer=window.setInterval(tick,60000);
+    window.addEventListener("focus",tick);
+    return ()=>{window.clearInterval(timer);window.removeEventListener("focus",tick);};
+  },[]);
+  const now = useMemo(() => new Date(clock), [clock]);
   const visible = selectBenchOrders(orders.filter(order=>!seller||(order.sellerName||"Sem vendedora")===seller), { query, focus: simple && !["all", "risk", "mine"].includes(focus) ? "all" : focus, assigneeId: simple ? "" : assigneeId, sort: simple ? "risk" : sort, userId }, now);
   const people = Array.from(new Map(orders.flatMap((order) => order.steps.filter((step) => step.status === "em_andamento" && step.assigneeId).map((step) => [step.assigneeId!, step.assignee || "Responsável"] as const))).entries()).sort((a, b) => a[1].localeCompare(b[1]));
   const lateCount = orders.filter((order) => ["atrasada", "risco", "atencao"].includes(benchForecast(order, now).risk)).length;
   const runningCount = orders.filter((order) => order.steps.some((step) => step.status === "em_andamento")).length;
-  const sensors = useSensors(useSensor(MouseSensor, { activationConstraint: { distance: 6 } }), useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }));
+  const sensors = useSensors(useSensor(KeyboardSensor), useSensor(MouseSensor, { activationConstraint: { distance: 6 } }), useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }));
 
   function moveOrder(order: BenchOrder, target: string) {
     const lane = BENCH_LANES.find((item) => item.status === target);
@@ -68,11 +77,12 @@ export function BenchBoard({ orders, role, error, nowIso, userId = "" }: { order
   function followStatus(status: string) {
     if (!simple) return;
     const lane = BENCH_LANES.find((item) => item.status === status);
-    if (lane) setActiveLane(lane.status);
+    if (lane) { setActiveLane(lane.status); document.getElementById(`bench-lane-${lane.status}`)?.scrollIntoView({block:"nearest",inline:"center"}); }
     if (status === "pronto") setNotice("Serviço conferido e pronto. Agora ele aparece em Retirada e entrega.");
   }
 
   function onDragEnd(event: DragEndEvent) {
+    setDraggingId(null);
     const order = orders.find((item) => item.id === event.active.id);
     if (order && event.over) moveOrder(order, String(event.over.id));
   }
@@ -94,39 +104,41 @@ export function BenchBoard({ orders, role, error, nowIso, userId = "" }: { order
     <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Foco da bancada">
       {([["all", "Todas"], ["risk", "Atenção aos prazos"], ["mine", "Minhas etapas em execução"], ["unassigned", "Sem responsável em execução"], ["critical", "Prioridade crítica"]] as const).filter(([value]) => !simple || ["all", "risk", "mine"].includes(value)).map(([value, label]) => <button key={value} type="button" onClick={() => setFocus(value)} aria-pressed={focus === value} className={cn("min-h-11 rounded-lg border px-3 text-xs font-semibold", focus === value ? "border-[var(--focus)] bg-[var(--accent-soft)] text-[var(--link)]" : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]")}>{label}</button>)}
       <span role="status" className="ml-auto text-xs text-[var(--muted)]">{visible.length} de {orders.length} OS{pending ? " · Salvando…" : ""}</span>
-      {query || focus !== "all" || assigneeId ? <button type="button" onClick={() => { setQuery(""); setFocus("all"); setAssigneeId(""); }} className="min-h-11 px-2 text-xs font-semibold text-[var(--link)]">Limpar filtros</button> : null}
+      {query || focus !== "all" || assigneeId || seller ? <button type="button" onClick={() => { setQuery(""); setFocus("all"); setAssigneeId(""); setSeller(""); }} className="min-h-11 px-2 text-xs font-semibold text-[var(--link)]">Limpar filtros</button> : null}
     </div>
-    {simple ? <><p className="rounded-lg bg-[var(--accent-soft)] p-3 text-sm text-[var(--link)]">1. Escolha a fila abaixo. 2. Encontre a OS. 3. Aperte o botão indicado no cartão.</p><div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="Escolher fila de montagem">{BENCH_LANES.map((lane) => <button key={lane.status} type="button" onClick={() => setActiveLane(lane.status)} aria-pressed={activeLane === lane.status} className={cn("min-h-14 rounded-xl border px-3 py-2 text-left text-sm font-semibold", activeLane === lane.status ? "border-[var(--focus)] bg-[var(--accent)] text-white" : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]")}>{lane.title}<span className="ml-2 font-mono">{visible.filter((order) => order.status === lane.status).length}</span></button>)}</div></> : <p className="text-xs text-[var(--muted)]">Arraste pela alça ou use “Mover para”. A próxima ação registra cada etapa; mover a OS não conclui etapas. Filtros aplicados às até 200 OS carregadas.</p>}
+    {simple ? <><p className="rounded-lg bg-[var(--accent-soft)] p-3 text-sm text-[var(--link)]">Arraste pela alça entre as colunas ou expanda o cartão para iniciar processos e anexar fotos. Vermelho indica atraso ou prioridade alta; laranja e amarelo indicam prazo próximo.</p><div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="Escolher fila de montagem">{BENCH_LANES.map((lane) => <button key={lane.status} type="button" onClick={() => {setActiveLane(lane.status);document.getElementById(`bench-lane-${lane.status}`)?.scrollIntoView({block:"nearest",inline:"center"});}} aria-pressed={activeLane === lane.status} className={cn("min-h-14 rounded-xl border px-3 py-2 text-left text-sm font-semibold", activeLane === lane.status ? "border-[var(--focus)] bg-[var(--accent)] text-white" : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]")}>{lane.title}<span className="ml-2 font-mono">{visible.filter((order) => order.status === lane.status).length}</span></button>)}</div></> : <p className="text-xs text-[var(--muted)]">Arraste pela alça ou use “Mover para”. A próxima ação registra cada etapa; mover a OS não conclui etapas. Filtros aplicados às até 200 OS carregadas.</p>}
     {notice ? <div role="status" className="rounded-xl border border-[var(--edge-b5ddd0)] bg-[var(--accent-soft)] p-4 text-sm text-[var(--link)]">{notice}<Link href="/entrega" className="mt-2 block min-h-11 py-2 font-semibold underline">Ver serviços para retirada</Link></div> : null}
     <Feedback error={moveError || error} />
-    <DndContext id={boardId} sensors={sensors} onDragEnd={onDragEnd}>
+    <DndContext id={boardId} sensors={sensors} collisionDetection={args=>{const hits=pointerWithin(args);return hits.length?hits:closestCenter(args);}} onDragStart={event=>setDraggingId(String(event.active.id))} onDragCancel={()=>setDraggingId(null)} onDragEnd={onDragEnd}>
       <div className="-mx-3 flex min-w-0 snap-x snap-mandatory items-start gap-3 overflow-x-auto px-3 pb-4 md:mx-0 md:px-0 md:snap-none" aria-label="Kanban da bancada">
-        {BENCH_LANES.filter((lane) => !simple || lane.status === activeLane).map((lane) => <BenchLane simple={simple} key={lane.status} lane={lane} orders={visible.filter((order) => order.status === lane.status)} total={orders.filter((order) => order.status === lane.status).length} collapsed={collapsed.includes(lane.status)} onToggle={() => setCollapsed((current) => current.includes(lane.status) ? current.filter((status) => status !== lane.status) : [...current, lane.status])} role={role} now={now} pending={pending} onMove={moveOrder} onProgress={followStatus} />)}
+        {BENCH_LANES.map((lane) => <BenchLane key={lane.status} lane={lane} orders={visible.filter((order) => order.status === lane.status)} total={orders.filter((order) => order.status === lane.status).length} collapsed={collapsed.includes(lane.status)} onToggle={() => setCollapsed((current) => current.includes(lane.status) ? current.filter((status) => status !== lane.status) : [...current, lane.status])} role={role} now={now} pending={pending} onMove={moveOrder} onProgress={followStatus} />)}
       </div>
+      <DragOverlay>{draggingOrder ? <div className="bench-compact-card w-[300px] rounded-xl border p-3 shadow-xl" data-urgency={benchDeadlineSignal(draggingOrder,now).level}><p className="text-xs font-semibold">OS {visibleOrderNumber(draggingOrder)}</p><p className="mt-1 text-base font-semibold">{draggingOrder.clientName}</p><p className="mt-2 text-xs">{draggingOrder.dueAt?formatDateTime(draggingOrder.dueAt):"Sem prazo"}</p><p className="bench-deadline-label mt-1 text-xs font-semibold">{benchDeadlineSignal(draggingOrder,now).label}</p></div> : null}</DragOverlay>
     </DndContext>
   </div>;
 }
 
-function BenchLane({ simple, lane, orders, total, collapsed, onToggle, role, now, pending, onMove, onProgress }: { simple: boolean; lane: typeof BENCH_LANES[number]; orders: BenchOrder[]; total: number; collapsed: boolean; onToggle: () => void; role: AppRole; now: Date; pending: boolean; onMove: (order: BenchOrder, status: string) => void; onProgress: (status: string) => void }) {
+function BenchLane({ lane, orders, total, collapsed, onToggle, role, now, pending, onMove, onProgress }: { lane: typeof BENCH_LANES[number]; orders: BenchOrder[]; total: number; collapsed: boolean; onToggle: () => void; role: AppRole; now: Date; pending: boolean; onMove: (order: BenchOrder, status: string) => void; onProgress: (status: string) => void }) {
   const { setNodeRef, isOver } = useDroppable({ id: lane.status });
-  return <section ref={setNodeRef} className={cn("flex min-h-52 w-[min(88vw,340px)] shrink-0 snap-start flex-col gap-3 rounded-xl bg-[var(--bg-e8eeee)] p-2.5 md:w-[328px]", simple && "!w-full", isOver && "ring-2 ring-[var(--focus)]")}>
+  return <section id={`bench-lane-${lane.status}`} ref={setNodeRef} className={cn("flex min-h-52 w-[min(88vw,340px)] shrink-0 snap-start flex-col gap-3 rounded-xl bg-[var(--bg-e8eeee)] p-2.5 md:w-[328px]", isOver && "ring-2 ring-[var(--focus)]")}>
     <header className="flex items-start gap-2 px-1"><span className="mt-4 h-2 w-2 shrink-0 rounded-sm" style={{ background: lane.color }} /><div className="min-w-0 flex-1"><h2><button type="button" onClick={onToggle} aria-expanded={!collapsed} className="flex min-h-11 w-full items-center gap-1 text-left text-sm font-semibold">{collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}{lane.title}</button></h2><p className="text-xs text-[var(--muted)]">{lane.hint}</p></div><span className="mt-3 font-mono text-xs text-[var(--muted)]" title={`${orders.length} visíveis de ${total}`}>{orders.length === total ? total : `${orders.length}/${total}`}</span></header>
-    {!collapsed && (orders.length ? <div className={cn("grid gap-3", simple && "md:grid-cols-2 xl:grid-cols-3")}>{orders.map((order) => <BenchCard key={order.id} order={order} role={role} now={now} boardPending={pending} onMove={onMove} onProgress={onProgress} />)}</div> : <p className="rounded-lg border border-dashed border-[var(--edge-c5d1d2)] px-3 py-8 text-center text-xs text-[var(--muted)]">{total ? "Nenhuma OS corresponde aos filtros." : "Nenhuma OS nesta etapa."}</p>)}
+    {!collapsed && (orders.length ? <div className="grid gap-2">{orders.map((order) => <BenchCard key={order.id} order={order} role={role} now={now} boardPending={pending} onMove={onMove} onProgress={onProgress} />)}</div> : <p className="rounded-lg border border-dashed border-[var(--edge-c5d1d2)] px-3 py-8 text-center text-xs text-[var(--muted)]">{total ? "Nenhuma OS corresponde aos filtros." : "Nenhuma OS nesta etapa."}</p>)}
   </section>;
 }
 
 function BenchCard({ order, role, now, boardPending, onMove, onProgress }: { order: BenchOrder; role: AppRole; now: Date; boardPending: boolean; onMove: (order: BenchOrder, status: string) => void; onProgress: (status: string) => void }) {
   const router = useRouter();
-  const { simple } = useOperationMode();
+  const [expanded,setExpanded] = useState(false);
+  const detailsId = useId();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const stepsDone = order.steps.filter((step) => step.status === "concluida").length;
   const forecast = benchForecast(order, now);
   const action = nextBenchAction(order, role);
   const targets = allowedTargets(order.status, role).filter((status) => BENCH_LANES.some((lane) => lane.status === status));
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: order.id, disabled: simple || pending || boardPending || targets.length === 0 });
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: order.id, disabled: pending || boardPending || targets.length === 0 });
   const running = order.steps.find((step) => step.status === "em_andamento");
-  const late = forecast.risk === "atrasada" || forecast.risk === "risco";
+  const deadline = benchDeadlineSignal(order,now);
 
   function run() {
     if (action.kind === "none" || pending || boardPending) return;
@@ -156,40 +168,26 @@ function BenchCard({ order, role, now, boardPending, onMove, onProgress }: { ord
   return (
     <article
       ref={setNodeRef}
-      style={transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined}
-      className={cn(
-        "grid gap-3 rounded-xl border bg-[var(--surface)] p-3.5 shadow-[0_1px_0_rgba(19,32,31,0.04)]",
-        isDragging && "z-20 opacity-80 shadow-lg",
-        late ? "border-[var(--edge-f1c4be)]" : "border-[var(--edge-dfe6e7)]",
-      )}
+      data-urgency={deadline.level}
+      className={cn("bench-compact-card grid gap-2 rounded-xl border p-3", isDragging && "opacity-30", pending && "opacity-80")}
     >
-      <div className="flex items-start gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Link href={`/montagem?os=${order.id}`} scroll={false} className="font-mono text-[13px] font-semibold text-[var(--link)] hover:underline">
-              {visibleOrderNumber(order)}
-            </Link>
-            {order.urgent ? <span className="rounded-md bg-[var(--danger-soft)] px-1.5 py-px text-[11px] font-bold text-[var(--danger)]">Urgente</span> : null}
-            {order.status === "em_correcao" ? (
-              <span className="rounded-md bg-[var(--danger-soft)] px-1.5 py-px text-[11px] font-bold text-[var(--danger)]">Em correção</span>
-            ) : null}
-          </div>
-          <p className="mt-0.5 break-words text-[17px] font-semibold leading-snug">{order.clientName}</p>
-          <p className="break-words text-xs font-semibold text-[var(--link)]">{order.laboratoryName || "Sem laboratório"}</p>
-          <p className="break-words text-xs text-[var(--muted)]">{[order.storeName, order.sellerName].filter(Boolean).join(" · ") || "Sem loja ou vendedor"}</p>
-          <p className={cn("mt-1 text-xs font-semibold", late ? "text-[var(--danger)]" : "text-[var(--ink)]")}>
-            {order.dueAt ? `Prazo ${formatDateTime(order.dueAt)}` : "Sem previsão de entrega"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          {!simple && targets.length ? <button type="button" aria-label={`Arrastar OS ${visibleOrderNumber(order)}`} className="flex h-11 w-11 touch-none items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--accent-soft)] cursor-grab" {...listeners} {...attributes}><GripVertical size={17} /></button> : null}
-          <LensGauge value={forecast.progress} risk={forecast.risk} size={50} />
-        </div>
+      <div className="flex items-start justify-between gap-2">
+        <Link href={`/montagem?os=${order.id}`} scroll={false} className="min-w-0 break-words font-mono text-xs font-semibold text-[var(--link)]">OS {visibleOrderNumber(order)}</Link>
+        <div className="flex shrink-0 items-center gap-1"><span className="text-xs text-[var(--muted)]">{stepsDone}/5</span>{targets.length>0 && <button type="button" aria-label={`Arrastar OS ${visibleOrderNumber(order)}`} title="Arrastar para outra coluna" className="flex h-11 w-11 touch-none items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--accent-soft)] cursor-grab active:cursor-grabbing" {...listeners} {...attributes}><GripVertical size={19}/></button>}</div>
       </div>
-
+      <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={()=>setExpanded(value=>!value)} className="grid min-h-11 gap-1.5 text-left">
+        <span className="flex items-start gap-2"><span className="min-w-0 flex-1 break-words text-base font-semibold leading-snug">{order.clientName}</span>{expanded?<ChevronDown size={18}/>:<ChevronRight size={18}/>}</span>
+        <span className="text-xs font-semibold">{order.dueAt?`Prazo ${formatDateTime(order.dueAt)}`:"Sem prazo definido"}</span>
+        <span className="bench-deadline-label text-xs font-bold">{deadline.label}{order.dueAt?` · ${dueDeltaLabel(order.dueAt,now,order.status)}`:""}</span>
+        {(order.openOccurrences??0)>0 && <span className="text-xs font-semibold text-[var(--danger)]">{order.openOccurrences} ocorrência(s) aberta(s)</span>}
+        <span className="mt-1 text-xs font-medium text-[var(--muted)]">{expanded?"Recolher cartão":"Expandir · processos e fotos"}{pending?" · Salvando…":""}</span>
+      </button>
+      <div id={detailsId} hidden={!expanded}>
+      <div className="grid gap-3 border-t border-[var(--line)] pt-3">
+        <div className="text-xs text-[var(--muted)]"><p>{[order.storeName,order.sellerName].filter(Boolean).join(" · ")||"Sem loja ou vendedor"}</p><p className="mt-1">{order.laboratoryName||"Sem laboratório"}</p></div>
       {can(role,"orders.write") && <QuickOrderPhoto orderId={order.id} stepKey={running?.key}/>}
       {order.openOccurrences ? <Link href={`/montagem?os=${order.id}`} scroll={false} className="rounded-lg bg-[var(--danger-soft)] px-2.5 py-2 text-xs font-semibold text-[var(--danger)]">{order.openOccurrences} ocorrência(s) de qualidade aberta(s) · verificar</Link> : null}
-      <details open={!simple} className="rounded-lg bg-[var(--background)] p-2.5">
+      <details open className="rounded-lg bg-[var(--background)] p-2.5">
         <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 text-sm"><span className="font-semibold">Ver etapas da montagem</span><span className="font-mono text-[var(--muted)]">{stepsDone}/5</span></summary>
         <ol className="grid gap-1.5" aria-label="Etapas da montagem">
           {STEP_KEYS.map((key) => {
@@ -244,9 +242,10 @@ function BenchCard({ order, role, now, boardPending, onMove, onProgress }: { ord
           {pending ? "Registrando..." : action.label}
         </button>
       )}
-      {!simple && targets.length > 0 ? <label className="flex items-center gap-2 text-xs text-[var(--muted)]">Mover para<select aria-label={`Mover OS ${visibleOrderNumber(order)} para`} value="" disabled={pending || boardPending} onChange={(event) => { if (event.target.value) onMove(order, event.target.value); }} className="min-h-11 min-w-0 flex-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 text-[var(--ink)]"><option value="">Escolher status</option>{targets.map((status) => <option key={status} value={status}>{STATUS_LABEL[status]}</option>)}</select></label> : null}
+      {targets.length > 0 ? <label className="flex items-center gap-2 text-xs text-[var(--muted)]">Mover para<select aria-label={`Mover OS ${visibleOrderNumber(order)} para`} value="" disabled={pending || boardPending} onChange={(event) => { if (event.target.value) onMove(order, event.target.value); }} className="min-h-11 min-w-0 flex-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 text-[var(--ink)]"><option value="">Escolher status</option>{targets.map((status) => <option key={status} value={status}>{STATUS_LABEL[status]}</option>)}</select></label> : null}
       <Link href={`/montagem?os=${order.id}`} scroll={false} className="flex min-h-11 items-center justify-center rounded-lg border border-[var(--line)] text-xs font-semibold text-[var(--link)] hover:bg-[var(--background)]">Detalhes, fotos e histórico</Link>
       {error ? <Feedback error={error} /> : null}
+      </div></div>
     </article>
   );
 }

@@ -431,3 +431,28 @@ body::before {
 .lens-priority-badge { color: var(--lens-color); background: var(--background); border: 1px solid currentColor; }
 .lens-priority-row[data-urgency="none"] .lens-priority-badge { color: var(--muted); }
 :root[data-theme="dark"] .lens-priority-row[data-urgency="soon"] { --lens-color: #f0b58a; }
+
+/* Dense operational lens list. Keep the urgency rail without separated cards. */
+.lens-list-row { border: 0; border-left: 3px solid var(--lens-color); border-bottom: 1px solid var(--line); border-radius: 0; }
+.lens-list-row:last-child { border-bottom: 0; }
+.lens-list-row[data-urgency="late"] { border-left-width: 3px; }
+.lens-list-row:hover { background: color-mix(in srgb, var(--accent-soft) 35%, var(--surface)); }
+.lens-list-grid { display: grid; grid-template-columns: 24px minmax(0,1fr) minmax(0,1fr); gap: 6px 10px; align-items: center; padding: 8px 10px; }
+.lens-list-select { grid-column: 1; grid-row: 1 / 4; align-self: start; }
+.lens-list-client { grid-column: 2 / -1; }
+.lens-list-supplier { grid-column: 2; }
+.lens-list-deadline { grid-column: 3; }
+.lens-list-forecast { grid-column: 2; }
+.lens-list-actions { grid-column: 3; flex-wrap: wrap; }
+.lens-list-heading { display: none; }
+.lab-lens-metrics .lab-reference-kpi { padding: 10px 12px; border-radius: 10px; box-shadow: none; }
+.lab-lens-metrics .lab-kpi-value { font-size: 22px; margin-top: 5px; }
+.lab-lens-metrics .lab-kpi-tool { display: none; }
+.lab-lens-metrics .lab-reference-kpi > div:last-child { margin-top: 5px; }
+@media (min-width: 1200px) {
+ .lens-list-grid { grid-template-columns: 24px minmax(150px,1.4fr) minmax(125px,1fr) minmax(125px,.95fr) minmax(125px,1fr) 190px; gap: 12px; padding: 7px 12px; }
+ .lens-list-grid > * { grid-column: auto; grid-row: auto; }
+ .lens-list-select { align-self: center; }
+ .lens-list-actions { flex-wrap: nowrap; }
+ .lens-list-heading { display: grid; border-left: 3px solid transparent; border-bottom: 1px solid var(--line); background: var(--background); color: var(--muted); font-size: 11px; font-weight: 600; padding-top: 9px; padding-bottom: 9px; }
+}

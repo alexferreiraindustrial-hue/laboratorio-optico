@@ -2,6 +2,8 @@
 
 import {
   Activity,
+  Bell,
+  Plus,
   ClipboardCheck,
   ClipboardList,
   FileText,
@@ -39,6 +41,7 @@ import { OperationModeProvider } from "./operation-mode";
 import { setViewMode } from "@/server/simple-mode";
 import { SIMPLE_NAV, simpleAllowed } from "@/lib/domain/simple-nav";
 import { LensMark } from "@/components/lens";
+import { can } from "@/lib/domain/permissions";
 import { ROLE_LABEL, type AppRole } from "@/lib/domain/constants";
 import { cn } from "@/lib/utils";
 
@@ -238,7 +241,18 @@ export function Shell({
   const current = [...allItems, ...simpleNav]
     .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
     .sort((a, b) => b.href.length - a.href.length)[0];
+  useEffect(() => {
+    function focusSearch(event: KeyboardEvent) {
+      const target = event.target;
+      if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey || !(target instanceof HTMLElement) || target.closest("input,textarea,select,[contenteditable='true'],[role='dialog']")) return;
+      event.preventDefault();
+      document.getElementById("global-order-search")?.focus();
+    }
+    window.addEventListener("keydown", focusSearch);
+    return () => window.removeEventListener("keydown", focusSearch);
+  }, []);
   const readOnly = role === "consulta";
+  const canLaunch = can(role, "orders.write");
 
   const simpleMenu = (
     <nav aria-label="Navegação do laboratório" className="flex flex-col gap-2">
@@ -327,14 +341,14 @@ export function Shell({
     <div className="lab-brand flex h-[80px] items-center gap-2.5 border-b border-[var(--line)] px-[18px]">
       <LensMark size={30} />
       <div className="flex min-w-0 flex-col leading-tight">
-        <span className="display truncate text-[17px]">Lab Gold</span>
-        <small className="mt-1 text-[10px] font-semibold tracking-[0.16em] text-[var(--muted)]">{orgName === "Lab Gold" ? "LABORATÓRIO · PRODUÇÃO" : orgName}</small>
+        <span className="display truncate text-[17px]">LabGold</span>
+        <small className="mt-1 text-[10px] font-semibold tracking-[0.16em] text-[var(--muted)]">{orgName === "Lab Gold" ? "LABORATÓRIO ÓPTICO" : orgName}</small>
       </div>
     </div>
   );
 
   const footer = (
-    <div className="lab-account flex items-center gap-2 border-t border-[var(--line)] px-[18px] py-3">
+    <div className="lab-account lg-glass flex items-center gap-2 border-t border-[var(--line)] px-[18px] py-3">
       <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">{initials(name)}</div>
       <div className="flex min-w-0 flex-col leading-tight">
         <span className="truncate text-[13px] font-semibold">{name}</span>
@@ -350,7 +364,7 @@ export function Shell({
 
   return (
     <OperationModeProvider simple={simple}>
-    <div className={cn("min-h-screen", simple && "lab-simple")}>
+    <div className={cn("lg-app min-h-screen", simple && "lab-simple")}>
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-[var(--surface)] focus:p-3">Ir para o conteúdo</a>
       <aside id="desktop-sidebar" className={cn("lab-sidebar fixed inset-y-0 left-0 z-30 hidden w-[232px] flex-col border-r border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)]", sidebarCollapsed ? "lg:hidden" : "lg:flex")}>
         {brand}
@@ -375,7 +389,7 @@ export function Shell({
       ) : null}
 
       <div className={cn("flex min-h-screen min-w-0 flex-col",sidebarCollapsed?"lg:pl-0":"lg:pl-[232px]")}>
-        <header className="no-print sticky top-0 z-20 flex min-h-[60px] items-center gap-2 border-b border-[var(--line)] bg-[var(--surface)] px-2 pt-[env(safe-area-inset-top)] sm:gap-4 md:px-5">
+        <header className="lg-topbar no-print sticky top-0 z-20 flex min-h-[60px] items-center gap-2 border-b border-[var(--line)] bg-[var(--surface)] px-2 pt-[env(safe-area-inset-top)] sm:gap-4 md:px-5">
           <button type="button" aria-label={sidebarCollapsed?"Expandir menu lateral":"Recolher menu lateral"} title={sidebarCollapsed?"Expandir menu lateral":"Recolher menu lateral"} aria-expanded={!sidebarCollapsed} aria-controls="desktop-sidebar" className="hidden min-h-11 shrink-0 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--ink)] hover:bg-[var(--accent-soft)] lg:inline-flex" onClick={()=>{const next=!sidebarCollapsed;setSidebarCollapsed(next);document.cookie=`lab_sidebar=${next?"collapsed":"expanded"}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol==="https:"?"; Secure":""}`;}}>
             {sidebarCollapsed?<PanelLeftOpen size={18}/>:<PanelLeftClose size={18}/>}<span>{sidebarCollapsed?"Menu":"Recolher"}</span>
           </button>
@@ -383,7 +397,7 @@ export function Shell({
             <Menu size={22} />
           </button>
           <div className="hidden shrink-0 items-center gap-2 whitespace-nowrap text-[13px] text-[var(--muted)] sm:flex">
-            <span>Lab Gold</span>
+            <span>LabGold</span>
             <span className="text-[var(--fg-e2ddd5)]">/</span>
             <span className="font-semibold text-[var(--ink)]">{current?.label ?? "Início"}</span>
           </div>
@@ -391,6 +405,8 @@ export function Shell({
             <label className="flex h-11 w-full items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 text-[var(--muted)] focus-within:border-[var(--accent)] md:h-9">
               <Search size={16} className="shrink-0" />
               <input
+                id="global-order-search"
+                aria-label="Buscar OS, cliente ou vendedor"
                 name="q"
                 placeholder="Buscar OS, cliente ou vendedor"
                 className="min-w-0 flex-1 border-0 bg-transparent text-base text-[var(--ink)] shadow-none outline-none placeholder:text-[var(--muted)] focus:shadow-none md:text-sm"
@@ -410,6 +426,8 @@ export function Shell({
             <QrCode size={18} />
             <span className="hidden sm:inline">QR Code</span>
           </Link>
+          {allItems.some(item=>item.href==="/recados") && <Link href="/recados" aria-label={unread ? `${unread} recados não lidos` : "Recados do laboratório"} className="relative hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] xl:flex"><Bell size={18}/>{unread>0&&<span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[var(--accent)]"/>}</Link>}
+          {canLaunch && <Link href="/laboratorio/rapido" className="lg-gold hidden min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-semibold xl:inline-flex"><Plus size={17}/>Lançar serviço</Link>}
           <div id="theme-control" className="lab-theme-slot" />
           <div className="hidden h-6 w-px bg-[var(--line)] sm:block" />
           <div className="hidden shrink-0 items-center gap-2 whitespace-nowrap sm:flex">
@@ -501,7 +519,7 @@ function MobileDock({
   const columns = simple ? items.length : items.length + 1;
   return (
     <nav
-      className="no-print fixed inset-x-3 bottom-[calc(0.6rem+env(safe-area-inset-bottom))] z-30 grid rounded-[28px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_92%,white)] p-1.5 shadow-[var(--shadow-soft)] lg:hidden"
+      className="lg-mobile-dock no-print fixed inset-x-3 bottom-[calc(0.6rem+env(safe-area-inset-bottom))] z-30 grid rounded-[28px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_92%,white)] p-1.5 shadow-[var(--shadow-soft)] lg:hidden"
       aria-label="Atalhos do celular"
       style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
     >
@@ -513,6 +531,7 @@ function MobileDock({
           <Link
             key={item.href}
             href={item.href}
+            aria-current={active ? "page" : undefined}
             className={cn(
               "relative flex flex-col items-center justify-center gap-0.5 rounded-2xl px-1 font-semibold",
               simple ? "min-h-16 text-[12.5px]" : "min-h-14 text-[11px]",

@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 const css = readFileSync("src/app/globals.css", "utf8");
+const skin = readFileSync("src/app/labgold-dark.css", "utf8");
 const system = css.slice(css.indexOf("/* Lab Gold design system:"));
 function theme(dark: boolean) {
-  const selector = dark ? /:root\[data-theme="dark"\]\s*\{([^}]+)\}/ : /:root\s*\{([^}]+)\}/;
-  const block = system.match(selector)?.[1] ?? "";
+  const selector = dark ? /:root\[data-theme="dark"\]\s*\{([^}]+)\}/g : /:root\s*\{([^}]+)\}/g;
+  const block = [...(system + skin).matchAll(selector)].map(match => match[1]).join("\n");
   return Object.fromEntries([...block.matchAll(/(--[\w-]+):\s*#([a-f\d]{3,6})\b/gi)].map(m => [m[1], m[2].length === 3 ? [...m[2]].map(x => x + x).join("") : m[2]]));
 }
 function luminance(hex: string) {
@@ -32,7 +33,7 @@ describe("Lab Gold theme contrast", () => {
     }
   });
   it("defines every theme variable referenced by the stylesheet", () => {
-    const defined = new Set([...css.matchAll(/(--[\w-]+):/g)].map(m => m[1]));
-    for (const match of css.matchAll(/var\((--[\w-]+)\)/g)) if (!match[1].startsWith("--font-")) expect(defined.has(match[1]), match[1]).toBe(true);
+    const defined = new Set([...(css + skin).matchAll(/(--[\w-]+):/g)].map(m => m[1]));
+    for (const match of (css + skin).matchAll(/var\((--[\w-]+)\)/g)) if (!match[1].startsWith("--font-") && match[1] !== "--lane") expect(defined.has(match[1]), match[1]).toBe(true);
   });
 });

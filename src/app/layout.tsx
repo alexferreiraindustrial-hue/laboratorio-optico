@@ -1,20 +1,23 @@
 import { cookies } from "next/headers";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, Manrope } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "sonner";
 import "./globals.css";
+import "./labgold-dark.css";
 
-const manrope = Manrope({
+const jakarta = localFont({
+  src: "./fonts/PlusJakartaSans-Variable.ttf",
+  display: "swap",
   variable: "--font-ui",
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: "400 800",
 });
 
-const plexMono = IBM_Plex_Mono({
+const mono = localFont({
+  src: "./fonts/JetBrainsMono-Variable.ttf",
+  display: "swap",
   variable: "--font-ui-mono",
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500"],
+  weight: "400 500",
 });
 
 export const metadata: Metadata = {
@@ -33,13 +36,13 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#8c6239",
+  themeColor: "#07070a",
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const dark = (await cookies()).get("lab_theme")?.value === "dark";
+  const dark = (await cookies()).get("lab_theme")?.value !== "light";
   return (
-    <html data-theme={dark ? "dark" : "light"} lang="pt-BR" className={`${manrope.variable} ${plexMono.variable} h-full`}>
+    <html data-theme={dark ? "dark" : "light"} lang="pt-BR" className={`${jakarta.variable} ${mono.variable} h-full`}>
       <body className="min-h-full antialiased">
         {children}
         <ThemeToggle initialDark={dark} />

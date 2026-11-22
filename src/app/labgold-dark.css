@@ -1,0 +1,220 @@
+/* =====================================================================
+   LabGold · Oficina de Luz — tema escuro e dourado
+   Importe DEPOIS de globals.css (em src/app/layout.tsx):
+     import "./globals.css";
+     import "./labgold-dark.css";
+   Vale para o modo escuro que o sistema já tem (data-theme="dark").
+   A impressão continua clara: tudo aqui fica dentro de @media screen.
+   ===================================================================== */
+
+@media screen {
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Base */
+  --background: #07070a;
+  --surface: #131210;            /* cartões (vidro escuro) */
+  --surface-secondary: #1b1915;
+  --ink: #f3eee6;
+  --muted: #cfc6b8;
+  --line: rgba(255, 255, 255, 0.1);
+
+  /* Ouro */
+  --accent: #f5b53d;
+  --accent-strong: #e39a1e;
+  --accent-soft: rgba(245, 181, 61, 0.16);
+  --on-accent: #1a1205;
+  --link: #f5c15a;
+  --focus: #ffd27a;
+  --gold: #f5b53d;
+  --gold-light: rgba(245, 181, 61, 0.16);
+
+  /* Estados */
+  --ok: #4ade80;        --ok-soft: #102b1b;
+  --warning: #f5c15a;   --warning-soft: #332613;
+  --danger: #ff8a7a;    --danger-soft: #311b18;
+  --danger-solid: #b3261e; --solid-ink: #1a1205;
+
+  /* Cores das etapas (use nos cartões do Kanban e na bancada) */
+  --stage-lentes: #a8b0bf;
+  --stage-montagem: #75adff;
+  --stage-conferencia: #f5a524;
+  --stage-correcao: #bca3ff;
+  --stage-pronto: #22c55e;
+  --stage-atrasada: #ff4d4d;
+
+  /* Lateral */
+  --sidebar-bg: #0e0c09;
+  --sidebar-text: #d8d0c3;
+  --sidebar-active: linear-gradient(90deg, #f5b53d, #c98418);
+  --sidebar-active-text: #1a1205;
+
+  /* Forma */
+  --radius-control: 14px;
+  --radius-panel: 22px;
+  --control-line: #817564;
+  --radius-overlay: 24px;
+  --shadow-soft: 0 10px 30px -14px rgba(0, 0, 0, 0.8);
+  --glow-gold: 0 0 26px rgba(245, 170, 50, 0.45);
+
+  /* Tons auxiliares antigos (mantém legíveis as telas que usam as variáveis bg, edge e fg) */
+  --bg-08463f: rgba(59,139,255,.16); --bg-102e34: rgba(59,139,255,.12); --bg-18723f: rgba(34,197,94,.16);
+  --bg-188046: rgba(34,197,94,.2);   --bg-1c4148: rgba(255,255,255,.06); --bg-2e7d5b: rgba(34,197,94,.16);
+  --bg-6e4b2a: rgba(245,181,61,.18); --bg-87601f: rgba(245,165,36,.18); --bg-963030: rgba(255,77,77,.18);
+  --bg-c3e7e5: rgba(94,234,212,.12); --bg-dfe8e8: rgba(255,255,255,.05); --bg-e2ddd5: rgba(255,255,255,.08);
+  --bg-e3ecec: rgba(255,255,255,.05); --bg-e4e9ee: rgba(255,255,255,.05); --bg-e8eeee: rgba(255,255,255,.05);
+  --bg-e8f1fb: rgba(59,139,255,.12); --bg-efe9f7: rgba(155,123,255,.14); --bg-f0f7f3: rgba(34,197,94,.1);
+  --bg-f3e8e8: rgba(255,77,77,.1);   --bg-f6faf9: rgba(255,255,255,.04); --bg-f8d7d7: rgba(255,77,77,.18);
+  --bg-f8efd2: rgba(245,181,61,.14); --bg-fafbfc: rgba(255,255,255,.04); --bg-fbe4e1: rgba(255,77,77,.14);
+  --bg-fbf1dc: rgba(245,181,61,.12); --bg-fbfaf7: rgba(255,255,255,.04); --bg-fdf3f2: rgba(255,77,77,.1);
+  --bg-fff4e0: rgba(245,181,61,.12); --bg-fff8eb: rgba(245,181,61,.08);
+  --edge-222222: rgba(255,255,255,.2); --edge-29474d: rgba(255,255,255,.14); --edge-2e7d5b: rgba(34,197,94,.5);
+  --edge-6e6a63: rgba(255,255,255,.2); --edge-9fd5b4: rgba(34,197,94,.4);   --edge-b4c4c2: rgba(255,255,255,.12);
+  --edge-b5ddd0: rgba(34,197,94,.35);  --edge-bcd9d4: rgba(255,255,255,.12); --edge-c5d1d2: rgba(255,255,255,.12);
+  --edge-c5d6d3: rgba(255,255,255,.12); --edge-cfe6d8: rgba(34,197,94,.3);  --edge-d5dde0: rgba(255,255,255,.1);
+  --edge-d5e3e1: rgba(255,255,255,.1); --edge-dfe6e7: rgba(255,255,255,.1);  --edge-dfe8e7: rgba(255,255,255,.1);
+  --edge-e7a39b: rgba(255,77,77,.5);   --edge-f0e2c8: rgba(245,181,61,.35);  --edge-f1c4be: rgba(255,77,77,.45);
+  --edge-f3c4be: rgba(255,77,77,.45);  --edge-f3c9c4: rgba(255,77,77,.45);
+  --fg-1b1405: #1a1205; --fg-1d4f8a: #8fb8ff; --fg-2d4a50: #cfc6b8; --fg-3b4650: #cfc6b8; --fg-3d4b5c: #cfc6b8;
+  --fg-5a3d86: #c4b0ff; --fg-6b7680: #cfc6b8; --fg-7a2a22: #ff8a7a; --fg-7a5a10: #ffd27a; --fg-8a5300: #ffd27a;
+  --fg-963030: #ff8a7a; --fg-9bb0b4: #cfc6b8; --fg-a86e00: #ffd27a; --fg-b4bec2: #d8d0c3; --fg-e2ddd5: #e9e2d6;
+  --fg-e4f0f1: #f3eee6;
+}
+
+/* Fundo com brilho dourado e violeta */
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(900px 500px at 78% -10%, #2a1d08 0%, rgba(7,7,10,0) 60%),
+    radial-gradient(700px 500px at 10% 110%, #1a1430 0%, rgba(7,7,10,0) 60%),
+    #07070a;
+  background-attachment: fixed;
+}
+
+/* Lateral */
+:root[data-theme="dark"] .lab-sidebar {
+  background: linear-gradient(180deg, rgba(20,17,12,.95), rgba(10,9,8,.95));
+  border-right: 1px solid rgba(245,193,90,.12);
+  color: var(--sidebar-text);
+}
+:root[data-theme="dark"] .lab-sidebar nav a { color: var(--sidebar-text); border-radius: 14px; }
+:root[data-theme="dark"] .lab-sidebar nav a:hover { background: rgba(255,255,255,.05); color: #fff; }
+:root[data-theme="dark"] .lab-sidebar nav a[aria-current="page"] {
+  background: var(--sidebar-active); color: var(--sidebar-active-text); font-weight: 800;
+  box-shadow: var(--glow-gold), inset 0 1px 0 rgba(255,255,255,.4);
+}
+:root[data-theme="dark"] .lab-sidebar nav p { color: #8f8573; }
+:root[data-theme="dark"] .lab-sidebar .lab-brand .display { color: #fff; }
+
+/* Cartões e painéis: vidro fosco */
+:root[data-theme="dark"] .lg-glass {
+  background: linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: var(--radius-panel);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Botão principal dourado: aplique .lg-gold no Button "primary" */
+:root[data-theme="dark"] .lg-gold {
+  background: linear-gradient(180deg, #ffc95c, #e39a1e);
+  color: #1a1205; border: 0; font-weight: 800;
+  box-shadow: var(--glow-gold), inset 0 1px 0 rgba(255,255,255,.5);
+}
+
+/* Coluna do Kanban tingida pela cor da etapa: <section class="lg-lane" style="--lane: var(--stage-montagem)"> */
+:root[data-theme="dark"] .lg-lane {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--lane) 18%, transparent), rgba(255,255,255,.02) 45%);
+  border: 1px solid color-mix(in srgb, var(--lane) 35%, transparent);
+  border-radius: 22px;
+  box-shadow: 0 0 30px color-mix(in srgb, var(--lane) 8%, transparent);
+}
+
+/* Cartão de OS. Atrasada: data-urgency="late" (o sistema já usa esse atributo) */
+:root[data-theme="dark"] .lg-card {
+  background: linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+  border: 1px solid rgba(255,255,255,.1); border-radius: 18px;
+}
+:root[data-theme="dark"] .lg-card[data-urgency="late"],
+:root[data-theme="dark"] .lg-card[data-urgency="critical"] {
+  border-color: rgba(255,77,77,.55); box-shadow: 0 0 22px rgba(255,77,77,.18);
+}
+
+/* Trilho das 5 etapas da bancada */
+.lg-track { display: flex; align-items: center; }
+.lg-track i { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,.12); }
+.lg-track b { width: 14px; height: 14px; border-radius: 50%; background: rgba(255,255,255,.14); flex: none; box-sizing: border-box; }
+.lg-track [data-done] { background: var(--lane); box-shadow: 0 0 8px var(--lane); }
+.lg-track b[data-current] { background: #0e0d0b; border: 3px solid var(--lane); box-shadow: 0 0 12px var(--lane); }
+
+/* Barras com brilho (WIP, progresso, Pareto) */
+.lg-bar { height: 5px; border-radius: 5px; background: rgba(255,255,255,.1); overflow: hidden; }
+.lg-bar > span { display: block; height: 100%; border-radius: 5px; background: var(--lane, var(--accent)); box-shadow: 0 0 8px var(--lane, var(--accent)); }
+
+/* Bancada e lentes antigas no tema novo */
+:root[data-theme="dark"] .bench-compact-card { border-left-width: 3px; border-radius: 18px; }
+}
+/* Adaptations for the live LabGold workflows absent from the static drawings. */
+:root {
+ --stage-lentes: #6e6a63; --stage-montagem: #225ca8; --stage-conferencia: #87601f;
+ --stage-correcao: #7451a6; --stage-pronto: #286f51; --stage-atrasada: #b83a3a;
+ --control-line: #9b9388;
+}
+.lg-brand-mark { color: var(--gold); }
+.lg-step-track { display: flex; gap: 4px; }
+.lg-step-track span { height: 4px; flex: 1; border-radius: 8px; background: var(--line); }
+.lg-step-track span[data-done="true"] { background: var(--lane, var(--accent)); }
+.lg-stage-dot { background: var(--lane); box-shadow: 0 0 10px color-mix(in srgb,var(--lane) 50%,transparent); }
+.lg-week { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 6px; }
+.lg-week-day { min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 8px 4px; text-align: center; }
+.lg-week-day[data-today="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.lg-week-day button { display: grid; min-height: 44px; width: 100%; justify-items: center; gap: 2px; color: var(--ink); }
+.lg-dashboard-summary { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.lg-dashboard-summary a { min-width: 0; border: 1px solid var(--line); border-radius: var(--radius-panel); padding: 16px; background: var(--surface); }
+.lg-dashboard-summary strong { display: block; font-size: 30px; line-height: 1.2; margin: 12px 0; }
+.lg-overview { display: grid; gap: 16px; }
+.lg-preview-columns { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; align-items: start; }
+.lg-preview-columns > section { width: 190px; flex-shrink: 0; padding: 10px; }
+.lg-hero-image { height: 150px; background: url('/design/oculos.png') center / cover no-repeat; border-radius: var(--radius-panel); }
+.lg-assistance-links { display: grid; gap: 8px; padding: 16px; }
+.lg-assistance-links a { display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
+@media (min-width: 768px) { .lg-dashboard-summary { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media (min-width: 1440px) { .lg-dashboard-summary { grid-template-columns: repeat(6,minmax(0,1fr)); } }
+@media (min-width: 1280px) { .lg-overview { grid-template-columns: minmax(0,1fr) 280px; } }
+@media screen {
+ :root[data-theme="dark"] .lg-brand-mark { filter: drop-shadow(0 0 8px rgb(245 181 61 / .25)); }
+ :root[data-theme="dark"] .lg-topbar { background: rgb(7 7 10 / .92); border-color: var(--line); backdrop-filter: blur(12px); }
+ :root[data-theme="dark"] .lab-brand { position: relative; border-bottom-color: rgb(245 193 90 / .12); }
+ :root[data-theme="dark"] .lab-sidebar::before { content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(160px 600px at -70px 65%,transparent 70%,rgb(245 181 61 / .22) 71%,transparent 73%); }
+ :root[data-theme="dark"] .lab-sidebar .lab-account { margin:12px; border-radius:18px; padding:12px; }
+ :root[data-theme="dark"] .lab-sidebar .lab-brand .display { font-size:22px; font-weight:800; }
+ :root[data-theme="dark"] .lab-sidebar nav a[aria-current="page"] { color:var(--sidebar-active-text); }
+ :root[data-theme="dark"] .lg-mobile-dock { background:rgb(15 13 10 / .96); border-color:rgb(245 193 90 / .18); box-shadow:0 -8px 30px rgb(0 0 0 / .3); }
+ :root[data-theme="dark"] .lg-mobile-dock a[aria-current="page"] { background:linear-gradient(180deg,#ffc95c,#e39a1e); color:var(--on-accent); }
+ :root[data-theme="dark"] .theme-toggle { background:rgb(255 255 255 / .04); }
+ :root[data-theme="dark"] :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) { border-color:var(--control-line); }
+ :root[data-theme="dark"] input::placeholder,:root[data-theme="dark"] textarea::placeholder { color:var(--muted); opacity:1; }
+ :root[data-theme="dark"] select option { background:var(--surface); color:var(--ink); }
+ :root[data-theme="dark"] .lab-workspace .lab-page-heading h1 { font-weight:800; }
+ :root[data-theme="dark"] .lg-lane { border-radius:22px; }
+ :root[data-theme="dark"] .lg-card { box-shadow:0 4px 16px rgb(0 0 0 / .16); }
+ :root[data-theme="dark"] .lg-gold:disabled { box-shadow:none; }
+ :root[data-theme="dark"] .lg-launch :is(form,fieldset) { border-color:var(--line); }
+ :root[data-theme="dark"] .lab-launch > .lg-mode-tabs { background:rgb(255 255 255 / .035); border-radius:16px; }
+ :root[data-theme="dark"] .lab-launch form { border-radius:22px; }
+ :root[data-theme="dark"] .lab-launch button[aria-pressed="true"] { border-color:var(--gold); background:var(--accent-soft); color:var(--link); }
+ :root[data-theme="dark"] .lab-launch :is(form footer button[type="submit"],section[role="status"] button) { background:linear-gradient(180deg,#ffc95c,#e39a1e); color:var(--on-accent); box-shadow:var(--glow-gold); }
+ :root[data-theme="dark"] .lens-list-row { border-left-width:3px; border-radius:0; background:linear-gradient(100deg,rgb(255 255 255 / .035),transparent); }
+ :root[data-theme="dark"] .lens-list-row:hover { background:rgb(245 181 61 / .07); }
+ :root[data-theme="dark"] .lens-list-heading { background:var(--surface-secondary); }
+ :root[data-theme="dark"] .lab-metric-strip { gap:10px; overflow:visible; background:transparent; border:0; }
+ :root[data-theme="dark"] .lab-metric-strip .lab-reference-kpi { border:1px solid var(--line); border-radius:18px; background:linear-gradient(150deg,rgb(255 255 255 / .07),rgb(255 255 255 / .02)); padding:14px; }
+ :root[data-theme="dark"] .lab-metric-strip .lab-reference-kpi > span:first-child { width:3px; }
+ :root[data-theme="dark"] .lab-metric-strip .lab-kpi-value { color:var(--ink); font-size:28px; font-weight:800; }
+ :root[data-theme="dark"] .lg-selection-bar { border-color:var(--gold); background:var(--surface); box-shadow:0 0 25px rgb(245 181 61 / .15); }
+ :root[data-theme="dark"] .lg-dashboard-summary a { border-color:color-mix(in srgb,var(--lane) 35%,transparent); background:linear-gradient(135deg,color-mix(in srgb,var(--lane) 17%,#131210),#131210); box-shadow:0 0 24px color-mix(in srgb,var(--lane) 8%,transparent); }
+ :root[data-theme="dark"] .lg-production-bar { background:linear-gradient(180deg,#ffdc8a,#f5b53d 65%,#b97413); box-shadow:0 0 12px rgb(245 181 61 / .3); border:1px solid rgb(255 220 138 / .5); }
+ :root[data-theme="dark"] .lg-preview-card { display:block; padding:10px; margin-top:8px; border-radius:12px; background:rgb(0 0 0 / .18); border:1px solid var(--line); }
+ :root[data-theme="dark"] .bench-compact-card > button[aria-expanded="true"] { padding-bottom:8px; }
+ :root[data-theme="dark"] .bench-compact-card .lg-bench-action { min-height:56px; background:linear-gradient(180deg,#ffc95c,#e39a1e); color:var(--on-accent); box-shadow:var(--glow-gold); }
+}
+@media print { .lg-hero-image,.lg-assistance-links { display:none; } .lg-dashboard-summary a { box-shadow:none; background:white; } }

@@ -1,6 +1,7 @@
 import Link from "next/link";
+import {ProductionOverview,ProductionSummary,ProductionGoal} from "@/components/production-overview";
 import { PageHeading } from "@/components/shell";
-import { STATUS_TONE, StatusBadge } from "@/components/status-badge";
+import { StatusBadge } from "@/components/status-badge";
 import { Button, Panel, PanelHeader, Select } from "@/components/ui";
 import { addDays, dayRange, monthRange, weekRange, zonedStart, zonedYmd } from "@/lib/domain/calendar";
 import { QUEUE_STATUSES, STATUS_LABEL, type AppRole, type OrderStatus } from "@/lib/domain/constants";
@@ -211,8 +212,8 @@ export default async function DashboardPage({
   const todayPct = goalPercent(doneToday, dailyGoal);
 
   return (
-    <div className="flex flex-col gap-5">
-      <PageHeading title="Fila de hoje" description="Mesma organização do app: toque na etapa, depois na loja e na vendedora. Produção e qualidade seguem o período selecionado.">
+    <div className="lg-dashboard flex flex-col gap-5">
+      <PageHeading title="Visão geral" description="Sua produção, seus prazos e a próxima ação — tudo no mesmo lugar.">
         {can(role, "orders.write") ? (
           <Button variant="secondary" asChild>
             <Link href="/laboratorio/rapido">Lançar serviço</Link>
@@ -287,32 +288,14 @@ export default async function DashboardPage({
         </div>
       ) : null}
 
-      <Panel className="overflow-hidden">
-        <PanelHeader title="Fila agora">
-          {open.length} OS em andamento · clique para abrir no Laboratório
-        </PanelHeader>
-        <div className="grid grid-cols-2 gap-px bg-[var(--bg-e2ddd5)] sm:grid-cols-3 xl:grid-cols-6">
-          {pipeline.map((stage) => (
-            <Link
-              key={stage.status}
-              href={`/laboratorio/fila/${stage.status}`}
-              className="flex flex-col gap-2.5 bg-[var(--surface)] px-5 pb-5 pt-[18px] hover:bg-[var(--background)]"
-            >
-              <span className="flex items-center gap-[7px] text-[13px] font-medium text-[var(--muted)]">
-                <span className="h-2 w-2 shrink-0 rounded-[2px]" style={{ background: STATUS_TONE[stage.status].dot }} />
-                {stage.status === "em_conferencia" ? "Em conferência" : STATUS_LABEL[stage.status]}
-              </span>
-              <span className="tabular text-[34px] font-semibold leading-none tracking-[-0.03em]">{stage.count}</span>
-              <span className={`text-xs ${stage.alert ? "font-semibold text-[var(--danger)]" : "text-[var(--muted)]"}`}>{stage.note}</span>
-            </Link>
-          ))}
-        </div>
-      </Panel>
+      <ProductionSummary stages={pipeline} total={open.length}/>
+      <ProductionOverview canLaunch={can(role,"orders.write")} orders={open.map(order=>({id:order.id,number:visibleOrderNumber(order),clientName:order.client_name,status:order.status,dueAt:order.due_at,sellerName:order.seller_name,stepsDone:stepsDone.get(order.id)??0}))}/>
 
       <Panel className="overflow-hidden">
         <PanelHeader title="Produção">Conta a data de conclusão da montagem</PanelHeader>
         <div className="grid grid-cols-1 gap-px bg-[var(--bg-e2ddd5)] sm:grid-cols-2 xl:grid-cols-4">
           <Stat label="Concluídas hoje" value={doneToday} suffix={dailyGoal ? `/ meta ${dailyGoal}` : undefined}>
+            <ProductionGoal done={doneToday} goal={dailyGoal}/>
             {todayPct != null ? (
               <>
                 <div className="h-1.5 overflow-hidden rounded-[3px] bg-[var(--surface-secondary)]">
@@ -360,8 +343,8 @@ export default async function DashboardPage({
               <div
                 key={bar.day + index}
                 title={`${bar.produced} montagem(ns)`}
-                className="min-h-[2px] rounded-t-[3px]"
-                style={{ height: `${(bar.produced / barMax) * 100}%`, background: index === bars.length - 1 ? "#8c6239" : "#9cc9c3" }}
+                className="lg-production-bar min-h-[2px] rounded-t-[3px]"
+                style={{ height: `${(bar.produced / barMax) * 100}%`, background: "var(--accent)" }}
               />
             ))}
           </div>

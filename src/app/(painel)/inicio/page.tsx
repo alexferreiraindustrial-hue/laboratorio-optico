@@ -91,7 +91,7 @@ export default async function InicioPage() {
   const cards = allCards.filter((card) => simpleAllowed(role, card.href));
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
+    <div className="mx-auto flex w-full lg-home max-w-5xl flex-col gap-4">
       <div>
         <h1 className="text-2xl font-semibold leading-tight md:text-[28px]">
           {greeting()}, {firstName(profile.full_name)}!
@@ -125,7 +125,7 @@ export default async function InicioPage() {
             <Link
               key={card.href}
               href={card.href}
-              className="group flex min-h-[116px] items-center gap-3 rounded-[var(--radius-panel)] border border-[var(--line)] bg-[var(--surface)] p-4 transition-colors duration-150 hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+              className="lg-glass group flex min-h-[116px] items-center gap-3 rounded-[var(--radius-panel)] border border-[var(--line)] bg-[var(--surface)] p-4 transition-colors duration-150 hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
             >
               <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg ${card.tone}`}>
                 <Icon size={24} strokeWidth={2} aria-hidden />

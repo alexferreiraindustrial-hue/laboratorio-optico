@@ -1,3 +1,4 @@
+import {loadOperations} from "./operations";
 import { notFound } from "next/navigation";
 import type { OccurrenceRow, OrderRow, StepRow } from "@/lib/types";
 import { requireProfile } from "./session";
@@ -18,6 +19,8 @@ export async function loadOrderDetail(id: string) {
   if (error) throw new Error(error.message);
   if (!order) notFound();
 
+  const operations = await loadOperations(supabase,[id]);
+  Object.assign(order,operations.get(id));
   const [seller, messages] = await Promise.all([
     order.seller_id
       ? supabase.from("sellers").select("id, name, phone, whatsapp").eq("id", order.seller_id).maybeSingle()
@@ -54,6 +57,7 @@ export async function loadOrderDetail(id: string) {
   const urlByPath = new Map((signed.data ?? []).map((item) => [item.path, item.signedUrl]));
 
   return {
+    nowIso:new Date().toISOString(),
     role,
     seller: (seller.data ?? null) as { id: string; name: string; phone: string | null; whatsapp: string | null } | null,
     messages: (messages.data ?? []) as OrderMessage[],

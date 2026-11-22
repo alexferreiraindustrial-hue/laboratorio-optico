@@ -1,4 +1,5 @@
 "use client";
+import {ExpressCountdown} from "./order-operations";
 
 import { QuickOrderPhoto } from "./quick-order-photo";
 import { can } from "@/lib/domain/permissions";
@@ -178,6 +179,7 @@ function BenchCard({ order, role, now, boardPending, onMove, onProgress }: { ord
       <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={()=>setExpanded(value=>!value)} className="grid min-h-11 gap-1.5 text-left">
         <span className="flex items-start gap-2"><span className="min-w-0 flex-1 break-words text-base font-semibold leading-snug">{order.clientName}</span>{expanded?<ChevronDown size={18}/>:<ChevronRight size={18}/>}</span>
         {order.serviceDescription?.startsWith("Manutenção — ") && <span className="break-words text-xs font-medium text-[var(--link)]">{order.serviceDescription}</span>}
+        <ExpressCountdown operations={order} nowIso={now.toISOString()}/>
         <span className="text-xs font-semibold">{order.dueAt?`Prazo ${formatDateTime(order.dueAt)}`:"Sem prazo definido"}</span>
         <span className="bench-deadline-label text-xs font-bold">{deadline.label}{order.dueAt?` · ${dueDeltaLabel(order.dueAt,now,order.status)}`:""}</span>
         {(order.openOccurrences??0)>0 && <span className="text-xs font-semibold text-[var(--danger)]">{order.openOccurrences} ocorrência(s) aberta(s)</span>}

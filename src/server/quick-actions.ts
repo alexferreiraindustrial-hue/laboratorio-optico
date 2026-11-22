@@ -1,5 +1,6 @@
 "use server";
-import { INTERNAL_MAINTENANCE } from "@/lib/domain/laboratories";
+import { INTERNAL_MAINTENANCE, INTERNAL_ASSEMBLY } from "@/lib/domain/laboratories";
+import {operationsError,type FrameState} from "@/lib/domain/operations";
 import { resolveLaboratory } from "./laboratory-resolution";
 
 import { validateGuidedEntry, type GuidedEntryInput } from "@/lib/domain/guided-entry";
@@ -15,6 +16,8 @@ export type QuickCreateInput = {
     clientName: string | null;
     serviceDescription?: string;
     notes?: string;
+    frameState?:FrameState;
+    expressMinutes?:number|null;
     /** Quando informados por linha, têm prioridade sobre os padrões abaixo. */
     sellerId?: string | null;
     storeId?: string | null;
@@ -46,6 +49,7 @@ export async function quickCreateOrders(input: QuickCreateInput): Promise<{ ok: 
   if (input.entries.length > 100) return { ok: false, message: "Lance no máximo 100 OS por vez.", results: [] };
 
   if (input.entries.some(entry => (entry.serviceDescription?.length ?? 0) > 520 || (entry.notes?.length ?? 0) > 1500)) return {ok:false,message:"A descrição do serviço está muito longa.",results:[]};
+  for(const entry of input.entries){const invalid=operationsError(entry.frameState,entry.expressMinutes);if(invalid)return {ok:false,message:invalid,results:[]};}
   const resolvedLab = await resolveLaboratory(supabase, input.laboratoryId);
   if (resolvedLab.error) return { ok: false, message: resolvedLab.error, results: [] };
   const now = new Date();
@@ -60,7 +64,7 @@ export async function quickCreateOrders(input: QuickCreateInput): Promise<{ ok: 
       continue;
     }
     const hasOwnTarget = entry.sellerId !== undefined || entry.storeId !== undefined;
-    const { data, error } = await supabase.rpc("create_service_order", {
+    const payload = {
       p_client_name: name,
       p_seller_id: (hasOwnTarget ? entry.sellerId : input.sellerId) || null,
       p_store_id: (hasOwnTarget ? entry.storeId : input.storeId) || null,
@@ -74,7 +78,9 @@ export async function quickCreateOrders(input: QuickCreateInput): Promise<{ ok: 
       p_priority: input.priority,
       p_status: input.status,
       p_lens_spec: {},
-    });
+    };
+    const configured = entry.frameState!==undefined || entry.expressMinutes!=null;
+    const {data,error}=configured?await supabase.rpc("create_service_order_configured",{p_order:payload,p_frame_state:entry.frameState??"unknown",p_express_minutes:entry.expressMinutes??null}):await supabase.rpc("create_service_order",payload);
     if (error) {
       results.push({ index, ok: false, message: actionError(error, "Não foi possível lançar.") ?? "Erro ao lançar." });
     } else {
@@ -146,7 +152,7 @@ export async function quickMoveOrders(
   ids: string[],
   to: "aguardando_montagem" | "entregue",
   note: string,
-): Promise<{ ok: boolean; message: string; results: { id: string; ok: boolean; message: string }[] }> {
+): Promise<{ ok: boolean; message: string; results: { id: string; ok: boolean; message: string; waitingFrame?:boolean }[] }> {
   const { supabase, role } = await requireProfile();
   if (to === "entregue" && !can(role, "orders.deliver")) {
     return { ok: false, message: "Apenas gestor ou administrador registra a saída.", results: [] };
@@ -154,10 +160,10 @@ export async function quickMoveOrders(
   if (to === "aguardando_montagem" && !can(role, "orders.status")) {
     return { ok: false, message: "Seu perfil não movimenta OS.", results: [] };
   }
-  const results: { id: string; ok: boolean; message: string }[] = [];
+  const results: { id: string; ok: boolean; message: string; waitingFrame?:boolean }[] = [];
   for (const id of ids.slice(0, 100)) {
-    const { error } = await supabase.rpc("change_order_status", { p_order_id: id, p_to: to, p_note: note });
-    results.push({ id, ok: !error, message: error ? actionError(error, "Falhou.") ?? "Falhou." : "Feito" });
+    const { data,error } = to==="aguardando_montagem"?await supabase.rpc("receive_order_lenses",{p_order_id:id}):await supabase.rpc("change_order_status", { p_order_id: id, p_to: to, p_note: note });
+    results.push({ id, ok: !error,waitingFrame:data?.frame_state==="vta", message: error ? actionError(error, "Falhou.") ?? "Falhou." : "Feito" });
   }
   revalidatePath("/laboratorio");
   revalidatePath("/montagem");
@@ -166,18 +172,19 @@ export async function quickMoveOrders(
   revalidatePath("/entrega");
   revalidatePath("/dashboard");
   const done = results.filter((item) => item.ok).length;
-  return { ok: done > 0, message: `${done} de ${results.length} OS atualizadas.`, results };
+  return { ok: done > 0, message: `${done} de ${results.length} OS atualizadas.${results.some(item=>item.ok&&item.waitingFrame)?" VTA: lentes recebidas, aguardando armação.":""}`, results };
 }
 
 export async function createGuidedOrder(input: GuidedEntryInput) {
   const error = validateGuidedEntry(input);
   if (error) return { ok: false, message: error, results: [] as QuickCreateResult[] };
   const maintenance = input.serviceKind === "manutencao";
-  const description = maintenance ? `Manutenção — ${input.serviceDescription!.trim()}` : "Lançamento rápido";
+  const express = input.serviceKind === "expressa";
+  const description = express?`Montagem expressa — ${input.expressMinutes} minutos`:maintenance ? `Manutenção — ${input.serviceDescription!.trim()}` : "Lançamento rápido";
   return quickCreateOrders({
-    entries: [{ orderRef: input.orderRef.trim() || null, clientName: input.clientName.trim() || (maintenance ? description.slice(0,200) : null), dueAt: input.dueAt, serviceDescription: description, notes: maintenance ? "Manutenção interna. Número interno gerado quando não há OS informada. Encaminhar à bancada." : undefined }],
-    laboratoryId: maintenance ? INTERNAL_MAINTENANCE : input.laboratoryId,
+    entries: [{ orderRef: input.orderRef.trim() || null, clientName: input.clientName.trim() || ((maintenance||express) ? description.slice(0,200) : null), dueAt: input.dueAt, serviceDescription: description, frameState:input.frameState,expressMinutes:express?input.expressMinutes:undefined, notes: maintenance ? "Manutenção interna. Número interno gerado quando não há OS informada. Encaminhar à bancada." : undefined }],
+    laboratoryId: express?INTERNAL_ASSEMBLY:maintenance ? INTERNAL_MAINTENANCE : input.laboratoryId,
     sellerId: input.sellerId, storeId: input.storeId || null, dueHours: null,
-    status: maintenance ? "aguardando_montagem" : "aguardando_lentes", priority: "normal",
+    status: (maintenance||express) ? "aguardando_montagem" : "aguardando_lentes", priority: "normal",
   });
 }

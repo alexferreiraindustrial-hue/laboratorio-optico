@@ -1,6 +1,9 @@
+import {operationsError,type FrameState} from "./operations";
 export type GuidedEntryInput = {
-  serviceKind?: "lentes" | "manutencao";
+  serviceKind?: "lentes" | "manutencao" | "expressa";
   serviceDescription?: string;
+  frameState?:FrameState;
+  expressMinutes?:number;
   orderRef: string;
   clientName: string;
   sellerId: string;
@@ -10,11 +13,14 @@ export type GuidedEntryInput = {
 };
 
 export function validateGuidedEntry(input: GuidedEntryInput, now = new Date()) {
-  if (input.serviceKind && input.serviceKind !== "lentes" && input.serviceKind !== "manutencao") return "Escolha o tipo de serviço.";
+  if (input.serviceKind && input.serviceKind !== "lentes" && input.serviceKind !== "manutencao" && input.serviceKind !== "expressa") return "Escolha o tipo de serviço.";
+  const invalid=operationsError(input.frameState,input.expressMinutes);if(invalid)return invalid;
+  const express=input.serviceKind==="expressa";
+  if(express&&(!input.expressMinutes||input.frameState==="vta"))return "Selecione 20, 40 ou 60 minutos e confirme que a armação está disponível.";
   const maintenance = input.serviceKind === "manutencao";
-  if (!maintenance && !input.laboratoryId) return "Selecione o laboratório.";
+  if (!maintenance && !express && !input.laboratoryId) return "Selecione o laboratório.";
   if (!input.sellerId) return "Selecione quem vendeu o serviço.";
-  if (!maintenance && !input.orderRef.trim()) return "Informe o número da OS que está no papel.";
+  if (!maintenance && !express && !input.orderRef.trim()) return "Informe o número da OS que está no papel.";
   if (input.orderRef.trim().length > 80) return "O número da OS deve ter até 80 caracteres.";
   if (input.clientName.trim().length > 200) return "O nome do cliente deve ter até 200 caracteres.";
   if (maintenance && (input.serviceDescription?.trim().length ?? 0) < 3) return "Descreva a manutenção que será feita.";

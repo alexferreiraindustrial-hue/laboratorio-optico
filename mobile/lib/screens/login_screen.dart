@@ -63,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (sellerLogin.text.trim().isEmpty || sellerPin.text.runes.length < 4) {
       setState(
         () => error =
-            'Informe o código (v3) e a senha que o laboratório criou para você.',
+            'Informe seu nome completo ou código (v3) e a senha que o laboratório criou para você.',
       );
       return;
     }
@@ -164,8 +164,8 @@ class _LoginScreenState extends State<LoginScreen> {
             autofillHints: [AutofillHints.username],
             style: LaType.tituloSecao,
             decoration: InputDecoration(
-              labelText: 'Código do vendedor',
-              hintText: 'Ex.: v3',
+              labelText: 'Nome ou código da vendedora',
+              hintText: 'Nome completo ou v3',
             ),
             textInputAction: TextInputAction.next,
           ),

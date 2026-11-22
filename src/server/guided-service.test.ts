@@ -32,3 +32,9 @@ describe("guided service persistence",()=>{
 it("allows an existing OS for maintenance without replacing its reference",async()=>{
  await createGuidedOrder({...input,orderRef:"MAN-123"});expect(state.rpc.mock.calls[0][1]).toMatchObject({p_external_order_id:"MAN-123",p_status:"aguardando_montagem"});
 });
+
+it("creates express assembly atomically using 20/40/60 minutes, frame and internal assembly supplier",async()=>{
+ const result=await createGuidedOrder({...input,serviceKind:"expressa",expressMinutes:40,frameState:"present",clientName:"Cliente expresso"});expect(result.ok).toBe(true);
+ expect(state.resolve).toHaveBeenCalledWith(expect.anything(),"montagem_interna");
+ expect(state.rpc).toHaveBeenCalledWith("create_service_order_configured",expect.objectContaining({p_frame_state:"present",p_express_minutes:40,p_order:expect.objectContaining({p_status:"aguardando_montagem",p_external_order_id:null,p_service_description:"Montagem expressa — 40 minutos"})}));
+});

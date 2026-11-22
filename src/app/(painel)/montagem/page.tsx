@@ -1,3 +1,4 @@
+import {loadOperations} from "@/server/operations";
 import { OrderDrawer } from "@/components/order-drawer";
 import { OrderWorkspace } from "@/components/order-workspace";
 import { loadOrderDetail } from "@/server/order-detail";
@@ -47,6 +48,7 @@ export default async function MontagemPage({ searchParams }: { searchParams: Pro
     .limit(200);
 
   const ids = (orders ?? []).map((order) => order.id as string);
+  const operations=await loadOperations(supabase,ids);
   let boardError = error?.message ?? null;
   const occurrenceCount = new Map<string, number>();
   let occurrencesLoaded = true;
@@ -69,6 +71,7 @@ export default async function MontagemPage({ searchParams }: { searchParams: Pro
   const names = new Map((people ?? []).map((person) => [person.id as string, person.full_name as string]));
 
   const bench: BenchOrder[] = (orders ?? []).map((order) => ({
+    ...operations.get(order.id),
     id: order.id as string,
     number: order.number as string,
     clientName: order.client_name as string,

@@ -54,15 +54,15 @@ export default function PortalGatePage() {
         });
       }}>
       <Panel className="mt-5 grid gap-4 p-5">
-        <Field label="Código do vendedor" hint="Use o código e a senha entregues pelo laboratório.">
-          <Input name="login" required value={login} onChange={(event) => setLogin(event.target.value)} autoComplete="username" placeholder="Ex.: v3" disabled={pending} />
+        <Field label="Nome ou código da vendedora" hint="Use seu nome completo cadastrado ou o código entregue pelo laboratório.">
+          <Input name="login" required value={login} onChange={(event) => setLogin(event.target.value)} autoComplete="username" placeholder="Seu nome completo ou v3" disabled={pending} />
         </Field>
         <Field label="Senha do vendedor">
           <Input name="pin" required minLength={4} maxLength={64} value={pin} onChange={(event) => setPin(event.target.value)} autoComplete="current-password" type="password" placeholder="Sua senha" disabled={pending} />
         </Field>
         {error ? <p role="alert" className="text-sm text-[var(--danger)]">{error}</p> : null}
         <Button type="submit" className="min-h-12 w-full" disabled={pending}>{pending ? "Entrando…" : "Entrar · ver meus serviços"}</Button>
-        <p className="text-xs leading-relaxed text-[var(--muted)]">Seu acesso é exclusivo para acompanhar as suas OS. O mesmo código e senha funcionam na opção Vendedor do app.</p>
+        <p className="text-xs leading-relaxed text-[var(--muted)]">Seu acesso é exclusivo para acompanhar as suas OS. O mesmo nome/código e senha funcionam na opção Vendedor do app.</p>
       </Panel>
       </form>
       <details className="mt-4 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">

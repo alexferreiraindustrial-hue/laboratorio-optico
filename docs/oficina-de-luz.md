@@ -27,3 +27,9 @@ Superfícies semânticas de sucesso, atenção e erro usam fundos opacos equival
 Typecheck, lint dos arquivos alterados e 167 testes locais passaram na preparação (164 versionados e 3 locais preexistentes de arquivamento). O build final e os checks remotos são registrados na publicação. A conferência visual no navegador foi interrompida pelo controle de segurança do Computer Use ao não confirmar a URL; não declarar uma validação visual completa de todas as telas.
 
 Os arquivos temporários de demonstração e os arquivos de arquivamento preexistentes não fazem parte desta entrega. Não houve operação no banco de produção. O aviso de segurança do Next instalado permanece; o framework não foi atualizado neste trabalho visual.
+
+## Fontes locais
+
+O resolvedor `next/font/google` do Turbopack falhou na prévia. As mesmas famílias agora usam `next/font/local` com os arquivos variáveis originais do repositório oficial Google Fonts. Não há consulta externa a Google Fonts durante o build ou no navegador. As licenças SIL OFL 1.1 acompanham os arquivos em `src/app/fonts`.
+
+Fontes: https://github.com/google/fonts/tree/main/ofl/plusjakartasans e https://github.com/google/fonts/tree/main/ofl/jetbrainsmono.

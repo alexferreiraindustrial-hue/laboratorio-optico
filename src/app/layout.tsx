@@ -1,21 +1,23 @@
 import { cookies } from "next/headers";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { Metadata, Viewport } from "next";
-import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "sonner";
 import "./globals.css";
 import "./labgold-dark.css";
 
-const jakarta = Plus_Jakarta_Sans({
+const jakarta = localFont({
+  src: "./fonts/PlusJakartaSans-Variable.ttf",
+  display: "swap",
   variable: "--font-ui",
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: "400 800",
 });
 
-const mono = JetBrains_Mono({
+const mono = localFont({
+  src: "./fonts/JetBrainsMono-Variable.ttf",
+  display: "swap",
   variable: "--font-ui-mono",
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500"],
+  weight: "400 500",
 });
 
 export const metadata: Metadata = {

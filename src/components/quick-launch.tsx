@@ -66,8 +66,8 @@ export function QuickLaunch({
   };
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="grid gap-2.5 sm:grid-cols-3">
+    <div className="lab-launch flex flex-col gap-3">
+      <div className="lab-mode-tabs grid grid-cols-3 gap-1 rounded-lg border border-[var(--line)] bg-[var(--surface-secondary)] p-1" role="group" aria-label="Operação rápida">
         {MODES.map((item) => {
           const on = item.key === mode;
           const Icon = item.icon;
@@ -78,16 +78,16 @@ export function QuickLaunch({
               aria-pressed={on}
               onClick={() => setMode(item.key)}
               className={cn(
-                "flex min-h-11 items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors",
-                on ? "border-[var(--focus)] bg-[var(--accent-soft)] " : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--line)]",
+                "flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-md border px-2 py-2 text-center transition-colors md:min-h-9",
+                on ? "border-[var(--line)] bg-[var(--surface)] text-[var(--link)]" : "border-transparent text-[var(--muted)] hover:bg-[var(--surface)]",
               )}
             >
-              <span className={cn("mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg", on ? "bg-[var(--accent)] text-white" : "bg-[var(--surface-secondary)] text-[var(--muted)]")}>
+              <span className={cn("hidden shrink-0 sm:grid", on ? "text-[var(--link)]" : "text-[var(--muted)]")}>
                 <Icon size={17} />
               </span>
               <span className="flex flex-col gap-0.5">
-                <span className="text-sm font-semibold">{item.label}</span>
-                <span className="text-xs text-[var(--muted)]">{item.hint}</span>
+                <span className="text-xs font-semibold sm:text-sm">{item.label}</span>
+                <span className="sr-only">{item.hint}</span>
               </span>
             </button>
           );

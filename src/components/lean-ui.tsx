@@ -76,3 +76,8 @@ export function Card({ title, subtitle, action, children, className }: { title: 
     </section>
   );
 }
+
+/** Compact summary for operational pages; values retain their semantic tone. */
+export function MetricStrip({ children }: { children: import("react").ReactNode }) {
+  return <div className="lab-metric-strip grid grid-cols-2 overflow-hidden rounded-[var(--radius-panel)] border border-[var(--line)] bg-[var(--surface)] xl:grid-cols-4" aria-label="Resumo da fila">{children}</div>;
+}

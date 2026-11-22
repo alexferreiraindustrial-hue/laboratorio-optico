@@ -35,3 +35,5 @@ jobs:
         # Turbopack Google font resolution fails on clean GitHub runners.
         # Validate the full production build with Next.js supported webpack mode.
         run: npm run build -- --webpack
+      - name: Validar estilos gerados
+        run: node scripts/check-build-css.mjs

@@ -4,7 +4,7 @@ import type { ButtonHTMLAttributes, HTMLAttributes, InputHTMLAttributes, ReactNo
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent text-sm font-semibold transition-[transform,background-color,box-shadow,border-color] duration-150 [transition-timing-function:var(--ease-out)] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)] active:scale-[0.97] md:min-h-9 md:min-w-0",
+  "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] border border-transparent text-sm font-semibold transition-[transform,background-color,box-shadow,border-color] duration-150 [transition-timing-function:var(--ease-out)] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)] active:translate-y-px md:min-h-9 md:min-w-0",
   {
     variants: {
       variant: {
@@ -35,7 +35,7 @@ export function Button({
 }
 
 const fieldBase =
-  "w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] text-sm text-[var(--ink)] outline-none transition-[border-color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] placeholder:text-[var(--muted)] focus:border-[var(--accent)]";
+  "w-full rounded-[var(--radius-control)] border border-[var(--line)] bg-[var(--surface)] text-sm text-[var(--ink)] outline-none transition-[border-color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] placeholder:text-[var(--muted)] focus:border-[var(--accent)]";
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={cn(fieldBase, "h-11 px-3 md:h-9", props.className)} />;
@@ -64,7 +64,7 @@ export function Panel({ className, children, ...props }: HTMLAttributes<HTMLElem
     <section
       {...props}
       className={cn(
-        "min-w-0 rounded-xl border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[var(--shadow-soft)]",
+        "min-w-0 rounded-[var(--radius-panel)] border border-[var(--line)] bg-[var(--surface)]",
         className,
       )}
     >
@@ -84,7 +84,7 @@ export function PanelHeader({ title, children }: { title: string; children?: Rea
 
 export function EmptyState({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface)] px-4 py-10 text-center">
+    <div className="rounded-[var(--radius-panel)] border border-dashed border-[var(--line)] bg-[var(--surface)] px-4 py-10 text-center">
       <p className="font-semibold">{title}</p>
       <p className="mx-auto mt-1 max-w-lg text-sm text-[var(--muted)]">{text}</p>
     </div>

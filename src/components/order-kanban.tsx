@@ -15,15 +15,15 @@ import type { OrderRow } from "@/lib/types";
 import { changeOrderStatus } from "@/server/actions";
 import { RISK_LABEL, RISK_TONE } from "@/lib/domain/forecast";
 import { orderForecast, selectBoardOrders, type BoardFocus, type BoardSort } from "@/lib/domain/kanban";
+import { stageStyle, StepTrack } from "./production-visuals";
 import { LensGauge } from "./lens";
-import { STATUS_TONE } from "./status-badge";
 import { Feedback } from "./ui";
 
 function deadlineStyle(order: OrderRow) {
-  if (!order.due_at || order.status === "pronto") return { color: "#6e6a63", fontWeight: 400 };
-  if (new Date(order.due_at).getTime() < Date.now()) return { color: "#b83a3a", fontWeight: 600 };
-  if (order.urgency === "amarelo") return { color: "#87601f", fontWeight: 600 };
-  return { color: "#6e6a63", fontWeight: 400 };
+  if (!order.due_at || order.status === "pronto") return { color: "var(--muted)", fontWeight: 400 };
+  if (new Date(order.due_at).getTime() < Date.now()) return { color: "var(--danger)", fontWeight: 600 };
+  if (order.urgency === "amarelo") return { color: "var(--warning)", fontWeight: 600 };
+  return { color: "var(--muted)", fontWeight: 400 };
 }
 
 function Card({ order, href, role, pending, onMove, now }: { order: OrderRow; href: string; role: AppRole; pending: boolean; onMove: (order: OrderRow, status: OrderStatus) => void; now: Date }) {
@@ -35,8 +35,9 @@ function Card({ order, href, role, pending, onMove, now }: { order: OrderRow; hr
   return (
     <article
       ref={setNodeRef}
-      style={style}
-      className={`flex flex-col gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-3 pb-2.5 pt-3 shadow-[0_1px_2px_rgba(19,32,31,0.04)] transition-shadow hover:border-[var(--line)] hover:shadow-[0_4px_12px_-6px_rgba(19,32,31,0.18)] ${isDragging ? "z-10 opacity-80 shadow-lg" : ""}`}
+      style={{...style,...stageStyle(order.status)}}
+      data-urgency={forecast.risk === "atrasada" ? "late" : order.priority === "critica" ? "critical" : "normal"}
+      className={`lg-card flex flex-col gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-3 pb-2.5 pt-3 shadow-[0_1px_2px_rgba(19,32,31,0.04)] transition-shadow hover:border-[var(--line)] hover:shadow-[0_4px_12px_-6px_rgba(19,32,31,0.18)] ${isDragging ? "z-10 opacity-80 shadow-lg" : ""}`}
     >
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
@@ -71,6 +72,7 @@ function Card({ order, href, role, pending, onMove, now }: { order: OrderRow; hr
           </div>
         ) : null}
       </div>
+      <StepTrack done={order.steps_done ?? 0}/>
       {targets.length > 0 ? <label className="flex items-center gap-2 text-xs text-[var(--muted)]">Mover para
         <select aria-label={`Mover OS ${visibleOrderNumber(order)} para`} value="" disabled={pending} onChange={(event) => { if (event.target.value) onMove(order, event.target.value as OrderStatus); }} className="min-h-11 min-w-0 flex-1 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 text-[var(--ink)] disabled:opacity-50">
           <option value="">Escolher etapa</option>{targets.map((status) => <option key={status} value={status}>{STATUS_LABEL[status]}</option>)}
@@ -101,10 +103,11 @@ function Column({ status, orders, hrefBase, drawerBase, limit, total, collapsed,
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-h-60 w-[min(86vw,280px)] shrink-0 snap-start flex-col gap-2 rounded-xl p-2.5 transition-[box-shadow,background-color] duration-300 md:w-[292px] ${tone} ${isOver ? "ring-2 ring-[var(--focus)]" : ""}`}
+      style={stageStyle(status)}
+      className={`lg-lane flex min-h-60 w-[min(86vw,280px)] shrink-0 snap-start flex-col gap-2 rounded-xl p-2.5 transition-[box-shadow,background-color] duration-300 md:w-[292px] ${tone} ${isOver ? "ring-2 ring-[var(--focus)]" : ""}`}
     >
       <div className="flex items-center gap-2 px-1 pb-1.5 pt-1">
-        <span className="h-2 w-2 rounded-[2px]" style={{ background: STATUS_TONE[status].dot }} />
+        <span className="h-2 w-2 rounded-[2px]" style={{ background: "var(--lane)" }} />
         <h2 className="flex-1 text-[13px] font-semibold"><button type="button" onClick={onToggle} aria-expanded={!collapsed} className="flex min-h-11 w-full items-center gap-1 text-left">{collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}{status === "em_conferencia" ? "Em conferência" : STATUS_LABEL[status]}</button></h2>
         {limit ? (
           <span
@@ -120,6 +123,7 @@ function Column({ status, orders, hrefBase, drawerBase, limit, total, collapsed,
           <span className="font-mono text-xs text-[var(--muted)]">{orders.length}</span>
         )}
       </div>
+      {limit ? <div className="lg-bar" role="img" aria-label={`${total} OS de um limite de ${limit}`}><span style={{width:`${Math.min(100,total/limit*100)}%`,background:total>=limit?"var(--danger)":undefined}}/></div> : null}
       {wip === "estourado" ? (
         <div className="rounded-md bg-[var(--danger-solid)] px-2 py-1 text-[11px] font-semibold text-white">Acima do limite WIP: termine antes de puxar mais</div>
       ) : null}

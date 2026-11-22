@@ -63,13 +63,13 @@ export function LensGauge({
           <stop offset="100%" stopColor={to} />
         </linearGradient>
         <radialGradient id="lens-glass" cx="42%" cy="38%" r="70%">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="70%" stopColor="#f3f8f7" />
-          <stop offset="100%" stopColor="#e3eeec" />
+          <stop offset="0%" stopColor="var(--surface)" />
+          <stop offset="70%" stopColor="var(--surface)" />
+          <stop offset="100%" stopColor="var(--surface-secondary)" />
         </radialGradient>
       </defs>
       {/* aro */}
-      <circle cx="50" cy="50" r={r} fill="none" stroke="#e2e9ea" strokeWidth="7" />
+      <circle cx="50" cy="50" r={r} fill="none" stroke="var(--line)" strokeWidth="7" />
       {pct > 0 ? (
         <circle
           cx="50"
@@ -104,11 +104,11 @@ export function LensGauge({
           textAnchor="middle"
           fontSize={big ? 21 : 22}
           fontWeight="700"
-          fill="#222222"
+          fill="var(--ink)"
           style={{ fontVariantNumeric: "tabular-nums", letterSpacing: "-0.03em" }}
         >
           {pct}
-          <tspan fontSize={big ? 11 : 12} fontWeight="600" fill="#6e6a63" dx="1">%</tspan>
+          <tspan fontSize={big ? 11 : 12} fontWeight="600" fill="var(--muted)" dx="1">%</tspan>
         </text>
       ) : null}
       {label && big ? (
@@ -120,15 +120,11 @@ export function LensGauge({
   );
 }
 
-/** Marca do sistema: uma lente com a mira, no verde da casa. */
-export function LensMark({ size = 30, className }: { size?: number; className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" width={size} height={size} aria-hidden className={cn("shrink-0", className)}>
-      <rect width="32" height="32" rx="10" fill="#d9c796" />
-      <circle cx="16" cy="16" r="9.5" fill="none" stroke="#57472b" strokeWidth="2.2" />
-      <circle cx="16" cy="16" r="6.4" fill="#57472b" fillOpacity="0.14" />
-      <path d="M16 9.5v13M9.5 16h13" stroke="#57472b" strokeOpacity="0.55" strokeWidth="1" />
-      <path d="M11.6 12.6a6 6 0 0 1 3.4-2.6" stroke="#57472b" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-    </svg>
-  );
+/** User-supplied LabGold identity, rendered as a sharp SVG at every size. */
+export function LensMark({ size = 36, className }: { size?: number; className?: string }) {
+  return <svg viewBox="0 0 40 40" width={size} height={size} aria-hidden="true" className={cn("lg-brand-mark shrink-0", className)}>
+    <circle cx="20" cy="20" r="16" fill="none" stroke="currentColor" strokeWidth="2"/>
+    <path d="M29 12a12 12 0 1 0 2 15H20v-5h16" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M8 20h5" stroke="currentColor" strokeWidth="2"/>
+  </svg>;
 }

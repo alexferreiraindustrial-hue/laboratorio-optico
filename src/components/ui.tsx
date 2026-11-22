@@ -8,7 +8,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "lab-reference-button border-[var(--accent)] bg-[var(--accent)] text-white shadow-[0_10px_24px_-16px_rgba(34,34,34,.10)] hover:bg-[var(--accent-strong)]",
+        default: "lg-gold lab-reference-button border-[var(--accent)] bg-[var(--accent)] text-white shadow-[0_10px_24px_-16px_rgba(34,34,34,.10)] hover:bg-[var(--accent-strong)]",
         secondary: "border-[var(--line)] bg-[var(--surface)] font-medium text-[var(--ink)] hover:bg-[var(--accent-soft)]",
         ghost: "font-medium text-[var(--muted)] hover:bg-[var(--accent-soft)]",
         danger: "border-[var(--danger)] bg-[var(--danger-solid)] text-white hover:bg-[var(--bg-963030)]",
@@ -64,7 +64,7 @@ export function Panel({ className, children, ...props }: HTMLAttributes<HTMLElem
     <section
       {...props}
       className={cn(
-        "min-w-0 rounded-[var(--radius-panel)] border border-[var(--line)] bg-[var(--surface)]",
+        "lg-glass min-w-0 rounded-[var(--radius-panel)] border border-[var(--line)] bg-[var(--surface)]",
         className,
       )}
     >

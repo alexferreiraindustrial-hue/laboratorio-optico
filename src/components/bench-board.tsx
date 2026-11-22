@@ -1,4 +1,6 @@
 "use client";
+import {stageStyle,StepTrack} from "./production-visuals";
+import {LensGauge} from "./lens";
 import {ExpressCountdown} from "./order-operations";
 
 import { QuickOrderPhoto } from "./quick-order-photo";
@@ -121,8 +123,8 @@ export function BenchBoard({ orders, role, error, nowIso, userId = "" }: { order
 
 function BenchLane({ lane, orders, total, collapsed, onToggle, role, now, pending, onMove, onProgress }: { lane: typeof BENCH_LANES[number]; orders: BenchOrder[]; total: number; collapsed: boolean; onToggle: () => void; role: AppRole; now: Date; pending: boolean; onMove: (order: BenchOrder, status: string) => void; onProgress: (status: string) => void }) {
   const { setNodeRef, isOver } = useDroppable({ id: lane.status });
-  return <section id={`bench-lane-${lane.status}`} ref={setNodeRef} className={cn("flex min-h-52 w-[min(88vw,340px)] shrink-0 snap-start flex-col gap-3 rounded-xl bg-[var(--bg-e8eeee)] p-2.5 md:w-[328px]", isOver && "ring-2 ring-[var(--focus)]")}>
-    <header className="flex items-start gap-2 px-1"><span className="mt-4 h-2 w-2 shrink-0 rounded-sm" style={{ background: lane.color }} /><div className="min-w-0 flex-1"><h2><button type="button" onClick={onToggle} aria-expanded={!collapsed} className="flex min-h-11 w-full items-center gap-1 text-left text-sm font-semibold">{collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}{lane.title}</button></h2><p className="text-xs text-[var(--muted)]">{lane.hint}</p></div><span className="mt-3 font-mono text-xs text-[var(--muted)]" title={`${orders.length} visíveis de ${total}`}>{orders.length === total ? total : `${orders.length}/${total}`}</span></header>
+  return <section id={`bench-lane-${lane.status}`} ref={setNodeRef} style={stageStyle(lane.status)} className={cn("lg-lane flex min-h-52 w-[min(88vw,340px)] shrink-0 snap-start flex-col gap-3 rounded-xl bg-[var(--bg-e8eeee)] p-2.5 md:w-[328px]", isOver && "ring-2 ring-[var(--focus)]")}>
+    <header className="flex items-start gap-2 px-1"><span className="mt-4 h-2 w-2 shrink-0 rounded-sm" style={{ background: "var(--lane)" }} /><div className="min-w-0 flex-1"><h2><button type="button" onClick={onToggle} aria-expanded={!collapsed} className="flex min-h-11 w-full items-center gap-1 text-left text-sm font-semibold">{collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}{lane.title}</button></h2><p className="text-xs text-[var(--muted)]">{lane.hint}</p></div><span className="mt-3 font-mono text-xs text-[var(--muted)]" title={`${orders.length} visíveis de ${total}`}>{orders.length === total ? total : `${orders.length}/${total}`}</span></header>
     {!collapsed && (orders.length ? <div className="grid gap-2">{orders.map((order) => <BenchCard key={order.id} order={order} role={role} now={now} boardPending={pending} onMove={onMove} onProgress={onProgress} />)}</div> : <p className="rounded-lg border border-dashed border-[var(--edge-c5d1d2)] px-3 py-8 text-center text-xs text-[var(--muted)]">{total ? "Nenhuma OS corresponde aos filtros." : "Nenhuma OS nesta etapa."}</p>)}
   </section>;
 }
@@ -170,7 +172,8 @@ function BenchCard({ order, role, now, boardPending, onMove, onProgress }: { ord
     <article
       ref={setNodeRef}
       data-urgency={deadline.level}
-      className={cn("bench-compact-card grid gap-2 rounded-xl border p-3", isDragging && "opacity-30", pending && "opacity-80")}
+      style={stageStyle(order.status)}
+      className={cn("lg-card bench-compact-card grid gap-2 rounded-xl border p-3", isDragging && "opacity-30", pending && "opacity-80")}
     >
       <div className="flex items-start justify-between gap-2">
         <Link href={`/montagem?os=${order.id}`} scroll={false} className="min-w-0 break-words font-mono text-xs font-semibold text-[var(--link)]">OS {visibleOrderNumber(order)}</Link>
@@ -185,8 +188,8 @@ function BenchCard({ order, role, now, boardPending, onMove, onProgress }: { ord
         {(order.openOccurrences??0)>0 && <span className="text-xs font-semibold text-[var(--danger)]">{order.openOccurrences} ocorrência(s) aberta(s)</span>}
         <span className="mt-1 text-xs font-medium text-[var(--muted)]">{expanded?"Recolher cartão":"Expandir · processos e fotos"}{pending?" · Salvando…":""}</span>
       </button>
-      <div id={detailsId} hidden={!expanded}>
-      <div className="grid gap-3 border-t border-[var(--line)] pt-3">
+      <StepTrack done={stepsDone}/><div id={detailsId} hidden={!expanded}>
+      <div className="grid gap-3 border-t border-[var(--line)] pt-3"><div className="flex items-center justify-between gap-3"><span className="text-sm font-semibold">Processos da montagem</span><LensGauge value={stepsDone*20} risk={forecast.risk} size={68}/></div>
         <div className="text-xs text-[var(--muted)]"><p>{[order.storeName,order.sellerName].filter(Boolean).join(" · ")||"Sem loja ou vendedor"}</p><p className="mt-1">{order.laboratoryName||"Sem laboratório"}</p></div>
       {can(role,"orders.write") && <QuickOrderPhoto orderId={order.id} stepKey={running?.key}/>}
       {order.openOccurrences ? <Link href={`/montagem?os=${order.id}`} scroll={false} className="rounded-lg bg-[var(--danger-soft)] px-2.5 py-2 text-xs font-semibold text-[var(--danger)]">{order.openOccurrences} ocorrência(s) de qualidade aberta(s) · verificar</Link> : null}
@@ -233,7 +236,7 @@ function BenchCard({ order, role, now, boardPending, onMove, onProgress }: { ord
           onClick={run}
           disabled={pending || boardPending}
           className={cn(
-            "flex min-h-12 w-full px-2 py-2 items-center justify-center gap-2 rounded-xl text-[15px] font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[var(--focus)]/30 disabled:opacity-60",
+            "lg-bench-action flex min-h-12 w-full px-2 py-2 items-center justify-center gap-2 rounded-xl text-[15px] font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[var(--focus)]/30 disabled:opacity-60",
             action.kind === "status" && action.to === "pronto"
               ? "bg-[var(--bg-2e7d5b)] hover:bg-[var(--bg-18723f)]"
               : action.kind === "step" && action.action === "concluir"

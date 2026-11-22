@@ -117,6 +117,7 @@ export default async function InicioPage() {
         </label>
       </form>
 
+      <Link href="/avisos" className="flex min-h-11 items-center rounded-lg border border-[var(--line)] bg-[var(--surface)] px-4 text-sm font-semibold text-[var(--link)]">Avisos por vendedora e lista de montados →</Link>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {cards.map((card) => {
           const Icon = card.icon;

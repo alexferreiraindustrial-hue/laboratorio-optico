@@ -1,3 +1,4 @@
+import type {OrderOperations} from "@/lib/domain/operations";
 import type { OccurrenceStatus, OrderStatus, Severity, StepKey, StepStatus } from "@/lib/domain/constants";
 import type { Urgency } from "@/lib/domain/urgency";
 import type { AppRole } from "@/lib/domain/constants";
@@ -63,7 +64,7 @@ export type LensSpec = {
   lens_notes?: string;
 };
 
-export type OrderRow = {
+export type OrderRow = OrderOperations & {
   id: string;
   number: string;
   client_name: string;

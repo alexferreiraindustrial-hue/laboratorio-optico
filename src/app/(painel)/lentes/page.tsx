@@ -11,6 +11,7 @@ import { LensBoard } from "@/components/lens-board";
 import { Kpi } from "@/components/lean-ui";
 import { PageHeading } from "@/components/shell";
 import { Button } from "@/components/ui";
+import {waitingForFrame} from "@/lib/domain/operations";
 import { lensRisk } from "@/lib/domain/flow";
 import { can } from "@/lib/domain/permissions";
 import { loadLensQueue, loadSupplierStats } from "@/server/flow";
@@ -23,7 +24,7 @@ export default async function LentesPage({ searchParams }: { searchParams: Promi
   const detail = raw.os && /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(raw.os) ? await loadOrderDetail(raw.os) : null;
   const catalogs = detail && can(role,"orders.write") ? await loadCatalogs() : null;
   const now = new Date();
-  const risks = rows.map((row) => lensRisk({ dueAt: row.due_at, lensExpectedAt: row.lens_expected_at, now }).risk);
+  const risks = rows.filter(row=>!waitingForFrame(row)).map((row) => lensRisk({ dueAt: row.due_at, lensExpectedAt: row.lens_expected_at, now }).risk);
   const late = risks.filter((risk) => risk === "lente_atrasada").length;
   const willMiss = risks.filter((risk) => risk === "vai_atrasar").length;
   const noForecast = risks.filter((risk) => risk === "sem_previsao").length;
@@ -45,7 +46,7 @@ export default async function LentesPage({ searchParams }: { searchParams: Promi
         <p className="rounded-lg border border-[var(--edge-f3c9c4)] bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">Não foi possível carregar as previsões. Verifique se a migração do fluxo de produção foi aplicada.</p>
       ) : null}
       <div className="lab-lens-metrics grid grid-cols-2 gap-2 xl:grid-cols-4">
-        <Kpi label="Aguardando lente" value={String(rows.length)} hint="OS paradas esperando o laboratório" tool="Fila" />
+        <Kpi label="Aguardando lente" value={String(rows.filter(row=>!waitingForFrame(row)).length)} hint="OS paradas esperando o laboratório" tool="Fila" />
         <Kpi label="Lente atrasada" value={String(late)} tone={late ? "bad" : "ok"} hint="previsão do laboratório já passou" tool="Cobrar" />
         <Kpi label="Vão estourar o prazo" value={String(willMiss)} tone={willMiss ? "bad" : "ok"} hint="avise o vendedor e renegocie" tool="Risco" />
         <Kpi

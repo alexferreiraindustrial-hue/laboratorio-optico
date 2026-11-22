@@ -1,7 +1,9 @@
+import {loadOperations} from "./operations";
+import type {OrderOperations} from "@/lib/domain/operations";
 import { zonedYmd } from "@/lib/domain/calendar";
 import { requireProfile } from "./session";
 
-export type LensQueueRow = {
+export type LensQueueRow = OrderOperations & {
   id: string;
   number: string;
   client_name: string;
@@ -25,7 +27,9 @@ export async function loadLensQueue() {
     .eq("status", "aguardando_lentes")
     .order("due_at", { ascending: true, nullsFirst: false })
     .limit(500);
-  return { rows: (data ?? []) as LensQueueRow[], error: error?.message ?? null };
+  if(error)return {rows:[] as LensQueueRow[],error:error.message};
+  const ops=await loadOperations(supabase,(data??[]).map(row=>row.id));
+  return { rows: (data ?? []).map(row=>({...row,...ops.get(row.id)})) as LensQueueRow[], error: null };
 }
 
 /** Desempenho dos laboratórios externos nos últimos 60 dias: prazo de entrega da lente e pontualidade. */

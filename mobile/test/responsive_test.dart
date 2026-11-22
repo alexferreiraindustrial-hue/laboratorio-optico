@@ -63,7 +63,7 @@ void main() {
   }
 
   testWidgets(
-    'vendedor volta ao perfil escolhido e pede código e PIN sem abrir operação',
+    'vendedor volta ao perfil escolhido e pede nome ou código e senha sem abrir operação',
     (tester) async {
       final session = Session()..lastAccessKind = 'vendedor';
       await frame(
@@ -77,7 +77,7 @@ void main() {
       await tester.ensureVisible(find.byKey(const ValueKey('entrar')));
       await tester.tap(find.byKey(const ValueKey('entrar')));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Informe o código'), findsOneWidget);
+      expect(find.textContaining('Informe seu nome completo ou código'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

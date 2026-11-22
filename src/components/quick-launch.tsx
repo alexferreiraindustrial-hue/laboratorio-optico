@@ -109,7 +109,7 @@ export function QuickLaunch({
   );
 }
 
-type Picked = FoundOrder & { result?: { ok: boolean; message: string } };
+type Picked = FoundOrder & { result?: { ok: boolean; message: string; waitingFrame?:boolean } };
 
 function MoveMode({ mode }: { mode: "lentes" | "saida" }) {
   const required: OrderStatus = mode === "lentes" ? "aguardando_lentes" : "pronto";
@@ -257,7 +257,7 @@ function MoveMode({ mode }: { mode: "lentes" | "saida" }) {
                     <div className="flex items-center gap-2">
                       {item.result ? (
                         <span className={cn("flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold", item.result.ok ? "bg-[var(--ok-soft)] text-[var(--ok)]" : "bg-[var(--danger-soft)] text-[var(--danger)]")}>
-                          {item.result.ok ? <><Check size={13} /> {mode === "saida" ? "Entregue" : "Liberada p/ montagem"}</> : item.result.message}
+                          {item.result.ok ? <><Check size={13} /> {mode === "saida" ? "Entregue" : item.result.waitingFrame?"VTA · aguarda armação":"Liberada p/ montagem"}</> : item.result.message}
                         </span>
                       ) : ok ? (
                         <StatusBadge status={item.status} />

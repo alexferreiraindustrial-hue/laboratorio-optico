@@ -1,4 +1,5 @@
 "use client";
+import {OrderOperationsEditor,ExpressCountdown} from "./order-operations";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -41,6 +42,7 @@ type MovementItem = { id: string; movement_type: string; quantity: number; signe
 
 export function OrderWorkspace({
   order,
+  nowIso,
   steps,
   history,
   occurrences,
@@ -52,6 +54,7 @@ export function OrderWorkspace({
   seller = null,
   messages = [],
 }: {
+  nowIso:string;
   seller?: { id: string; name: string; phone: string | null; whatsapp: string | null } | null;
   messages?: OrderMessage[];
   order: OrderRow;
@@ -101,6 +104,8 @@ export function OrderWorkspace({
             <div><dt className="text-[var(--muted)]">Entrega</dt><dd>{formatDateTime(order.delivered_at)}</dd></div>
             <div><dt className="text-[var(--muted)]">Prioridade</dt><dd>{order.priority === "critica" ? "Crítica" : "Normal"}</dd></div>
           </dl>
+          <ExpressCountdown operations={order} nowIso={nowIso}/>
+          {can(role,"orders.write")&&!["pronto","entregue","cancelado"].includes(order.status)&&<div className="mt-3"><OrderOperationsEditor key={order.updated_at} id={order.id} operations={order} status={order.status}/></div>}
           {order.status === "aguardando_lentes" ? (
             <p className="mt-3 rounded-md bg-[var(--accent-soft)] px-3 py-2 text-sm text-[var(--warning)]">
               Esta OS aguarda lentes. A montagem não está em execução.

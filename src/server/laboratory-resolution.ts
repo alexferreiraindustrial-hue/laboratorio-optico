@@ -1,13 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { INTERNAL_MAINTENANCE, INTERNAL_MAINTENANCE_CODE, INTERNAL_MAINTENANCE_NAME, PENDING_LABORATORY, PENDING_LABORATORY_CODE, PENDING_LABORATORY_NAME } from "@/lib/domain/laboratories";
+import { INTERNAL_ASSEMBLY,INTERNAL_ASSEMBLY_CODE,INTERNAL_ASSEMBLY_NAME,INTERNAL_MAINTENANCE, INTERNAL_MAINTENANCE_CODE, INTERNAL_MAINTENANCE_NAME, PENDING_LABORATORY, PENDING_LABORATORY_CODE, PENDING_LABORATORY_NAME } from "@/lib/domain/laboratories";
 
 /** Resolves an explicit save choice using the caller's RLS; never changes existing orders. */
 export async function resolveLaboratory(supabase: SupabaseClient, value: string): Promise<{ id: string; error?: never } | { id?: never; error: string }> {
-  if (value !== PENDING_LABORATORY && value !== INTERNAL_MAINTENANCE) return { id: value };
+  if (value !== PENDING_LABORATORY && value !== INTERNAL_MAINTENANCE && value !== INTERNAL_ASSEMBLY) return { id: value };
   const internal = value === INTERNAL_MAINTENANCE;
-  const code = internal ? INTERNAL_MAINTENANCE_CODE : PENDING_LABORATORY_CODE;
-  const name = internal ? INTERNAL_MAINTENANCE_NAME : PENDING_LABORATORY_NAME;
-  const label = internal ? INTERNAL_MAINTENANCE_NAME : "A definir";
+  const assembly=value===INTERNAL_ASSEMBLY;
+  const code = assembly?INTERNAL_ASSEMBLY_CODE:internal ? INTERNAL_MAINTENANCE_CODE : PENDING_LABORATORY_CODE;
+  const name = assembly?INTERNAL_ASSEMBLY_NAME:internal ? INTERNAL_MAINTENANCE_NAME : PENDING_LABORATORY_NAME;
+  const label = assembly?INTERNAL_ASSEMBLY_NAME:internal ? INTERNAL_MAINTENANCE_NAME : "A definir";
   const find = () => supabase.from("laboratories").select("id,active").eq("code", code).maybeSingle();
   const current = await find();
   if (current.error) return { error: `Não foi possível consultar o cadastro ${label}.` };

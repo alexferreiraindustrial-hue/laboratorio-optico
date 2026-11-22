@@ -1,3 +1,4 @@
+import type {OrderOperations} from "./operations";
 import { canCompleteStep, canStartStep } from "./assembly";
 import { STEP_KEYS, STEP_LABEL, type AppRole, type OrderStatus, type StepKey, type StepStatus } from "./constants";
 import { forecastOrder, type Risk } from "./forecast";
@@ -5,7 +6,7 @@ import { can } from "./permissions";
 import { canTransition } from "./status";
 import { visibleOrderNumber } from "./orders";
 
-export type BenchOrder = {
+export type BenchOrder = OrderOperations & {
   id: string;
   number: string;
   clientName: string;

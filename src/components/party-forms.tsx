@@ -132,11 +132,12 @@ export function SellerForm({
   );
 }
 
-export function SellerAppAccess({ sellerId, login }: { sellerId: string; login: string }) {
+export function SellerAppAccess({ sellerId, login, sellerName }: { sellerId: string; login: string; sellerName: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [password,setPassword]=useState("");
   return (
     <form
       className="grid gap-3"
@@ -154,17 +155,20 @@ export function SellerAppAccess({ sellerId, login }: { sellerId: string; login: 
           setError(null);
           setMessage(result.message ?? "Acesso criado.");
           form.reset();
+          setPassword("");
           router.refresh();
         });
       }}
     >
       <input type="hidden" name="sellerId" value={sellerId} />
       <p className="text-sm text-[var(--muted)]">
-        Código de entrada no site e no app: <strong className="text-[var(--ink)]">{login}</strong>. Defina ou altere a senha com pelo menos 4 caracteres (letras, números e símbolos) e entregue só para este vendedor. Ele acompanha apenas as OS dele. No site, use lab.oticahub.com/vendedor/login; no app, escolha Vendedor.
+        Entrada pelo nome <strong className="text-[var(--ink)]">{sellerName}</strong> ou pelo código <strong className="text-[var(--ink)]">{login}</strong>. Defina ou altere a senha com pelo menos 4 caracteres (letras, números e símbolos) e entregue só para este vendedor. Ele acompanha apenas as OS dele. No site, use lab.oticahub.com/vendedor/login; no app, escolha Vendedor.
       </p>
       <Field label="Definir ou alterar senha">
-        <Input name="appPin" type="password" minLength={4} maxLength={64} autoComplete="new-password" required placeholder="Digite a nova senha" />
+        <Input name="appPin" value={password} onChange={event=>setPassword(event.target.value)} type="password" minLength={4} maxLength={64} autoComplete="new-password" required placeholder="Digite a nova senha" />
       </Field>
+      <Button type="button" variant="secondary" disabled={pending||sellerName.trim().length<4} onClick={()=>setPassword(sellerName.trim())}>Preencher senha com o nome · salvar abaixo</Button>
+      <p className="text-xs text-[var(--muted)]">A senha atual só muda quando você clicar em Salvar senha. Nenhuma vendedora será alterada automaticamente.</p>
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={pending}>{pending ? "Salvando..." : "Salvar senha do vendedor"}</Button>
         <Feedback error={error} message={message} />

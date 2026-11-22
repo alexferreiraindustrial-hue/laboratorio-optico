@@ -1,0 +1,9 @@
+import {beforeEach,it,expect,vi} from "vitest";
+const state=vi.hoisted(()=>({role:"admin",rpc:vi.fn()}));
+vi.mock("./session",()=>({requireProfile:async()=>({role:state.role,supabase:{rpc:state.rpc}}),actionError:(error:{message:string})=>error.message}));
+vi.mock("next/cache",()=>({revalidatePath:vi.fn()}));
+import {configureOrderOperations,receiveOrderFrame,markOrderNotice} from "./operations-actions";
+beforeEach(()=>{state.role="admin";state.rpc.mockReset().mockResolvedValue({data:{status:"aguardando_montagem"},error:null});});
+it("denies read-only users before any writes",async()=>{state.role="consulta";expect((await receiveOrderFrame("id",40)).ok).toBe(false);expect((await configureOrderOperations("id","vta",null)).ok).toBe(false);expect((await markOrderNotice("id","vta","date","seller")).ok).toBe(false);expect(state.rpc).not.toHaveBeenCalled();});
+it("updates only operations with the saved version and receives a frame through the guarded RPC",async()=>{await configureOrderOperations("id","present",20,"2026-11-22T12:00:00Z");expect(state.rpc).toHaveBeenCalledWith("configure_order_operations",{p_order_id:"id",p_frame_state:"present",p_express_minutes:20,p_expected_updated_at:"2026-11-22T12:00:00Z"});expect((await receiveOrderFrame("id",40)).message).toContain("bancada");expect(state.rpc).toHaveBeenCalledWith("receive_order_frame",{p_order_id:"id",p_express_minutes:40});});
+it("does not create false receipt or notification success on errors",async()=>{state.rpc.mockResolvedValue({data:null,error:{message:"Atualize a tela"}});expect((await receiveOrderFrame("id",40)).ok).toBe(false);expect((await markOrderNotice("id","vta","date","seller")).ok).toBe(false);});

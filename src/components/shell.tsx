@@ -60,6 +60,7 @@ const groups: { title: string; step?: string; adminOnly?: boolean; items: NavIte
     items: [
       { href: "/laboratorio/rapido", label: "Lançar serviço", icon: Zap },
       { href: "/laboratorio", label: "Fila de produção", icon: ClipboardList },
+      { href: "/avisos", label: "Avisos por vendedora", icon: ClipboardList },
     ],
   },
   {
@@ -117,6 +118,7 @@ const ACCESS: Record<AppRole, string[] | null> = {
   montador: [
     "/rotina",
     "/laboratorio/rapido",
+    "/avisos",
     "/lentes",
     "/montagem",
     "/assistencia",

@@ -54,7 +54,7 @@ export default async function SellerDetailPage({ params }: { params: Promise<{ i
           <Panel className="p-4">
             <h2 className="font-medium">Acesso no site e no app</h2>
             <div className="mt-3">
-              <SellerAppAccess sellerId={id} login={`v${seller.quick_code ?? ""}`} />
+              <SellerAppAccess sellerName={seller.name} sellerId={id} login={`v${seller.quick_code ?? ""}`} />
             </div>
           </Panel>
           <Panel className="p-4">

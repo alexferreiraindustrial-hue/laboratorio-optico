@@ -352,7 +352,7 @@ export function Shell({
     <OperationModeProvider simple={simple}>
     <div className={cn("min-h-screen", simple && "lab-simple")}>
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-[var(--surface)] focus:p-3">Ir para o conteúdo</a>
-      <aside id="desktop-sidebar" className={cn("lab-sidebar fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] backdrop-blur-xl", sidebarCollapsed ? "lg:hidden" : "lg:flex")}>
+      <aside id="desktop-sidebar" className={cn("lab-sidebar fixed inset-y-0 left-0 z-30 hidden w-[232px] flex-col border-r border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)]", sidebarCollapsed ? "lg:hidden" : "lg:flex")}>
         {brand}
         <div className="flex-1 overflow-auto px-3 py-3">{nav}</div>
         {footer}
@@ -374,8 +374,8 @@ export function Shell({
         </div>
       ) : null}
 
-      <div className={cn("flex min-h-screen min-w-0 flex-col",sidebarCollapsed?"lg:pl-0":"lg:pl-[248px]")}>
-        <header className="no-print sticky top-0 z-20 flex min-h-[60px] items-center gap-2 border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_82%,transparent)] px-2 pt-[env(safe-area-inset-top)] backdrop-blur-xl sm:gap-4 md:px-5">
+      <div className={cn("flex min-h-screen min-w-0 flex-col",sidebarCollapsed?"lg:pl-0":"lg:pl-[232px]")}>
+        <header className="no-print sticky top-0 z-20 flex min-h-[60px] items-center gap-2 border-b border-[var(--line)] bg-[var(--surface)] px-2 pt-[env(safe-area-inset-top)] sm:gap-4 md:px-5">
           <button type="button" aria-label={sidebarCollapsed?"Expandir menu lateral":"Recolher menu lateral"} title={sidebarCollapsed?"Expandir menu lateral":"Recolher menu lateral"} aria-expanded={!sidebarCollapsed} aria-controls="desktop-sidebar" className="hidden min-h-11 shrink-0 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--ink)] hover:bg-[var(--accent-soft)] lg:inline-flex" onClick={()=>{const next=!sidebarCollapsed;setSidebarCollapsed(next);document.cookie=`lab_sidebar=${next?"collapsed":"expanded"}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol==="https:"?"; Secure":""}`;}}>
             {sidebarCollapsed?<PanelLeftOpen size={18}/>:<PanelLeftClose size={18}/>}<span>{sidebarCollapsed?"Menu":"Recolher"}</span>
           </button>
@@ -410,6 +410,7 @@ export function Shell({
             <QrCode size={18} />
             <span className="hidden sm:inline">QR Code</span>
           </Link>
+          <div id="theme-control" className="lab-theme-slot" />
           <div className="hidden h-6 w-px bg-[var(--line)] sm:block" />
           <div className="hidden shrink-0 items-center gap-2 whitespace-nowrap sm:flex">
             <div className="grid h-8 w-8 place-items-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">{initials(name)}</div>
@@ -425,7 +426,7 @@ export function Shell({
             </form>
           </div>
         </header>
-        <main id="conteudo" className="lab-workspace flex min-w-0 flex-col px-3 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-5 md:px-8 md:pt-7 lg:pb-12">{children}</main>
+        <main id="conteudo" className="lab-workspace flex min-w-0 flex-col px-3 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-5 md:px-6 md:pt-5 lg:pb-12">{children}</main>
       </div>
 
       <MobileDock
@@ -500,7 +501,7 @@ function MobileDock({
   const columns = simple ? items.length : items.length + 1;
   return (
     <nav
-      className="no-print fixed inset-x-3 bottom-[calc(0.6rem+env(safe-area-inset-bottom))] z-30 grid rounded-[28px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_92%,white)] p-1.5 shadow-[var(--shadow-soft)] backdrop-blur-xl lg:hidden"
+      className="no-print fixed inset-x-3 bottom-[calc(0.6rem+env(safe-area-inset-bottom))] z-30 grid rounded-[28px] border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_92%,white)] p-1.5 shadow-[var(--shadow-soft)] lg:hidden"
       aria-label="Atalhos do celular"
       style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
     >
@@ -550,7 +551,7 @@ export function PageHeading({
   children?: React.ReactNode;
 }) {
   return (
-    <div className={cn("mb-5 flex flex-col gap-3", stacked ? "items-start" : "sm:flex-row sm:flex-wrap sm:items-end sm:justify-between")}>
+    <div className={cn("lab-page-heading flex flex-col gap-3", stacked ? "items-start" : "sm:flex-row sm:flex-wrap sm:items-end sm:justify-between")}>
       <div>
         <h1 className="text-[26px] font-bold leading-tight md:text-[30px]">{title}</h1>
         {description ? <p className="mt-1.5 max-w-3xl text-sm text-[var(--muted)]">{description}</p> : null}

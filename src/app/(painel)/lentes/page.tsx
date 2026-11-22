@@ -8,7 +8,7 @@ import { visibleOrderNumber } from "@/lib/domain/orders";
 import { ScanLine } from "lucide-react";
 import Link from "next/link";
 import { LensBoard } from "@/components/lens-board";
-import { Kpi } from "@/components/lean-ui";
+import { Kpi, MetricStrip } from "@/components/lean-ui";
 import { PageHeading } from "@/components/shell";
 import { Button } from "@/components/ui";
 import {waitingForFrame} from "@/lib/domain/operations";
@@ -45,7 +45,7 @@ export default async function LentesPage({ searchParams }: { searchParams: Promi
       {error ? (
         <p className="rounded-lg border border-[var(--edge-f3c9c4)] bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">Não foi possível carregar as previsões. Verifique se a migração do fluxo de produção foi aplicada.</p>
       ) : null}
-      <div className="lab-lens-metrics grid grid-cols-2 gap-2 xl:grid-cols-4">
+      <MetricStrip>
         <Kpi label="Aguardando lente" value={String(rows.filter(row=>!waitingForFrame(row)).length)} hint="OS paradas esperando o laboratório" tool="Fila" />
         <Kpi label="Lente atrasada" value={String(late)} tone={late ? "bad" : "ok"} hint="previsão do laboratório já passou" tool="Cobrar" />
         <Kpi label="Vão estourar o prazo" value={String(willMiss)} tone={willMiss ? "bad" : "ok"} hint="avise o vendedor e renegocie" tool="Risco" />
@@ -56,7 +56,7 @@ export default async function LentesPage({ searchParams }: { searchParams: Promi
           tone={stats.onTime == null ? "neutral" : stats.onTime >= 0.9 ? "ok" : stats.onTime >= 0.75 ? "warn" : "bad"}
           tool="Fornecedor"
         />
-      </div>
+      </MetricStrip>
       <LensBoard rows={rows} canEdit={role !== "consulta" && role !== "estoquista"} canRelease={can(role, "orders.status") && role !== "montador"} nowIso={now.toISOString()} />
     </div>
     {detail ? <OrderDrawer key={detail.order.id} title={`OS ${visibleOrderNumber(detail.order)}`} closeHref="/lentes" detailHref={`/laboratorio/${detail.order.id}`}

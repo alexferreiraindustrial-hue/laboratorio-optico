@@ -1,10 +1,27 @@
 "use client";
+
 import { Moon, Sun } from "lucide-react";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
+
+// Route changes and refreshes can replace the header without changing the URL.
+function subscribeToThemeHost(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.body, { childList: true, subtree: true });
+  return () => observer.disconnect();
+}
+function getThemeHost() { return document.getElementById("theme-control"); }
+function getServerThemeHost() { return null; }
+
 export function ThemeToggle({ initialDark }: { initialDark: boolean }) {
   const [dark, setDark] = useState(initialDark);
-  return <button type="button" aria-label={dark ? "Usar tema claro" : "Usar tema escuro"} aria-pressed={dark}
-    className="theme-toggle no-print fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-40 flex min-h-11 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 text-sm font-semibold text-[var(--ink)] shadow-[var(--shadow-soft)] lg:bottom-5"
+  const host = useSyncExternalStore(subscribeToThemeHost, getThemeHost, getServerThemeHost);
+
+  const control = <button type="button"
+    aria-label={dark ? "Usar tema claro" : "Usar tema escuro"}
+    title={dark ? "Usar tema claro" : "Usar tema escuro"}
+    aria-pressed={dark}
+    className={`theme-toggle no-print inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] border md:h-9 md:w-9 ${host ? "" : "fixed right-4 top-4 z-40"}`}
     onClick={() => {
       const next = !dark;
       document.documentElement.dataset.theme = next ? "dark" : "light";
@@ -12,6 +29,7 @@ export function ThemeToggle({ initialDark }: { initialDark: boolean }) {
       setDark(next);
     }}>
     {dark ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
-    {dark ? "Tema claro" : "Tema escuro"}
   </button>;
+
+  return host ? createPortal(control, host) : control;
 }

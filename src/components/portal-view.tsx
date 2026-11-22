@@ -52,7 +52,7 @@ function Brand({ subtitle }: { subtitle: string }) {
     <div className="flex items-center gap-2.5">
       <LensMark size={36} />
       <div className="flex flex-col leading-tight">
-        <span className="text-[15px] font-bold tracking-tight">Laboratório Óptico</span>
+        <span className="text-[15px] font-bold tracking-tight">Lab Gold</span>
         <span className="text-xs text-[var(--muted)]">{subtitle}</span>
       </div>
     </div>
@@ -103,11 +103,12 @@ export function PortalHome({
         <span className="flex items-center gap-1.5 text-xs text-[var(--muted)]">
           <RefreshCw size={13} /> Atualiza sozinho a cada minuto
         </span>
+        <div id="theme-control" className="lab-theme-slot" />
       </header>
       <RefreshSoon />
 
-      <section className="rounded-2xl bg-[var(--accent)] px-5 py-5 text-white sm:px-6">
-        <p className="text-sm text-white/75">{kind === "loja" ? "Loja" : "Vendedor"}</p>
+      <section className="rounded-[var(--radius-panel)] border border-[var(--line)] bg-[var(--surface)] px-4 py-4 sm:px-5">
+        <p className="text-xs font-medium text-[var(--muted)]">{kind === "loja" ? "Loja" : "Vendedor"}</p>
         <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
         <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
           <Summary href={base} label="Em produção" value={active.length} />
@@ -175,11 +176,11 @@ function Summary({ href, label, value, highlight, alert }: { href: string; label
     <Link
       href={href}
       className={cn(
-        "flex flex-col gap-1 rounded-xl px-3.5 py-3 transition-colors",
-        alert ? "bg-[var(--danger-solid)] hover:bg-[var(--danger-solid)]" : highlight ? "bg-[var(--surface)] text-[var(--link)] hover:bg-[var(--surface)]/90" : "bg-[var(--surface)]/10 hover:bg-[var(--surface)]/20",
+        "flex flex-col gap-1 rounded-lg border px-3 py-2.5 transition-colors",
+        alert ? "border-[var(--danger)] bg-[var(--danger-soft)] text-[var(--danger)]" : highlight ? "border-[var(--ok)] bg-[var(--ok-soft)] text-[var(--ok)]" : "border-[var(--line)] bg-[var(--background)] text-[var(--ink)] hover:bg-[var(--surface-secondary)]",
       )}
     >
-      <span className={cn("text-xs", highlight && !alert ? "text-[var(--muted)]" : "text-white/80")}>{label}</span>
+      <span className={cn("text-xs", alert ? "text-[var(--danger)]" : "text-[var(--muted)]")}>{label}</span>
       <span className="tabular text-[28px] font-semibold leading-none">{value}</span>
     </Link>
   );
@@ -240,7 +241,7 @@ function OrderCard({ order, forecast, href, muted }: { order: PortalOrderRow; fo
     <Link
       href={href}
       className={cn(
-        "flex flex-col gap-3 rounded-2xl border bg-[var(--surface)] p-4 transition-shadow hover:shadow-[0_8px_24px_-12px_rgba(19,32,31,0.25)]",
+        "flex flex-col gap-3 rounded-[var(--radius-panel)] border bg-[var(--surface)] p-4 transition-colors hover:bg-[var(--background)]",
         forecast.risk === "pronta" ? "border-[var(--edge-9fd5b4)]" : forecast.risk === "atrasada" || forecast.risk === "risco" ? "border-[var(--edge-f3c4be)]" : "border-[var(--line)]",
         muted && "opacity-80",
       )}
@@ -302,11 +303,12 @@ export function PortalOrder({
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 pb-16 pt-5 sm:px-6">
-      <header className="flex items-center justify-between gap-3">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <Link href={basePath ?? `/acompanhar/${kind}/${token}`} className="flex items-center gap-1.5 text-sm font-semibold text-[var(--link)] hover:underline">
           <ArrowLeft size={16} /> Meus serviços
         </Link>
         <span className="flex items-center gap-1.5 text-xs text-[var(--muted)]"><RefreshCw size={13} /> Ao vivo</span>
+        <div id="theme-control" className="lab-theme-slot" />
       </header>
       <RefreshSoon />
 
@@ -409,7 +411,7 @@ function MessageBox({
             <li key={item.id} className="flex flex-col gap-1.5">
               <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-[var(--accent)] px-3.5 py-2.5 text-sm text-white">
                 <p className="whitespace-pre-wrap">{item.body}</p>
-                <p className="mt-1 text-right text-[11px] text-white/70">
+                <p className="mt-1 text-right text-xs text-[var(--on-accent)]">
                   {formatDateTime(item.created_at)} · {item.status === "novo" ? "enviado" : item.status === "visualizado" ? "visto" : "respondido"}
                 </p>
               </div>
@@ -453,7 +455,7 @@ function MessageBox({
           minLength={5}
           maxLength={800}
           placeholder="Ex.: cliente pediu para adiantar, troca de armação, dúvida no grau..."
-          className="min-h-20 rounded-xl border border-[var(--line)] px-3.5 py-2.5 text-[15px] outline-none focus:border-[var(--focus)]"
+          className="min-h-20 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3.5 py-2.5 text-base text-[var(--ink)] outline-none focus:border-[var(--focus)]"
         />
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={pending} className="h-10 px-5">{pending ? "Enviando..." : "Enviar recado"}</Button>
@@ -471,7 +473,7 @@ export function PortalDenied({ message }: { message: string }) {
       <h1 className="mt-4 text-xl font-semibold">Acompanhamento indisponível</h1>
       <p className="text-sm text-[var(--muted)]">{message}</p>
       <Link href="/vendedor/login" className="flex min-h-11 items-center font-semibold text-[var(--link)]">Entrar como vendedor</Link>
-      <p className="text-xs text-[var(--muted)]">Entre novamente com seu código e PIN ou peça um novo link ao laboratório.</p>
+      <p className="text-xs text-[var(--muted)]">Entre novamente com seu nome, código ou e-mail e senha, ou peça um novo link ao laboratório.</p>
     </div>
   );
 }

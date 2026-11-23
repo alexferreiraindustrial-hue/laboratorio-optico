@@ -82,7 +82,17 @@ ThemeData laTheme({Brightness brightness = Brightness.light}) {
     chipTheme: ChipThemeData(
       backgroundColor: surface,
       side: BorderSide(color: tone(LaColors.borda)),
-      labelStyle: text.labelMedium,
+      selectedColor: scheme.primary,
+      secondarySelectedColor: scheme.primary,
+      checkmarkColor: scheme.onPrimary,
+      showCheckmark: false,
+      labelStyle: text.labelMedium?.copyWith(
+        color: WidgetStateColor.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? scheme.onPrimary
+              : scheme.onSurface,
+        ),
+      ),
     ),
     expansionTileTheme: ExpansionTileThemeData(
       textColor: tone(LaColors.grafite),

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -8,13 +6,21 @@ import '../design/la_design.dart';
 import '../domain.dart';
 import '../floor_format.dart';
 import '../lab_api.dart';
+import '../production_scope.dart';
+import '../production_summary.dart';
+import '../production_widgets.dart';
 import '../session.dart';
 
 class LensesScreen extends StatefulWidget {
-  const LensesScreen({super.key, required this.session});
-
+  const LensesScreen({
+    super.key,
+    required this.session,
+    required this.scope,
+    this.active = true,
+  });
   final Session session;
-
+  final ProductionScope scope;
+  final bool active;
   @override
   State<LensesScreen> createState() => _LensesScreenState();
 }
@@ -23,102 +29,84 @@ class _LensesScreenState extends State<LensesScreen> {
   final api = LabApi();
   final busca = TextEditingController();
   final selected = <String>{};
-  Timer? _debounce;
   List<Map<String, dynamic>> rows = [];
-  Set<String> conversas = {};
-  List<Map<String, dynamic>> achados = [];
-  String? error;
+  String phase = 'all';
   String? casa;
-  bool pending = false;
-  bool buscando = false;
-
+  String? error;
+  String? message;
+  String? seller;
+  bool pending = false, loading = false;
   bool get podeGravar =>
       canWriteOrders(widget.session.profile?.role ?? 'consulta');
-
   bool get podeReceber => allowedTargets(
     'aguardando_lentes',
     widget.session.profile?.role ?? 'consulta',
   ).contains('aguardando_montagem');
-
   @override
   void initState() {
     super.initState();
+    seller = widget.scope.sellerId;
+    widget.scope.addListener(scopeChanged);
     load();
   }
 
   @override
+  void didUpdateWidget(covariant LensesScreen old) {
+    super.didUpdateWidget(old);
+    if (widget.active && !old.active) load();
+  }
+
+  @override
   void dispose() {
-    _debounce?.cancel();
+    widget.scope.removeListener(scopeChanged);
     busca.dispose();
     super.dispose();
   }
 
+  void scopeChanged() {
+    if (!mounted) return;
+    setState(() {
+      if (seller != widget.scope.sellerId) selected.clear();
+      seller = widget.scope.sellerId;
+    });
+  }
+
   Future<void> load() async {
+    if (loading) return;
+    setState(() => loading = true);
     try {
       final next = await api.lensQueue();
-      final talks = await api.conversationOrderIds();
       if (!mounted) return;
       setState(() {
         rows = next;
-        conversas = talks;
         selected.removeWhere((id) => !next.any((row) => row['id'] == id));
         error = null;
       });
     } catch (e) {
       if (mounted) setState(() => error = friendlyError(e));
-    }
-  }
-
-  void onBusca(String value) {
-    _debounce?.cancel();
-    final texto = value.trim();
-    if (texto.length < 2) {
-      setState(() {
-        achados = [];
-        buscando = false;
-      });
-      return;
-    }
-    setState(() => buscando = true);
-    _debounce = Timer(Duration(milliseconds: 280), () async {
-      try {
-        final next = await api.findOrders(texto);
-        if (!mounted || busca.text.trim() != texto) return;
-        setState(() {
-          achados = next;
-          buscando = false;
-          error = null;
-        });
-      } catch (e) {
-        if (mounted) {
-          setState(() {
-            buscando = false;
-            error = friendlyError(e);
-          });
-        }
-      }
-    });
-  }
-
-  Future<void> release() async {
-    setState(() => pending = true);
-    try {
-      for (final id in selected.toList()) {
-        await api.receiveLenses(id);
-      }
-      selected.clear();
-      HapticFeedback.mediumImpact();
-      await load();
-    } catch (e) {
-      if (mounted) setState(() => error = friendlyError(e));
     } finally {
-      if (mounted) setState(() => pending = false);
+      if (mounted) setState(() => loading = false);
     }
+  }
+
+  bool vta(Map<String, dynamic> row) =>
+      row['frame_state'] == 'vta' && row['lens_arrived_at'] != null;
+  bool missing(Map<String, dynamic> row) =>
+      '${row['lens_supplier_ref'] ?? ''}'.trim().isEmpty;
+  bool matchesPhase(Map<String, dynamic> row) => switch (phase) {
+    'missing' => !vta(row) && missing(row),
+    'ordered' => !vta(row) && !missing(row),
+    'vta' => vta(row),
+    _ => true,
+  };
+  Future<void> openOrder(Map<String, dynamic> row) async {
+    await context.push('/os/${row['id']}');
+    if (mounted) await load();
   }
 
   Future<void> abrirPedido(Map<String, dynamic> row) async {
     if (!podeGravar) {
-      context.push('/os/${row['id']}');
+      await openOrder(row);
       return;
     }
     final saved = await showModalBottomSheet<bool>(
@@ -126,166 +114,391 @@ class _LensesScreenState extends State<LensesScreen> {
       isScrollControlled: true,
       backgroundColor: LaColors.surface(context),
       shape: RoundedRectangleBorder(borderRadius: LaRadius.rFolhaTopo),
-      builder: (context) => _PedidoSheet(row: row, api: api),
+      builder: (context) => SingleChildScrollView(
+        child: _PedidoSheet(row: row, api: api),
+      ),
     );
-    if (saved == true) await load();
+    if (saved == true && mounted) await load();
   }
 
-  List<Map<String, dynamic>> _daCasa(List<Map<String, dynamic>> source) {
-    if (casa == null) return source;
-    return source.where((row) => houseOf(row) == casa).toList();
+  Future<void> receive(List<String> ids) async {
+    if (pending || loading || !podeReceber || error != null || ids.isEmpty)
+      return;
+    setState(() {
+      pending = true;
+      message = null;
+    });
+    var done = 0, frames = 0;
+    String? failed;
+    for (final id in ids.take(100)) {
+      try {
+        final row = await api.receiveLenses(id);
+        done++;
+        if (row['frame_state'] == 'vta') frames++;
+        selected.remove(id);
+      } catch (e) {
+        failed = friendlyError(e);
+      }
+    }
+    if (!mounted) return;
+    await load();
+    if (!mounted) return;
+    setState(() {
+      pending = false;
+      error = failed;
+      message =
+          '$done lente(s) recebida(s).${frames > 0
+              ? ' $frames VTA aguardam a armação; demais serviços seguem para bancada.'
+              : done > 0
+              ? ' Serviços encaminhados à bancada.'
+              : ''}';
+    });
+    HapticFeedback.mediumImpact();
   }
 
   @override
   Widget build(BuildContext context) {
-    final texto = busca.text.trim();
-    final pesquisando = texto.length >= 2;
-    final pedido = _daCasa(rows.where((row) => !pedidoFeito(row)).toList());
-    final lente = _daCasa(rows.where(pedidoFeito).toList());
+    final all = selectProduction(
+      rows,
+      sellerId: widget.scope.sellerId,
+      query: busca.text,
+    );
+    final visible = all
+        .where(matchesPhase)
+        .where((r) => casa == null || houseOf(r) == casa)
+        .toList();
+    final eligible = visible
+        .where((r) => !vta(r))
+        .map((r) => '${r['id']}')
+        .take(100)
+        .toList();
+    final houses = {
+      ...lensHouses,
+      ...rows.map(houseOf).whereType<String>(),
+    }.toList();
     return Column(
       children: [
         Expanded(
           child: RefreshIndicator(
-            color: LaColors.adapt(context, LaColors.grafite),
             onRefresh: load,
             child: ListView(
-              padding: EdgeInsets.fromLTRB(
-                LaSpace.tela,
-                LaSpace.l,
-                LaSpace.tela,
-                LaSpace.xxl,
-              ),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
               children: [
                 SafeArea(
                   bottom: false,
-                  child: Text('Lentes', style: LaType.tituloTela),
-                ),
-                Text(
-                  'O prazo do cliente manda. O pedido confirma a chegada.',
-                  style: LaType.apoio,
-                ),
-                SizedBox(height: LaSpace.secao),
-                TextField(
-                  controller: busca,
-                  onChanged: onBusca,
-                  textInputAction: TextInputAction.search,
-                  decoration: InputDecoration(
-                    hintText: 'Buscar OS, cliente ou pedido',
-                    filled: true,
-                    fillColor: LaColors.surface(context),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'PEDIDOS · RECEBIMENTO',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                                    letterSpacing: 1.1,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Lentes a chegar',
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Atualizar lentes',
+                        onPressed: loading ? null : load,
+                        icon: const Icon(Icons.refresh),
+                      ),
+                    ],
                   ),
                 ),
-                if (error != null) ...[
-                  SizedBox(height: LaSpace.item),
+                const SizedBox(height: 8),
+                Text(
+                  'Prioridade pelo prazo. VTA fica separado até a armação chegar.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 16),
+                SellerPicker(scope: widget.scope, orders: rows),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: busca,
+                  onChanged: (_) => setState(() => selected.clear()),
+                  decoration: InputDecoration(
+                    hintText: 'OS, cliente, pedido ou vendedora',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: busca.text.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: 'Limpar busca',
+                            onPressed: () => setState(() => busca.clear()),
+                            icon: const Icon(Icons.close),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (final item in [
+                        ('all', 'Todas', all.length),
+                        (
+                          'missing',
+                          'Sem nº de pedido',
+                          all.where((r) => !vta(r) && missing(r)).length,
+                        ),
+                        (
+                          'ordered',
+                          'Pedidos',
+                          all.where((r) => !vta(r) && !missing(r)).length,
+                        ),
+                        ('vta', 'VTA', all.where(vta).length),
+                      ])
+                        Padding(
+                          padding: const EdgeInsets.only(right: 7),
+                          child: ChoiceChip(
+                            selected: phase == item.$1,
+                            label: Text('${item.$2} ${item.$3}'),
+                            onSelected: pending
+                                ? null
+                                : (_) => setState(() {
+                                    phase = item.$1;
+                                    selected.clear();
+                                  }),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ExpansionTile(
+                  tilePadding: EdgeInsets.zero,
+                  childrenPadding: const EdgeInsets.only(bottom: 12),
+                  title: Text(
+                    casa == null
+                        ? 'Casa da lente · filtro opcional'
+                        : 'Casa: $casa',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  children: [
+                    DropdownButtonFormField<String>(
+                      initialValue: casa ?? '',
+                      isExpanded: true,
+                      items: [
+                        const DropdownMenuItem(
+                          value: '',
+                          child: Text('Todas as casas / gavetas'),
+                        ),
+                        for (final house in houses)
+                          DropdownMenuItem(value: house, child: Text(house)),
+                      ],
+                      onChanged: (value) => setState(() {
+                        casa = value == '' ? null : value;
+                        selected.clear();
+                      }),
+                    ),
+                  ],
+                ),
+                if (error != null)
                   LaErrorBanner(
-                    titulo: 'Lentes',
+                    titulo: 'Confira a atualização da fila',
                     mensagem: error!,
                     onTentarDeNovo: load,
                   ),
-                ],
-                SizedBox(height: LaSpace.secao),
-                if (pesquisando)
-                  _Busca(
-                    carregando: buscando,
-                    achados: achados,
-                    onAbrir: (row) => context.push('/os/${row['id']}'),
+                if (message != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Text(
+                      message!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                Row(
+                  children: [
+                    if (podeReceber)
+                      Checkbox(
+                        value:
+                            eligible.isNotEmpty &&
+                            eligible.every(selected.contains),
+                        onChanged: pending || error != null || eligible.isEmpty
+                            ? null
+                            : (value) => setState(() {
+                                selected.clear();
+                                if (value == true) selected.addAll(eligible);
+                              }),
+                      ),
+                    Expanded(
+                      child: Text(
+                        podeReceber
+                            ? 'Selecionar até 100 visíveis'
+                            : 'Lista por prioridade',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                    Text(
+                      '${visible.length} serviços',
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                  ],
+                ),
+                if (loading && rows.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(30),
+                    child: Center(child: CircularProgressIndicator()),
                   )
-                else ...[
-                  _Casas(
-                    selecionada: casa,
-                    onChanged: (value) => setState(() => casa = value),
-                  ),
-                  SizedBox(height: LaSpace.secao),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final wide = constraints.maxWidth >= 840;
-                      final pedidoBloco = _Coluna(
-                        titulo: 'Aguardando pedido',
-                        vazio: 'Nada sem pedido.',
-                        rows: pedido,
-                        podeReceber: false,
-                        selected: selected,
-                        onToggle: (_) {},
-                        conversas: conversas,
-                        onPedido: abrirPedido,
-                        onAbrir: (row) => context.push('/os/${row['id']}'),
-                      );
-                      final lenteBloco = _Coluna(
-                        titulo: 'Aguardando lente',
-                        vazio: 'Nenhuma lente pedida.',
-                        rows: lente,
-                        podeReceber: podeReceber,
-                        selected: selected,
-                        onToggle: (id) => setState(() {
-                          if (!selected.add(id)) selected.remove(id);
-                        }),
-                        conversas: conversas,
-                        onPedido: abrirPedido,
-                        onAbrir: (row) => context.push('/os/${row['id']}'),
-                      );
-                      if (!wide) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            pedidoBloco,
-                            SizedBox(height: LaSpace.xxl),
-                            lenteBloco,
-                          ],
-                        );
-                      }
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(child: pedidoBloco),
-                          SizedBox(width: LaSpace.l),
-                          Expanded(child: lenteBloco),
+                else if (visible.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 26),
+                    child: Text(
+                      'Nenhum serviço neste filtro. Você pode trocar a vendedora ou limpar a busca.',
+                    ),
+                  )
+                else
+                  ProductionPanel(
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < visible.length; i++) ...[
+                          if (i > 0) const Divider(height: 1),
+                          Row(
+                            children: [
+                              if (podeReceber)
+                                Checkbox(
+                                  value: selected.contains(visible[i]['id']),
+                                  onChanged:
+                                      pending ||
+                                          vta(visible[i]) ||
+                                          error != null
+                                      ? null
+                                      : (value) => setState(() {
+                                          final id = '${visible[i]['id']}';
+                                          if (value == true &&
+                                              selected.length < 100) {
+                                            selected.add(id);
+                                          } else {
+                                            selected.remove(id);
+                                          }
+                                        }),
+                                ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    OperationalOrderLine(
+                                      order: visible[i],
+                                      showStage: false,
+                                      now: DateTime.now(),
+                                      onTap: () => openOrder(visible[i]),
+                                    ),
+                                    if (vta(visible[i]) || missing(visible[i]))
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          14,
+                                          0,
+                                          8,
+                                          10,
+                                        ),
+                                        child: Text(
+                                          vta(visible[i])
+                                              ? 'VTA · lente recebida, aguardando armação'
+                                              : 'Falta o número do pedido externo',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: LaColors.adapt(
+                                              context,
+                                              LaColors.alerta,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuButton<String>(
+                                tooltip: 'Ações do serviço',
+                                enabled: !pending,
+                                onSelected: (action) {
+                                  if (action == 'order')
+                                    abrirPedido(visible[i]);
+                                  else if (action == 'receive')
+                                    receive(['${visible[i]['id']}']);
+                                  else
+                                    openOrder(visible[i]);
+                                },
+                                itemBuilder: (_) => [
+                                  const PopupMenuItem(
+                                    value: 'detail',
+                                    child: Text('Processos, fotos e histórico'),
+                                  ),
+                                  if (podeGravar)
+                                    const PopupMenuItem(
+                                      value: 'order',
+                                      child: Text('Pedido e previsão da lente'),
+                                    ),
+                                  if (podeReceber &&
+                                      !vta(visible[i]) &&
+                                      error == null)
+                                    const PopupMenuItem(
+                                      value: 'receive',
+                                      child: Text('Lente chegou · receber'),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ],
-                      );
-                    },
+                      ],
+                    ),
                   ),
-                ],
+                if (busca.text.trim().isNotEmpty)
+                  TextButton.icon(
+                    onPressed: () => context.push(
+                      Uri(
+                        path: '/os',
+                        queryParameters: {
+                          'busca': busca.text,
+                          if (widget.scope.sellerId != null)
+                            'vendedora': widget.scope.sellerId!,
+                        },
+                      ).toString(),
+                    ),
+                    icon: const Icon(Icons.search, size: 18),
+                    label: const Text('Buscar também nas outras etapas'),
+                  ),
               ],
             ),
           ),
         ),
-        if (!pesquisando && selected.isNotEmpty && podeReceber)
+        if (selected.isNotEmpty && podeReceber)
           Padding(
-            padding: EdgeInsets.fromLTRB(
-              LaSpace.tela,
-              0,
-              LaSpace.tela,
-              LaSpace.l,
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+            child: FilledButton.icon(
+              onPressed: pending || error != null
+                  ? null
+                  : () => receive(selected.toList()),
+              icon: pending
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.check, size: 18),
+              label: Text(
+                pending ? 'Recebendo…' : 'Receber ${selected.length} lente(s)',
+              ),
             ),
-            child: LaButton(
-              label: 'Lentes recebidas · ${selected.length}',
-              variant: LaButtonVariant.principal,
-              loading: pending,
-              onPressed: pending ? null : release,
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _Casas extends StatelessWidget {
-  const _Casas({required this.selecionada, required this.onChanged});
-
-  final String? selecionada;
-  final ValueChanged<String?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final opcoes = [null, ...lensHouses];
-    return Wrap(
-      spacing: LaSpace.item,
-      runSpacing: LaSpace.item,
-      children: [
-        for (final opcao in opcoes)
-          _Chip(
-            label: opcao ?? 'Todas',
-            selected: selecionada == opcao,
-            onTap: () => onChanged(opcao),
           ),
       ],
     );
@@ -334,343 +547,6 @@ class _Chip extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _Busca extends StatelessWidget {
-  const _Busca({
-    required this.carregando,
-    required this.achados,
-    required this.onAbrir,
-  });
-
-  final bool carregando;
-  final List<Map<String, dynamic>> achados;
-  final ValueChanged<Map<String, dynamic>> onAbrir;
-
-  @override
-  Widget build(BuildContext context) {
-    if (carregando && achados.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
-        child: Center(
-          child: CircularProgressIndicator(
-            color: LaColors.adapt(context, LaColors.grafite),
-          ),
-        ),
-      );
-    }
-    if (achados.isEmpty) {
-      return LaEmptyState(
-        titulo: 'Nenhuma OS',
-        mensagem: 'Nada com esse número, cliente ou pedido.',
-      );
-    }
-    return Column(
-      children: [
-        for (final row in achados) ...[
-          _BuscaCard(row: row, onAbrir: () => onAbrir(row)),
-          SizedBox(height: LaSpace.item),
-        ],
-      ],
-    );
-  }
-}
-
-class _BuscaCard extends StatelessWidget {
-  const _BuscaCard({required this.row, required this.onAbrir});
-
-  final Map<String, dynamic> row;
-  final VoidCallback onAbrir;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: LaColors.surface(context),
-      borderRadius: LaRadius.rCartao,
-      child: InkWell(
-        onTap: onAbrir,
-        borderRadius: LaRadius.rCartao,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: LaSize.toque),
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(visibleOrderNumber(row), style: LaType.numeroCartao),
-                Text(
-                  '${row['client_name'] ?? 'Sem nome'}',
-                  style: LaType.corpo.copyWith(fontWeight: FontWeight.w600),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  ondeEsta(row),
-                  style: LaType.corpo.copyWith(fontWeight: FontWeight.w700),
-                ),
-                Text(
-                  '${storeNameOf(row)}, ${sellerNameOf(row)}',
-                  style: LaType.apoio,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Coluna extends StatelessWidget {
-  const _Coluna({
-    required this.titulo,
-    required this.vazio,
-    required this.rows,
-    required this.podeReceber,
-    required this.selected,
-    required this.onToggle,
-    required this.onPedido,
-    required this.onAbrir,
-    required this.conversas,
-  });
-
-  final String titulo;
-  final String vazio;
-  final List<Map<String, dynamic>> rows;
-  final bool podeReceber;
-  final Set<String> selected;
-  final ValueChanged<String> onToggle;
-  final ValueChanged<Map<String, dynamic>> onPedido;
-  final ValueChanged<Map<String, dynamic>> onAbrir;
-  final Set<String> conversas;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Expanded(child: Text(titulo, style: LaType.tituloSecao)),
-            Text(
-              '${rows.length}',
-              style: LaType.tituloSecao.copyWith(fontSize: 28),
-            ),
-          ],
-        ),
-        SizedBox(height: LaSpace.item),
-        if (rows.isEmpty)
-          LaEmptyState(
-            titulo: vazio,
-            mensagem: 'As OS desta etapa aparecem aqui.',
-          )
-        else
-          for (final store in groupByStoreThenSeller(rows)) ...[
-            Text(
-              store.$1,
-              style: LaType.rotulo.copyWith(fontWeight: FontWeight.w700),
-            ),
-            SizedBox(height: LaSpace.s),
-            for (final seller in store.$2) ...[
-              Text('Gaveta · ${seller.$1}', style: LaType.apoio),
-              SizedBox(height: LaSpace.s),
-              for (final house in _gavetas(seller.$2)) ...[
-                if (house.$1 != null) ...[
-                  Text(
-                    house.$1!,
-                    style: LaType.rotulo.copyWith(
-                      color: LaColors.adapt(context, LaColors.regua),
-                    ),
-                  ),
-                  SizedBox(height: LaSpace.s),
-                ],
-                for (final row in house.$2) ...[
-                  _LenteCard(
-                    row: row,
-                    marcada: selected.contains(row['id']),
-                    podeReceber: podeReceber,
-                    onToggle: () => onToggle(row['id'] as String),
-                    conversa: conversas.contains(row['id']),
-                    onPedido: () => onPedido(row),
-                    onAbrir: () => onAbrir(row),
-                  ),
-                  SizedBox(height: LaSpace.item),
-                ],
-              ],
-            ],
-          ],
-      ],
-    );
-  }
-}
-
-List<(String? casa, List<Map<String, dynamic>> rows)> _gavetas(
-  List<Map<String, dynamic>> rows,
-) {
-  final named = <String, List<Map<String, dynamic>>>{};
-  final soltas = <Map<String, dynamic>>[];
-  for (final row in rows) {
-    final casa = houseOf(row);
-    if (casa == null) {
-      soltas.add(row);
-    } else {
-      named.putIfAbsent(casa, () => []).add(row);
-    }
-  }
-  if (named.isEmpty) return [(null, rows)];
-  return [
-    for (final casa in lensHouses)
-      if (named.containsKey(casa)) (casa, named[casa]!),
-    for (final entry in named.entries)
-      if (!lensHouses.contains(entry.key)) (entry.key, entry.value),
-    if (soltas.isNotEmpty) ('Sem casa', soltas),
-  ];
-}
-
-class _LenteCard extends StatelessWidget {
-  const _LenteCard({
-    required this.row,
-    required this.marcada,
-    required this.podeReceber,
-    required this.onToggle,
-    required this.onPedido,
-    required this.onAbrir,
-    required this.conversa,
-  });
-
-  final Map<String, dynamic> row;
-  final bool marcada;
-  final bool podeReceber;
-  final bool conversa;
-  final VoidCallback onToggle;
-  final VoidCallback onPedido;
-  final VoidCallback onAbrir;
-
-  @override
-  Widget build(BuildContext context) {
-    final pedido = '${row['lens_supplier_ref'] ?? ''}'.trim();
-    final casa = houseOf(row);
-    final dia = diaCurto(row['lens_expected_at']);
-    final risco = acompanharLente(
-      dueAt: row['due_at'] as String?,
-      lensExpectedAt: row['lens_expected_at'] as String?,
-    );
-    final faltaPedido = pedido.isEmpty;
-    final faltaData = dia.isEmpty;
-    return Container(
-      padding: EdgeInsets.fromLTRB(8, 12, 12, 12),
-      decoration: BoxDecoration(
-        color: LaColors.surface(context),
-        borderRadius: LaRadius.rCartao,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (podeReceber)
-                SizedBox(
-                  width: LaSize.toque,
-                  height: LaSize.toque,
-                  child: InkWell(
-                    onTap: onToggle,
-                    customBorder: CircleBorder(),
-                    child: Icon(
-                      marcada ? Icons.check_circle : Icons.circle_outlined,
-                      color: LaColors.adapt(context, LaColors.grafite),
-                    ),
-                  ),
-                )
-              else
-                SizedBox(width: 8),
-              Expanded(
-                child: InkWell(
-                  onTap: onPedido,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(visibleOrderNumber(row), style: LaType.numeroCartao),
-                      if (conversa)
-                        Text(
-                          'Conversa',
-                          style: LaType.rotulo.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      Text(
-                        '${row['client_name'] ?? 'Sem nome'}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: LaType.corpo.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: 6),
-                      LaPrazoTag(
-                        status: prazoDe(row),
-                        texto: 'Cliente · ${prazoCurto(row)}',
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        faltaPedido
-                            ? 'Falta o número do pedido'
-                            : 'Pedido ${casa == null ? pedido : '$casa $pedido'}',
-                        style: LaType.corpo.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: faltaPedido
-                              ? LaColors.adapt(context, LaColors.alerta)
-                              : LaColors.adapt(context, LaColors.grafite),
-                        ),
-                      ),
-                      Text(
-                        faltaData
-                            ? 'Falta a data do laboratório'
-                            : 'Laboratório $dia',
-                        style: LaType.corpo.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: faltaData
-                              ? LaColors.adapt(context, LaColors.alerta)
-                              : LaColors.adapt(context, LaColors.regua),
-                        ),
-                      ),
-                      if (_mostraRisco(risco.watch))
-                        Text(
-                          risco.label,
-                          style: LaType.apoio.copyWith(
-                            color: _riscoCor(context, risco.watch),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: onAbrir,
-                tooltip: 'Abrir OS',
-                icon: Icon(
-                  Icons.north_east,
-                  color: LaColors.adapt(context, LaColors.grafite),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-bool _mostraRisco(LensWatch watch) {
-  switch (watch) {
-    case LensWatch.atrasada:
-    case LensWatch.estoura:
-    case LensWatch.apertado:
-    case LensWatch.noPrazo:
-      return true;
-    case LensWatch.semPrevisao:
-    case LensWatch.semPrazo:
-      return false;
   }
 }
 

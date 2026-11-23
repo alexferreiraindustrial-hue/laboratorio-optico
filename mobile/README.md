@@ -1,5 +1,17 @@
 # LabGold Android
 
+## APK 1.5.0 (8) · Visão geral e organização por vendedora
+
+A entrada do app passa a ser a Visão geral: totais em acompanhamento, atrasos, prazos do dia e serviços para retirada. As abas Prioridades, Vendedoras e Etapas mostram a mesma operação por perspectivas distintas. Os totais usam todos os serviços ativos, com paginação e erro explícito se a consulta não puder terminar.
+
+O filtro por ID da vendedora é compartilhado entre Visão geral, Lentes e Bancada. Selecionar um nome no resumo aplica esse contexto à navegação; limpar o filtro volta à operação completa. Vendedoras ativas sem serviços aparecem com zero e nomes históricos continuam disponíveis quando há serviços. O filtro não é salvo entre sessões e não substitui as permissões de acesso do banco.
+
+Lentes usa lista compacta por risco e prazo, com busca local, pedido/previsão, recebimento individual e em lote, casa/gaveta e separação VTA. O recebimento mantém VTA aguardando a armação e registra resultados parciais quando há erro em um lote. A bancada mantém as cinco etapas, cartões recolhidos, fotos e conferência médica, com busca e foco nos prazos. Telas recarregam ao retornar de detalhes e ao reabrir a aba.
+
+Tema preto e dourado com opção clara, fontes incluídas no APK e indicadores com texto. Capturas antes/depois revisadas com dados fictícios; testes incluem 320px, fonte ampliada e tablet. Pacote Android e assinatura de teste mantidos. Não foram alterados banco, cadastros reais, permissões ou APIs do servidor.
+
+# LabGold Android
+
 ## APK de teste 1.4.0 (7)
 
 Novo visual alinhado ao site: preto e dourado, fonte Plus Jakarta Sans e opção clara preservada. Fontes incluídas no APK para funcionar sem rede. Preferências de tema existentes são mantidas; instalações novas começam no escuro. Cartões da bancada começam compactos, exibem o prazo e abrem processos, fotos e histórico ao expandir.

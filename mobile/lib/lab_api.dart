@@ -8,6 +8,41 @@ import 'domain.dart';
 final supabase = Supabase.instance.client;
 
 class LabApi {
+  LabApi({SupabaseClient? client}) : _client = client;
+  final SupabaseClient? _client;
+  SupabaseClient get supabase => _client ?? Supabase.instance.client;
+
+  Future<List<Map<String, dynamic>>> _readOrderPages(
+    List<String> statuses, {
+    String? sellerId,
+    String? columns,
+  }) async {
+    final result = <Map<String, dynamic>>[];
+    for (var offset = 0; ; offset += 500) {
+      var request = supabase
+          .from('orders_enriched')
+          .select(
+            columns ?? 'id,number,external_order_id,client_name,seller_id,seller_name,store_id,store_name,laboratory_name,due_at,status,priority',
+          )
+          .inFilter('status', statuses);
+      if (sellerId != null) {
+        request = sellerId == '__unassigned__'
+            ? request.isFilter('seller_id', null)
+            : request.eq('seller_id', sellerId);
+      }
+      final page = await request
+          .order('due_at', ascending: true, nullsFirst: false)
+          .order('id')
+          .range(offset, offset + 499);
+      result.addAll(List<Map<String, dynamic>>.from(page));
+      if (page.length < 500) break;
+    }
+    return result;
+  }
+
+  Future<List<Map<String, dynamic>>> overviewOrders() =>
+      _readOrderPages(queueStatuses);
+
   Future<void> mergeOperations(List<Map<String, dynamic>> rows) async {
     for (var offset = 0; offset < rows.length; offset += 150) {
       final part = rows.skip(offset).take(150).toList();
@@ -27,8 +62,12 @@ class LabApi {
     }
   }
 
-  Future<void> receiveLenses(String id) async {
-    await supabase.rpc('receive_order_lenses', params: {'p_order_id': id});
+  Future<Map<String, dynamic>> receiveLenses(String id) async {
+    final row = await supabase.rpc(
+      'receive_order_lenses',
+      params: {'p_order_id': id},
+    );
+    return Map<String, dynamic>.from(row as Map);
   }
 
   Future<void> receiveFrame(String id) async {
@@ -225,23 +264,19 @@ class LabApi {
   }
 
   Future<List<Map<String, dynamic>>> lensQueue() async {
-    final rows = await supabase
-        .from('orders_enriched')
-        .select(
-          'id, number, client_name, seller_name, store_name, laboratory_name, external_order_id, due_at, lens_expected_at, lens_supplier_ref, lens_spec, status, priority',
-        )
-        .eq('status', 'aguardando_lentes')
-        .order('due_at', ascending: true);
-    final list = List<Map<String, dynamic>>.from(rows);
+    final list = await _readOrderPages(
+      ['aguardando_lentes'],
+      columns: 'id,number,client_name,seller_id,seller_name,store_name,laboratory_name,external_order_id,due_at,lens_expected_at,lens_supplier_ref,lens_spec,status,priority',
+    );
     await mergeOperations(list);
-    return onlyQueueStatus(list, 'aguardando_lentes');
+    return list;
   }
 
   Future<List<Map<String, dynamic>>> readyQueue() async {
     final rows = await supabase
         .from('orders_enriched')
         .select(
-          'id, number, client_name, seller_name, store_name, laboratory_name, external_order_id, due_at, status',
+          'id, number, client_name, seller_id, seller_name, store_name, laboratory_name, external_order_id, due_at, status',
         )
         .eq('status', 'pronto')
         .order('due_at', ascending: true);
@@ -249,20 +284,17 @@ class LabApi {
   }
 
   Future<List<Map<String, dynamic>>> benchOrders() async {
-    final orders = await supabase
-        .from('orders_enriched')
-        .select(
-          'id, number, client_name, seller_name, store_name, laboratory_name, external_order_id, due_at, status, priority',
-        )
-        .inFilter('status', benchStatuses)
-        .order('due_at', ascending: true);
-    final list = List<Map<String, dynamic>>.from(orders);
+    final list = await _readOrderPages(benchStatuses);
     if (list.isEmpty) return list;
     final ids = list.map((row) => row['id'] as String).toList();
-    final steps = await supabase
-        .from('assembly_steps')
-        .select('order_id, step_key, status, started_at')
-        .inFilter('order_id', ids);
+    final steps = <Map<String, dynamic>>[];
+    for (var offset = 0; offset < ids.length; offset += 150) {
+      final rows = await supabase
+          .from('assembly_steps')
+          .select('order_id,step_key,status,started_at')
+          .inFilter('order_id', ids.skip(offset).take(150).toList());
+      steps.addAll(List<Map<String, dynamic>>.from(rows));
+    }
     final byOrder = <String, List<Map<String, dynamic>>>{};
     for (final step in steps) {
       final id = step['order_id'] as String;
@@ -415,26 +447,23 @@ class LabApi {
     return item;
   }
 
-  Future<List<Map<String, dynamic>>> queueOrders(String status) async {
+  Future<List<Map<String, dynamic>>> queueOrders(
+    String status, {
+    String? sellerId,
+  }) async {
     if (!queueStatuses.contains(status)) return [];
-    const select =
-        'id, number, client_name, seller_id, seller_name, store_id, store_name, due_at, status, priority, laboratory_name, external_order_id';
-    final rows = await supabase
-        .from('orders_enriched')
-        .select(select)
-        .eq('status', status)
-        .order('due_at', ascending: true)
-        .limit(400);
-    return onlyQueueStatus(List<Map<String, dynamic>>.from(rows), status);
+    return onlyQueueStatus(
+      await _readOrderPages([status], sellerId: sellerId),
+      status,
+    );
   }
 
   Future<List<Map<String, dynamic>>> allOrders({
     String? status,
     String tab = 'andamento',
+    String? sellerId,
   }) async {
     final bucket = queueStatuses.contains(status) ? status : null;
-    final select =
-        'id, number, client_name, seller_id, seller_name, store_id, store_name, due_at, status, priority, laboratory_name, external_order_id';
     final statuses = bucket != null
         ? [bucket]
         : tab == 'encerradas'
@@ -442,14 +471,8 @@ class LabApi {
         : tab == 'todas'
         ? [...queueStatuses, ...closedStatuses]
         : queueStatuses;
-    final rows = await supabase
-        .from('orders_enriched')
-        .select(select)
-        .inFilter('status', statuses)
-        .order('due_at', ascending: true)
-        .limit(400);
     return filterOrderList(
-      List<Map<String, dynamic>>.from(rows),
+      await _readOrderPages(statuses, sellerId: sellerId),
       status: bucket,
       tab: tab,
     );
@@ -651,7 +674,7 @@ class LabApi {
     final q = query.trim().replaceAll(RegExp(r'[%_,]'), '');
     if (q.length < 2) return [];
     const select =
-        'id, number, client_name, seller_name, store_name, status, due_at, priority, lens_supplier_ref, external_order_id';
+        'id, number, client_name, seller_id, seller_name, store_name, status, due_at, priority, lens_supplier_ref, external_order_id';
     final rows = await supabase
         .from('orders_enriched')
         .select(select)
@@ -697,7 +720,7 @@ class LabApi {
     final lateRows = await supabase
         .from('orders_enriched')
         .select(
-          'id, number, client_name, seller_name, due_at, status, priority, external_order_id',
+          'id, number, client_name, seller_id, seller_name, due_at, status, priority, external_order_id',
         )
         .lt('due_at', now)
         .inFilter('status', queueStatuses)
@@ -853,7 +876,7 @@ class LabApi {
     final orders = await supabase
         .from('orders_enriched')
         .select(
-          'id, number, client_name, seller_name, store_name, laboratory_name, external_order_id, status',
+          'id, number, client_name, seller_id, seller_name, store_name, laboratory_name, external_order_id, status',
         )
         .inFilter('id', ids);
     final byId = {for (final order in orders) order['id']: order};

@@ -1,3 +1,17 @@
+# LabGold Android
+
+## APK de teste 1.4.0 (7)
+
+Novo visual alinhado ao site: preto e dourado, fonte Plus Jakarta Sans e opção clara preservada. Fontes incluídas no APK para funcionar sem rede. Preferências de tema existentes são mantidas; instalações novas começam no escuro. Cartões da bancada começam compactos, exibem o prazo e abrem processos, fotos e histórico ao expandir.
+
+Acompanhamento médico opcional com registro de retorno, assistências vinculadas à OS original, recebimento de lentes pela RPC de VTA, recebimento de armação e leitura do contador de montagens expressas já registradas. O lançamento pode indicar a conferência médica. As permissões do banco e as cinco etapas técnicas continuam vigentes.
+
+Vendedoras: o lançamento tem um botão para atualizar vendedoras e laboratórios; a consulta de vendedoras ativas é ordenada pelo nome. No site, os filtros de lentes e bancada incluem vendedoras ativas sem serviços na fila. O cadastro relatado foi conferido como ativo e vinculado à loja. Não houve alteração de cadastros reais ou vínculos.
+
+Mantidos o identificador Android e a assinatura de teste existentes, para permitir atualização sobre o APK anterior compatível. Não desinstale o aplicativo anterior para atualizar.
+
+Validação: análise Flutter sem erros ou warnings, testes de regras, permissões, contraste e responsividade, compilação release e verificação da assinatura. O APK contém somente a chave pública de cliente do Supabase.
+
 # Laboratório ALEX
 
 ## APK de teste 1.1.0 (3)

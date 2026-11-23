@@ -104,7 +104,7 @@ class _LensesScreenState extends State<LensesScreen> {
     setState(() => pending = true);
     try {
       for (final id in selected.toList()) {
-        await api.changeStatus(id, 'aguardando_montagem', 'Lentes recebidas');
+        await api.receiveLenses(id);
       }
       selected.clear();
       HapticFeedback.mediumImpact();
@@ -324,7 +324,9 @@ class _Chip extends StatelessWidget {
                 label,
                 style: LaType.rotulo.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: selected ? LaColors.branco : LaColors.adapt(context, LaColors.grafite),
+                  color: selected
+                      ? LaColors.branco
+                      : LaColors.adapt(context, LaColors.grafite),
                 ),
               ),
             ),
@@ -352,7 +354,9 @@ class _Busca extends StatelessWidget {
       return Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
         child: Center(
-          child: CircularProgressIndicator(color: LaColors.adapt(context, LaColors.grafite)),
+          child: CircularProgressIndicator(
+            color: LaColors.adapt(context, LaColors.grafite),
+          ),
         ),
       );
     }
@@ -474,7 +478,9 @@ class _Coluna extends StatelessWidget {
                 if (house.$1 != null) ...[
                   Text(
                     house.$1!,
-                    style: LaType.rotulo.copyWith(color: LaColors.adapt(context, LaColors.regua)),
+                    style: LaType.rotulo.copyWith(
+                      color: LaColors.adapt(context, LaColors.regua),
+                    ),
                   ),
                   SizedBox(height: LaSpace.s),
                 ],
@@ -623,7 +629,9 @@ class _LenteCard extends StatelessWidget {
                             : 'Laboratório $dia',
                         style: LaType.corpo.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: faltaData ? LaColors.adapt(context, LaColors.alerta) : LaColors.adapt(context, LaColors.regua),
+                          color: faltaData
+                              ? LaColors.adapt(context, LaColors.alerta)
+                              : LaColors.adapt(context, LaColors.regua),
                         ),
                       ),
                       if (_mostraRisco(risco.watch))
@@ -640,7 +648,10 @@ class _LenteCard extends StatelessWidget {
               IconButton(
                 onPressed: onAbrir,
                 tooltip: 'Abrir OS',
-                icon: Icon(Icons.north_east, color: LaColors.adapt(context, LaColors.grafite)),
+                icon: Icon(
+                  Icons.north_east,
+                  color: LaColors.adapt(context, LaColors.grafite),
+                ),
               ),
             ],
           ),
@@ -813,7 +824,10 @@ class _PedidoSheetState extends State<_PedidoSheet> {
             style: OutlinedButton.styleFrom(
               minimumSize: Size.fromHeight(LaSize.toque),
               foregroundColor: LaColors.adapt(context, LaColors.grafite),
-              side: BorderSide(color: LaColors.adapt(context, LaColors.grafite), width: 2),
+              side: BorderSide(
+                color: LaColors.adapt(context, LaColors.grafite),
+                width: 2,
+              ),
             ),
             child: Text(
               dia == null
@@ -828,7 +842,9 @@ class _PedidoSheetState extends State<_PedidoSheet> {
                 onPressed: () => setState(() => dia = null),
                 child: Text(
                   'Limpar data',
-                  style: LaType.apoio.copyWith(color: LaColors.adapt(context, LaColors.regua)),
+                  style: LaType.apoio.copyWith(
+                    color: LaColors.adapt(context, LaColors.regua),
+                  ),
                 ),
               ),
             ),
@@ -842,7 +858,12 @@ class _PedidoSheetState extends State<_PedidoSheet> {
           ),
           if (erro != null) ...[
             SizedBox(height: LaSpace.item),
-            Text(erro!, style: LaType.apoio.copyWith(color: LaColors.adapt(context, LaColors.perigo))),
+            Text(
+              erro!,
+              style: LaType.apoio.copyWith(
+                color: LaColors.adapt(context, LaColors.perigo),
+              ),
+            ),
           ],
           SizedBox(height: LaSpace.secao),
           LaButton(

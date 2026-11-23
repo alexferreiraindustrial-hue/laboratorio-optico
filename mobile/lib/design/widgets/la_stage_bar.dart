@@ -8,13 +8,18 @@ const laEtapas = <String>[
   'Aguardando montagem',
   'Em montagem',
   'Em correção',
-  'Em conferência',
+  'Conferência Médico',
   'Pronto',
 ];
 
 /// Barra de 6 segmentos: anteriores grafite, atual amarela, futuras cinza.
 class LaStageBar extends StatelessWidget {
-  const LaStageBar({super.key, required this.etapaAtual, this.encerrada = false, this.altura = 8});
+  const LaStageBar({
+    super.key,
+    required this.etapaAtual,
+    this.encerrada = false,
+    this.altura = 8,
+  });
 
   /// 1 a 6.
   final int etapaAtual;
@@ -23,7 +28,9 @@ class LaStageBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final nome = encerrada ? 'Encerrada' : laEtapas[(etapaAtual - 1).clamp(0, 5)];
+    final nome = encerrada
+        ? 'Encerrada'
+        : laEtapas[(etapaAtual - 1).clamp(0, 5)];
     return Semantics(
       label: encerrada ? 'OS encerrada' : 'Etapa $etapaAtual de 6, $nome',
       excludeSemantics: true,
@@ -38,10 +45,15 @@ class LaStageBar extends StatelessWidget {
                   color: encerrada || i < etapaAtual
                       ? LaColors.adapt(context, LaColors.grafite)
                       : i == etapaAtual
-                          ? LaColors.adapt(context, LaColors.faixa)
-                          : LaColors.adapt(context, LaColors.filete),
+                      ? LaColors.adapt(context, LaColors.faixa)
+                      : LaColors.adapt(context, LaColors.filete),
                   borderRadius: BorderRadius.circular(2),
-                  border: !encerrada && i == etapaAtual && altura >= 8 ? Border.all(color: LaColors.adapt(context, LaColors.grafite), width: 2) : null,
+                  border: !encerrada && i == etapaAtual && altura >= 8
+                      ? Border.all(
+                          color: LaColors.adapt(context, LaColors.grafite),
+                          width: 2,
+                        )
+                      : null,
                 ),
               ),
             ),

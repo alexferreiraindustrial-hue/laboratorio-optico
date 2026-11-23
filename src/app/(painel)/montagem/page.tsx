@@ -47,6 +47,7 @@ export default async function MontagemPage({ searchParams }: { searchParams: Pro
     .order("due_at", { ascending: true, nullsFirst: false })
     .limit(200);
 
+  const catalogs = await loadCatalogs();
   const ids = (orders ?? []).map((order) => order.id as string);
   const operations=await loadOperations(supabase,ids);
   let boardError = error?.message ?? null;
@@ -98,7 +99,7 @@ export default async function MontagemPage({ searchParams }: { searchParams: Pro
 
   const detail = filters.os && /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(filters.os) ? await loadOrderDetail(filters.os) : null;
   return <>
-    <BenchBoard orders={bench} role={role} userId={user.id} error={boardError} nowIso={new Date().toISOString()} />
+    <BenchBoard sellers={catalogs.sellers} orders={bench} role={role} userId={user.id} error={boardError} nowIso={new Date().toISOString()} />
     {detail ? <OrderDrawer key={detail.order.id} title={`OS ${visibleOrderNumber(detail.order)}`} closeHref="/montagem" description="Acompanhe etapas, fotos e ocorrências sem sair da bancada." detailHref={`/montagem/${detail.order.id}`} workspace={<OrderWorkspace {...detail} mode="montagem" />} /> : null}
   </>;
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../la_tokens.dart';
 
 /// Monograma "LA" em placa amarela.
 class LaMonogram extends StatelessWidget {
@@ -18,12 +17,12 @@ class LaMonogram extends StatelessWidget {
         height: size,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: LaColors.faixa,
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(size * 0.25),
         ),
         child: Icon(
           Icons.blur_circular,
-          color: LaColors.branco,
+          color: Theme.of(context).colorScheme.onPrimary,
           size: size * 0.62,
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../design/la_design.dart';
 import '../domain.dart';
+import '../order_followup.dart';
 import '../floor_format.dart';
 import '../lab_api.dart';
 import '../os_chat.dart';
@@ -85,6 +86,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final order = data?['order'] as Map<String, dynamic>?;
     if (order == null) return;
     final action = nextBenchAction(
+      medicalRequired: order['medical_review_required'] == true,
       status: '${order['status']}',
       role: role,
       steps: List<Map<String, dynamic>>.from(data?['steps'] as List? ?? []),
@@ -183,14 +185,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 color: colors.accent,
                 onRefresh: load,
                 child: ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpace.md,
-                    8,
-                    AppSpace.md,
-                    40,
-                  ),
+                  padding: EdgeInsets.fromLTRB(AppSpace.md, 8, AppSpace.md, 40),
                   children: [
                     if (error != null) LabError(message: error!),
+                    if (order != null)
+                      OrderFollowup(
+                        order: order,
+                        editable: canWriteOrders(role),
+                        onChanged: load,
+                      ),
                     LabSheet(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -378,6 +381,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           Builder(
                             builder: (context) {
                               final action = nextBenchAction(
+                                medicalRequired:
+                                    order['medical_review_required'] == true,
                                 status: '${order['status']}',
                                 role: role,
                                 steps: steps,
@@ -499,9 +504,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                     onPressed: pending
                                         ? null
                                         : () => attachPhoto(ImageSource.camera),
-                                    icon: Icon(
-                                      Icons.photo_camera_outlined,
-                                    ),
+                                    icon: Icon(Icons.photo_camera_outlined),
                                     label: Text('Câmera'),
                                   ),
                                 ),
@@ -512,9 +515,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                         ? null
                                         : () =>
                                               attachPhoto(ImageSource.gallery),
-                                    icon: Icon(
-                                      Icons.photo_library_outlined,
-                                    ),
+                                    icon: Icon(Icons.photo_library_outlined),
                                     label: Text('Galeria'),
                                   ),
                                 ),
@@ -589,9 +590,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               children: [
                                 for (final item in history)
                                   Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 8,
-                                    ),
+                                    padding: EdgeInsets.symmetric(vertical: 8),
                                     child: Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -616,9 +615,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                   ),
                                 for (final item in photos)
                                   Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 8,
-                                    ),
+                                    padding: EdgeInsets.symmetric(vertical: 8),
                                     child: Row(
                                       children: [
                                         Expanded(

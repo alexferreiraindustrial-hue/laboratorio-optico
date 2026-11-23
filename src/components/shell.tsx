@@ -257,7 +257,7 @@ export function Shell({
   const simpleMenu = (
     <nav aria-label="Navegação do laboratório" className="flex flex-col gap-2">
       {simpleNav.map((item) => {
-        const active = current?.href === item.href;
+        const active = current?.href === item.href || (hasProductionOverview(role) && item.href === "/inicio" && pathname === "/dashboard");
         const Icon = item.icon;
         const count = item.href === "/lentes" ? lensLate : 0;
         return (
@@ -524,7 +524,7 @@ function MobileDock({
       style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
     >
       {items.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active = pathname === item.href || pathname.startsWith(`${item.href}/`) || (hasProductionOverview(role) && item.href === "/inicio" && pathname === "/dashboard");
         const Icon = item.icon;
         const count = item.href === "/lentes" ? lensLate : item.href === "/assistencia" ? boOpen : item.href === "/recados" ? unread : 0;
         return (

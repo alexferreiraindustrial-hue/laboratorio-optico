@@ -175,6 +175,7 @@ class _LensesScreenState extends State<LensesScreen> {
     final houses = {
       ...lensHouses,
       ...rows.map(houseOf).whereType<String>(),
+      if (casa != null) casa!,
     }.toList();
     return Column(
       children: [

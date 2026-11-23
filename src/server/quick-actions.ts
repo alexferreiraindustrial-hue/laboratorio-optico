@@ -14,6 +14,7 @@ export type QuickCreateInput = {
   entries: {
     orderRef: string | null;
     clientName: string | null;
+    medicalRequired?: boolean;
     serviceDescription?: string;
     notes?: string;
     frameState?:FrameState;
@@ -80,7 +81,7 @@ export async function quickCreateOrders(input: QuickCreateInput): Promise<{ ok: 
       p_lens_spec: {},
     };
     const configured = entry.frameState!==undefined || entry.expressMinutes!=null;
-    const {data,error}=configured?await supabase.rpc("create_service_order_configured",{p_order:payload,p_frame_state:entry.frameState??"unknown",p_express_minutes:entry.expressMinutes??null}):await supabase.rpc("create_service_order",payload);
+    const {data,error}=entry.medicalRequired?await supabase.rpc("create_service_order_followup",{p_order:payload,p_frame_state:entry.frameState??"unknown",p_express_minutes:entry.expressMinutes??null,p_medical_required:true}):configured?await supabase.rpc("create_service_order_configured",{p_order:payload,p_frame_state:entry.frameState??"unknown",p_express_minutes:entry.expressMinutes??null}):await supabase.rpc("create_service_order",payload);
     if (error) {
       results.push({ index, ok: false, message: actionError(error, "Não foi possível lançar.") ?? "Erro ao lançar." });
     } else {
@@ -182,7 +183,7 @@ export async function createGuidedOrder(input: GuidedEntryInput) {
   const express = input.serviceKind === "expressa";
   const description = express?`Montagem expressa — ${input.expressMinutes} minutos`:maintenance ? `Manutenção — ${input.serviceDescription!.trim()}` : "Lançamento rápido";
   return quickCreateOrders({
-    entries: [{ orderRef: input.orderRef.trim() || null, clientName: input.clientName.trim() || ((maintenance||express) ? description.slice(0,200) : null), dueAt: input.dueAt, serviceDescription: description, frameState:input.frameState,expressMinutes:express?input.expressMinutes:undefined, notes: maintenance ? "Manutenção interna. Número interno gerado quando não há OS informada. Encaminhar à bancada." : undefined }],
+    entries: [{ medicalRequired:input.medicalRequired, orderRef: input.orderRef.trim() || null, clientName: input.clientName.trim() || ((maintenance||express) ? description.slice(0,200) : null), dueAt: input.dueAt, serviceDescription: description, frameState:input.frameState,expressMinutes:express?input.expressMinutes:undefined, notes: maintenance ? "Manutenção interna. Número interno gerado quando não há OS informada. Encaminhar à bancada." : undefined }],
     laboratoryId: express?INTERNAL_ASSEMBLY:maintenance ? INTERNAL_MAINTENANCE : input.laboratoryId,
     sellerId: input.sellerId, storeId: input.storeId || null, dueHours: null,
     status: (maintenance||express) ? "aguardando_montagem" : "aguardando_lentes", priority: "normal",

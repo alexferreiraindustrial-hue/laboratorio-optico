@@ -53,14 +53,15 @@ export function nextBenchAction(order: BenchOrder, role: AppRole): NextAction {
     }
     return { kind: "none", label: `${STEP_LABEL[key]} bloqueada` };
   }
-  if (order.status === "em_conferencia" && order.openOccurrences !== 0) {
+  if ((order.status === "em_conferencia" || order.status === "em_montagem") && order.openOccurrences !== 0) {
     return { kind: "none", label: order.openOccurrences === null ? "Conferir ocorrências nos detalhes" : "Resolver ocorrências antes de liberar" };
   }
+  if (order.status === "em_conferencia" && order.medical_review_required && !order.medical_review_approved_at) return {kind:"none",label:"Aguardando retorno médico · abrir detalhes"};
   if (order.status === "em_conferencia" && canTransition(order.status, "pronto", role)) {
     return { kind: "status", to: "pronto", label: "Marcar como pronta", note: "Conferida na bancada" };
   }
   if (order.status === "em_montagem" && canTransition(order.status, "em_conferencia", role)) {
-    return { kind: "status", to: "em_conferencia", label: "Enviar para conferência", note: "Etapas concluídas" };
+    return order.medical_review_required ? { kind: "status", to: "em_conferencia", label: "Enviar para conferência médica", note: "Etapas concluídas · aguarda retorno médico" } : {kind:"status",to:"pronto",label:"Marcar como pronta",note:"Cinco etapas técnicas concluídas · sem indicação médica"};
   }
   return { kind: "none", label: "Sem ação pendente" };
 }
@@ -70,7 +71,7 @@ export const BENCH_LANES: { status: BenchOrder["status"]; title: string; hint: s
   { status: "aguardando_montagem", title: "Aguardando montagem", hint: "Lentes liberadas · puxar próxima OS", color: "#6e6a63" },
   { status: "em_montagem", title: "Em montagem", hint: "Executar e registrar as cinco etapas", color: "#8c6239" },
   { status: "em_correcao", title: "Em correção", hint: "Resolver impedimentos e retomar", color: "#b83a3a" },
-  { status: "em_conferencia", title: "Conferência de qualidade", hint: "Inspeção final antes da liberação", color: "#8a5a00" },
+  { status: "em_conferencia", title: "Conferência Médico", hint: "Somente serviços com indicação médica", color: "#8a5a00" },
 ];
 
 export function benchForecast(order: BenchOrder, now: Date) {

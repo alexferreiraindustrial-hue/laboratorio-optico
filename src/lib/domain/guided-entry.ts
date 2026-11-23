@@ -1,6 +1,7 @@
 import {operationsError,type FrameState} from "./operations";
 export type GuidedEntryInput = {
   serviceKind?: "lentes" | "manutencao" | "expressa";
+  medicalRequired?: boolean;
   serviceDescription?: string;
   frameState?:FrameState;
   expressMinutes?:number;

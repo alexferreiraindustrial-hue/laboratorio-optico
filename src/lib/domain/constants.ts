@@ -16,7 +16,7 @@ export const STATUS_LABEL: Record<OrderStatus, string> = {
   aguardando_montagem: "Aguardando montagem",
   em_montagem: "Em montagem",
   em_correcao: "Em correção",
-  em_conferencia: "Em conferência de qualidade",
+  em_conferencia: "Conferência Médico",
   pronto: "Pronto",
   entregue: "Entregue",
   cancelado: "Cancelado",

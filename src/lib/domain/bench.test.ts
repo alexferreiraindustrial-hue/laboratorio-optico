@@ -33,8 +33,10 @@ describe("próxima ação da bancada", () => {
     }
     expect(nextBenchAction(order({ status: "em_conferencia", steps: complete }), "montador")).toMatchObject({ kind: "status", to: "pronto" });
   });
-  it("encaminha montagem concluída para conferência", () => {
-    expect(nextBenchAction(order({ steps: complete }), "montador")).toMatchObject({ kind: "status", to: "em_conferencia" });
+  it("encaminha somente serviços marcados ao médico e mantém os demais no fluxo normal", () => {
+    expect(nextBenchAction(order({ steps: complete }), "montador")).toMatchObject({ kind: "status", to: "pronto" });
+    expect(nextBenchAction(order({ steps: complete,medical_review_required:true }), "montador")).toMatchObject({ kind: "status", to: "em_conferencia" });
+    expect(nextBenchAction(order({status:"em_conferencia",steps:complete,medical_review_required:true}),"montador").kind).toBe("none");
   });
 });
 

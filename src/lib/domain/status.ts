@@ -5,6 +5,7 @@ const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   aguardando_lentes: ["aguardando_montagem", "cancelado"],
   aguardando_montagem: ["em_montagem", "aguardando_lentes", "cancelado"],
   em_montagem: [
+    "pronto",
     "em_correcao",
     "em_conferencia",
     "aguardando_montagem",

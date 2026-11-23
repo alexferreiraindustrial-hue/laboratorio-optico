@@ -178,7 +178,7 @@
 .lg-assistance-links { display: grid; gap: 8px; padding: 16px; }
 .lg-assistance-links a { display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
 @media (min-width: 768px) { .lg-dashboard-summary { grid-template-columns: repeat(3,minmax(0,1fr)); } }
-@media (min-width: 1440px) { .lg-dashboard-summary { grid-template-columns: repeat(6,minmax(0,1fr)); } }
+@media (min-width: 1200px) { .lg-dashboard-summary { grid-template-columns: repeat(6,minmax(0,1fr)); } }
 @media (min-width: 1280px) { .lg-overview { grid-template-columns: minmax(0,1fr) 280px; } }
 @media screen {
  :root[data-theme="dark"] .lg-brand-mark { filter: drop-shadow(0 0 8px rgb(245 181 61 / .25)); }

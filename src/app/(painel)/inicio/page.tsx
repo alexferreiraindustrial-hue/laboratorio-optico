@@ -1,6 +1,7 @@
 import { ChevronRight, PackageCheck, PackageSearch, Search, Wrench, Zap } from "lucide-react";
 import Link from "next/link";
-import { simpleAllowed } from "@/lib/domain/simple-nav";
+import ProductionDashboard, {type DashboardFilters} from "@/components/production-dashboard";
+import { hasProductionOverview, simpleAllowed } from "@/lib/domain/simple-nav";
 import { requireProfile } from "@/server/session";
 
 type Card = {
@@ -26,8 +27,10 @@ function firstName(name: string) {
   return name.trim().split(/\s+/)[0] || "";
 }
 
-export default async function InicioPage() {
-  const { supabase, profile, role } = await requireProfile();
+export default async function InicioPage({searchParams}:{searchParams?:Promise<DashboardFilters>}) {
+  const session = await requireProfile();
+  const { supabase, profile, role } = session;
+  if (hasProductionOverview(role)) return <ProductionDashboard session={session} searchParams={searchParams ?? Promise.resolve({})}/>;
   const nowIso = new Date().toISOString();
   const count = (statuses: string[]) =>
     supabase.from("service_orders").select("id", { count: "exact", head: true }).in("status", statuses);

@@ -29,3 +29,8 @@ export function simpleAllowed(role: AppRole, href: string) {
       return false;
   }
 }
+
+/** A simplified menu must not hide the management overview behind the old home. */
+export function hasProductionOverview(role: AppRole) {
+  return role === "admin" || role === "gestor" || role === "consulta";
+}

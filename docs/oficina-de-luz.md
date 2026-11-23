@@ -33,3 +33,17 @@ Os arquivos temporários de demonstração e os arquivos de arquivamento preexis
 O resolvedor `next/font/google` do Turbopack falhou na prévia. As mesmas famílias agora usam `next/font/local` com os arquivos variáveis originais do repositório oficial Google Fonts. Não há consulta externa a Google Fonts durante o build ou no navegador. As licenças SIL OFL 1.1 acompanham os arquivos em `src/app/fonts`.
 
 Fontes: https://github.com/google/fonts/tree/main/ofl/plusjakartasans e https://github.com/google/fonts/tree/main/ofl/jetbrainsmono.
+
+## Correção da entrada após conferência na sessão real
+
+A página aberta pelo usuário era `/inicio`, já escura e dourada, mas ainda com os quatro blocos anteriores. A sessão estava em modo simples, que também redirecionava `/dashboard` para essa página. O problema não era ausência do CSS no deploy.
+
+| Before | After | Why |
+| --- | --- | --- |
+| Administração em modo simples continuava na antiga página de quatro ações | `/inicio` e `/dashboard` usam a mesma visão geral de produção | Exibir a reformulação na entrada que o usuário realmente utiliza |
+| Filtros e avisos vinham antes do quadro | Indicadores e linha de produção ficam logo após o título | Tornar o novo layout visível na primeira área útil |
+| Seis indicadores só em telas de 1440px | Seis indicadores a partir de 1200px | Adequar ao desktop real usado na conferência |
+
+A visão geral foi extraída para um componente de servidor compartilhado, preservando suas consultas e reaproveitando a sessão já carregada na entrada. Filtros de período e laboratório são encaminhados também por `/inicio`. Montador e estoquista mantêm sua entrada rápida. Não houve alteração de banco ou de registros.
+
+Foram acrescentados seis testes de regressão cobrindo as entradas administrativa, gerencial, de consulta e operacionais, além do encaminhamento de filtros. A conferência posterior deve ser feita na sessão real em `/inicio`, e não somente no login público.

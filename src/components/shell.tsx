@@ -39,7 +39,7 @@ import { useEffect, useState } from "react";
 import { signOut } from "@/server/actions";
 import { OperationModeProvider } from "./operation-mode";
 import { setViewMode } from "@/server/simple-mode";
-import { SIMPLE_NAV, simpleAllowed } from "@/lib/domain/simple-nav";
+import { SIMPLE_NAV, simpleAllowed, hasProductionOverview } from "@/lib/domain/simple-nav";
 import { LensMark } from "@/components/lens";
 import { can } from "@/lib/domain/permissions";
 import { ROLE_LABEL, type AppRole } from "@/lib/domain/constants";
@@ -162,7 +162,7 @@ const SIMPLE_ICON: Record<string, typeof LayoutDashboard> = {
 };
 
 function simpleItems(role: AppRole) {
-  return SIMPLE_NAV.filter((item) => simpleAllowed(role, item.href)).map((item) => ({ ...item, icon: SIMPLE_ICON[item.href] }));
+  return SIMPLE_NAV.filter((item) => simpleAllowed(role, item.href)).map((item) => item.href === "/inicio" && hasProductionOverview(role) ? { ...item, label: "Visão geral", hint: "Produção, prazos e atalhos", icon: LayoutDashboard } : { ...item, icon: SIMPLE_ICON[item.href] });
 }
 
 /** Botão que troca entre modo simples e menu completo. */
@@ -257,7 +257,7 @@ export function Shell({
   const simpleMenu = (
     <nav aria-label="Navegação do laboratório" className="flex flex-col gap-2">
       {simpleNav.map((item) => {
-        const active = current?.href === item.href;
+        const active = current?.href === item.href || (hasProductionOverview(role) && item.href === "/inicio" && pathname === "/dashboard");
         const Icon = item.icon;
         const count = item.href === "/lentes" ? lensLate : 0;
         return (
@@ -524,7 +524,7 @@ function MobileDock({
       style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
     >
       {items.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active = pathname === item.href || pathname.startsWith(`${item.href}/`) || (hasProductionOverview(role) && item.href === "/inicio" && pathname === "/dashboard");
         const Icon = item.icon;
         const count = item.href === "/lentes" ? lensLate : item.href === "/assistencia" ? boOpen : item.href === "/recados" ? unread : 0;
         return (

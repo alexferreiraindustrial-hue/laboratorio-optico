@@ -39,7 +39,7 @@ import { useEffect, useState } from "react";
 import { signOut } from "@/server/actions";
 import { OperationModeProvider } from "./operation-mode";
 import { setViewMode } from "@/server/simple-mode";
-import { SIMPLE_NAV, simpleAllowed } from "@/lib/domain/simple-nav";
+import { SIMPLE_NAV, simpleAllowed, hasProductionOverview } from "@/lib/domain/simple-nav";
 import { LensMark } from "@/components/lens";
 import { can } from "@/lib/domain/permissions";
 import { ROLE_LABEL, type AppRole } from "@/lib/domain/constants";
@@ -162,7 +162,7 @@ const SIMPLE_ICON: Record<string, typeof LayoutDashboard> = {
 };
 
 function simpleItems(role: AppRole) {
-  return SIMPLE_NAV.filter((item) => simpleAllowed(role, item.href)).map((item) => ({ ...item, icon: SIMPLE_ICON[item.href] }));
+  return SIMPLE_NAV.filter((item) => simpleAllowed(role, item.href)).map((item) => item.href === "/inicio" && hasProductionOverview(role) ? { ...item, label: "Visão geral", hint: "Produção, prazos e atalhos", icon: LayoutDashboard } : { ...item, icon: SIMPLE_ICON[item.href] });
 }
 
 /** Botão que troca entre modo simples e menu completo. */

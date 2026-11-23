@@ -27,7 +27,7 @@ function firstName(name: string) {
   return name.trim().split(/\s+/)[0] || "";
 }
 
-export default async function InicioPage({searchParams}:{searchParams?:Promise<DashboardFilters>} = {}) {
+export default async function InicioPage({searchParams}:{searchParams?:Promise<DashboardFilters>}) {
   const session = await requireProfile();
   const { supabase, profile, role } = session;
   if (hasProductionOverview(role)) return <ProductionDashboard session={session} searchParams={searchParams ?? Promise.resolve({})}/>;

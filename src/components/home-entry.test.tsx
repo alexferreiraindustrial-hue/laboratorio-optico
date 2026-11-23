@@ -21,7 +21,7 @@ function session(role:AppRole){return {role,profile:{id:"demo",full_name:"Pessoa
 describe("Home entry after the Oficina de Luz redesign",()=>{
  for(const role of ["admin","gestor","consulta"] as const)it(`shows the production overview directly at /inicio for ${role}`,async()=>{
   const context=session(role);mocks.requireProfile.mockResolvedValue(context);
-  const page=await InicioPage();
+  const page=await InicioPage({});
   expect(page.type).toBe(ProductionDashboard);
   expect(page.props).toMatchObject({session:context});
   expect(mocks.from).not.toHaveBeenCalled();
@@ -34,7 +34,7 @@ describe("Home entry after the Oficina de Luz redesign",()=>{
  });
  for(const role of ["montador","estoquista"] as const)it(`preserves quick operational entry for ${role}`,async()=>{
   mocks.requireProfile.mockResolvedValue(session(role));
-  const page=await InicioPage();
+  const page=await InicioPage({});
   expect(page.type).not.toBe(ProductionDashboard);
   expect(mocks.from).toHaveBeenCalledTimes(5);
  });

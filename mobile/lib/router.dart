@@ -92,7 +92,8 @@ GoRouter createRouter(Session session) {
         builder: (context, state) {
           final status = state.pathParameters['status'] ?? '';
           return OrdersScreen(
-            key: ValueKey(status),
+            key: ValueKey('$status-${state.uri.query}'),
+            sellerId: state.uri.queryParameters['vendedora'],
             status: queueStatuses.contains(status)
                 ? status
                 : 'aguardando_lentes',
@@ -120,6 +121,9 @@ GoRouter createRouter(Session session) {
         path: '/os',
         builder: (context, state) => OrdersScreen(
           key: ValueKey(state.uri.query),
+          sellerId: state.uri.queryParameters['vendedora'],
+          focus: state.uri.queryParameters['foco'] ?? 'all',
+          initialQuery: state.uri.queryParameters['busca'] ?? '',
           status: queueStatuses.contains(state.uri.queryParameters['status'])
               ? state.uri.queryParameters['status']
               : null,
@@ -260,42 +264,60 @@ class _LabAppState extends State<LabApp> {
     super.initState();
     themePreference.load();
   }
+
   @override
   void dispose() {
     themePreference.dispose();
     router.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(listenable: themePreference, builder: (context, _) => MaterialApp.router(
-      title: 'Lab Gold',
-      theme: labTheme(),
-      darkTheme: labTheme(dark: true),
-      themeMode: themePreference.dark ? ThemeMode.dark : ThemeMode.light,
-      builder: (context, child) => Stack(children: [
-        if (child != null) child,
-        Positioned(right: 12, bottom: 88 + MediaQuery.paddingOf(context).bottom,
-          child: SafeArea(child: Material(
-            color: Theme.of(context).colorScheme.surface,
-            elevation: 2, borderRadius: BorderRadius.circular(28),
-            child: IconButton(
-              tooltip: themePreference.dark ? 'Usar tema claro' : 'Usar tema escuro',
-              isSelected: themePreference.dark,
-              icon: Icon(themePreference.dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
-              onPressed: themePreference.toggle,
+    return ListenableBuilder(
+      listenable: themePreference,
+      builder: (context, _) => MaterialApp.router(
+        title: 'Lab Gold',
+        theme: labTheme(),
+        darkTheme: labTheme(dark: true),
+        themeMode: themePreference.dark ? ThemeMode.dark : ThemeMode.light,
+        builder: (context, child) => Stack(
+          children: [
+            if (child != null) child,
+            Positioned(
+              right: 12,
+              bottom: 88 + MediaQuery.paddingOf(context).bottom,
+              child: SafeArea(
+                child: Material(
+                  color: Theme.of(context).colorScheme.surface,
+                  elevation: 2,
+                  borderRadius: BorderRadius.circular(28),
+                  child: IconButton(
+                    tooltip: themePreference.dark
+                        ? 'Usar tema claro'
+                        : 'Usar tema escuro',
+                    isSelected: themePreference.dark,
+                    icon: Icon(
+                      themePreference.dark
+                          ? Icons.light_mode_outlined
+                          : Icons.dark_mode_outlined,
+                    ),
+                    onPressed: themePreference.toggle,
+                  ),
+                ),
+              ),
             ),
-          )),
+          ],
         ),
-      ]),
-      locale: Locale('pt', 'BR'),
-      supportedLocales: [Locale('pt', 'BR')],
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      routerConfig: router,
-    ));
+        locale: Locale('pt', 'BR'),
+        supportedLocales: [Locale('pt', 'BR')],
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        routerConfig: router,
+      ),
+    );
   }
 }

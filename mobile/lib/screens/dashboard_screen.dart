@@ -4,292 +4,261 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../design/la_design.dart';
-import '../notice_bell.dart';
 import '../domain.dart';
-import '../floor_format.dart';
 import '../lab_api.dart';
+import '../notice_bell.dart';
+import '../overview_content.dart';
+import '../production_scope.dart';
+import '../production_widgets.dart';
 import '../session.dart';
 import 'bench_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key, required this.session});
+  const DashboardScreen({
+    super.key,
+    required this.session,
+    required this.scope,
+    this.active = true,
+  });
   final Session session;
-
+  final ProductionScope scope;
+  final bool active;
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final api = LabApi();
-  Map<String, int> counts = {};
-  int lowStock = 0;
+  List<Map<String, dynamic>> orders = [];
   String? error;
-  bool loading = true;
-  Timer? _timer;
-
+  int? lowStock;
+  DateTime? updated;
+  bool busy = false;
+  Timer? timer;
   @override
   void initState() {
     super.initState();
     load();
-    _timer = Timer.periodic(Duration(seconds: 20), (_) {
-      if (mounted) load(silent: true);
+    timer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (widget.active) load();
     });
   }
 
   @override
+  void didUpdateWidget(covariant DashboardScreen old) {
+    super.didUpdateWidget(old);
+    if (widget.active && !old.active) load();
+  }
+
+  @override
   void dispose() {
-    _timer?.cancel();
+    timer?.cancel();
     super.dispose();
   }
 
-  Future<void> load({bool silent = false}) async {
+  Future<void> load() async {
+    if (busy) return;
+    setState(() => busy = true);
+    unawaited(loadStock());
     try {
-      final next = await api.pipeline();
-      final stock = await api.lowStockCount();
+      final request = api.overviewOrders();
+      final catalog = widget.scope.refreshSellers();
+      final next = await request;
+      await catalog;
       if (!mounted) return;
       setState(() {
-        counts = next;
-        lowStock = stock;
+        orders = next;
+        updated = DateTime.now();
         error = null;
-        if (!silent) loading = false;
       });
     } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        error = friendlyError(e);
-        if (!silent) loading = false;
-      });
+      if (mounted) setState(() => error = friendlyError(e));
+    } finally {
+      if (mounted) setState(() => busy = false);
     }
   }
 
-  String get _name => widget.session.profile?.fullName ?? 'Laboratório';
+  Future<void> loadStock() async {
+    try {
+      final count = await api.lowStockCount();
+      if (mounted) setState(() => lowStock = count);
+    } catch (_) {
+      if (mounted) setState(() => lowStock = null);
+    }
+  }
 
-  void _open(String status) {
+  void openStage(String status) {
     if (status == 'aguardando_lentes') {
       context.go('/lentes');
-      return;
-    }
-    if (benchStatuses.contains(status)) {
+    } else if (benchStatuses.contains(status)) {
       BenchScreen.station.value = status;
       context.go('/bancada');
-      return;
+    } else {
+      context.push(
+        Uri(
+          path: '/fila/$status',
+          queryParameters: {
+            if (widget.scope.sellerId != null)
+              'vendedora': widget.scope.sellerId!,
+          },
+        ).toString(),
+      );
     }
-    context.push('/fila/$status');
+  }
+
+  Future<void> openOrder(String id) async {
+    await context.push('/os/$id');
+    if (mounted) await load();
   }
 
   @override
-  Widget build(BuildContext context) {
-    final role = widget.session.profile?.role ?? '';
-    final alert = lowStock > 0;
-    return SafeArea(
-      bottom: false,
-      child: RefreshIndicator(
-        color: LaColors.adapt(context, LaColors.grafite),
-        backgroundColor: LaColors.surface(context),
-        onRefresh: load,
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(
-            LaSpace.tela,
-            LaSpace.l,
-            LaSpace.tela,
-            LaSpace.xxl,
-          ),
-          children: [
-            Row(
-              children: [
-                LaMonogram(size: 44),
-                SizedBox(width: LaSpace.l),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Lab Gold',
-                        style: LaType.corpoForte.copyWith(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        dataPorExtenso(DateTime.now()),
-                        style: LaType.rotulo.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: LaColors.adapt(context, LaColors.regua),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                NoticeBell(),
-              ],
-            ),
-            SizedBox(height: LaSpace.secao),
-            LaCommandPlate(
-              onLancarOs: () => context.go('/lancar'),
-              onOsCompleta: () => context.push('/os/nova'),
-              onRotina: () => context.push('/rotina'),
-              onConfigurarRotina: () => context.push(
-                canSettingsWrite(role) ? '/configuracoes' : '/mais',
-              ),
-            ),
-            SizedBox(height: LaSpace.secao),
-            if (error != null)
-              LaErrorBanner(
-                titulo: 'Painel indisponível',
-                mensagem: error!,
-                onTentarDeNovo: load,
-              ),
-            if (loading)
-              Padding(
-                padding: EdgeInsets.all(40),
-                child: Center(
-                  child: CircularProgressIndicator(color: LaColors.adapt(context, LaColors.grafite)),
-                ),
-              )
-            else
-              LaFlowList(
-                steps: [
-                  for (final status in queueStatuses)
-                    LaFlowStep(
-                      rotulo: statusLabel[status] ?? status,
-                      subtitulo: _subtitulo(status),
-                      contagem: counts[status] ?? 0,
-                      kind: _kind(status),
-                      onTap: () => _open(status),
-                    ),
-                ],
-              ),
-            SizedBox(height: LaSpace.secao),
-            _StockNotice(
-              alert: alert,
-              lowStock: lowStock,
-              onTap: () => context.push('/estoque'),
-            ),
-            SizedBox(height: LaSpace.item),
-            _ProfileChip(name: _name, onTap: () => context.go('/mais')),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _subtitulo(String status) {
-    return switch (status) {
-      'aguardando_lentes' || 'aguardando_montagem' => 'Fila',
-      'em_montagem' => 'Na bancada',
-      'em_correcao' => 'Retrabalho',
-      'em_conferencia' => 'Inspeção',
-      'pronto' => 'Saída',
-      _ => '',
-    };
-  }
-
-  LaFlowKind _kind(String status) {
-    return switch (status) {
-      'em_montagem' => LaFlowKind.bancada,
-      'em_correcao' => LaFlowKind.retrabalho,
-      'em_conferencia' => LaFlowKind.inspecao,
-      'pronto' => LaFlowKind.saida,
-      _ => LaFlowKind.fila,
-    };
-  }
-}
-
-class _StockNotice extends StatelessWidget {
-  const _StockNotice({
-    required this.alert,
-    required this.lowStock,
-    required this.onTap,
-  });
-  final bool alert;
-  final int lowStock;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: LaColors.surface(context),
-      shape: RoundedRectangleBorder(
-        borderRadius: LaRadius.rCartao,
-        side: BorderSide(
-          color: alert ? LaColors.adapt(context, LaColors.alertaBorda) : LaColors.adapt(context, LaColors.linha),
-          width: alert ? 1.5 : 1,
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: SizedBox(
-          height: LaSize.toque + 8,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: LaSpace.interno),
-            child: Row(
-              children: [
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: alert
-                        ? LaColors.adapt(context, LaColors.pontoProximo)
-                        : LaColors.adapt(context, LaColors.pontoNoPrazo),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                SizedBox(width: LaSpace.m),
-                Expanded(
-                  child: Text(
-                    alert ? '$lowStock lentes no mínimo' : 'Estoque em dia',
-                    style: LaType.corpoForte,
-                  ),
-                ),
-                Icon(Icons.north_east, color: LaColors.adapt(context, LaColors.grafite), size: 20),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ProfileChip extends StatelessWidget {
-  const _ProfileChip({required this.name, required this.onTap});
-  final String name;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: LaColors.surface(context),
-      borderRadius: LaRadius.rCartao,
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(10, 10, 16, 10),
-          child: Row(
+  Widget build(BuildContext context) => SafeArea(
+    bottom: false,
+    child: RefreshIndicator(
+      onRefresh: load,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+        children: [
+          Row(
             children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: Color(0xFF222222),
-                child: Text(
-                  iniciaisDe(name),
-                  style: LaType.rotulo.copyWith(color: LaColors.branco),
+              LaMonogram(size: 34),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'LABGOLD · PRODUÇÃO',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        letterSpacing: 1.2,
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Visão geral',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -.6,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(width: LaSpace.l),
-              Expanded(
-                child: Text(
-                  name,
-                  style: LaType.corpoForte,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              IconButton(
+                tooltip: 'Atualizar visão geral',
+                onPressed: busy ? null : load,
+                icon: busy
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.refresh),
+              ),
+              NoticeBell(),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            updated == null
+                ? 'A operação do laboratório em uma tela.'
+                : 'Atualizado às ${updated!.hour.toString().padLeft(2, '0')}:${updated!.minute.toString().padLeft(2, '0')} · serviços em andamento',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              if (canWriteOrders(widget.session.profile?.role ?? ''))
+                FilledButton.icon(
+                  onPressed: () => context.go('/lancar'),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Lançar serviço'),
                 ),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/assistencia'),
+                icon: const Icon(Icons.handyman_outlined, size: 18),
+                label: const Text('Assistência'),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 18),
+          if (error != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: LaErrorBanner(
+                titulo: updated == null
+                    ? 'Não foi possível carregar'
+                    : 'Dados da última consulta',
+                mensagem: error!,
+                onTentarDeNovo: load,
+              ),
+            ),
+          if (updated == null && error == null)
+            const Padding(
+              padding: EdgeInsets.all(36),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          if (updated != null)
+            OverviewContent(
+              orders: orders,
+              scope: widget.scope,
+              now: DateTime.now(),
+              onOrder: openOrder,
+              onStage: openStage,
+              onAll: (seller, focus) => context.push(
+                Uri(
+                  path: '/os',
+                  queryParameters: {
+                    if (seller != null) 'vendedora': seller,
+                    'foco': focus,
+                  },
+                ).toString(),
+              ),
+            ),
+          const SizedBox(height: 18),
+          if (lowStock != null && lowStock! > 0)
+            ProductionPanel(
+              child: ListTile(
+                leading: Icon(
+                  Icons.inventory_2_outlined,
+                  color: LaColors.adapt(context, LaColors.alerta),
+                ),
+                title: Text('$lowStock itens abaixo do mínimo'),
+                subtitle: const Text('Conferir o estoque de lentes'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/estoque'),
+              ),
+            ),
+          const Divider(),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              TextButton.icon(
+                onPressed: () => context.push('/estoque'),
+                icon: const Icon(Icons.inventory_2_outlined, size: 17),
+                label: const Text('Estoque'),
+              ),
+              TextButton.icon(
+                onPressed: () => context.push('/rotina'),
+                icon: const Icon(Icons.checklist, size: 17),
+                label: const Text('Rotina'),
+              ),
+              TextButton.icon(
+                onPressed: () => context.go('/mais'),
+                icon: const Icon(Icons.apps, size: 17),
+                label: const Text('Todas as áreas'),
+              ),
+            ],
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }

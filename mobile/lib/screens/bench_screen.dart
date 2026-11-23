@@ -6,10 +6,20 @@ import '../design/la_design.dart';
 import '../domain.dart';
 import '../lab_api.dart';
 import '../session.dart';
+import '../production_scope.dart';
+import '../production_summary.dart';
+import '../production_widgets.dart';
 
 class BenchScreen extends StatefulWidget {
-  const BenchScreen({super.key, required this.session});
+  const BenchScreen({
+    super.key,
+    required this.session,
+    required this.scope,
+    this.active = true,
+  });
   final Session session;
+  final ProductionScope scope;
+  final bool active;
 
   static final station = ValueNotifier<String>('aguardando_montagem');
 
@@ -21,6 +31,8 @@ class _BenchScreenState extends State<BenchScreen> {
   final api = LabApi();
   List<Map<String, dynamic>> orders = [];
   String? error;
+  String query = "";
+  bool attention = false;
   String? pendingId;
 
   static const _stations = [
@@ -34,12 +46,25 @@ class _BenchScreenState extends State<BenchScreen> {
   void initState() {
     super.initState();
     BenchScreen.station.addListener(_onStation);
+    widget.scope.addListener(_onStation);
     load();
+  }
+
+  @override
+  void didUpdateWidget(covariant BenchScreen old) {
+    super.didUpdateWidget(old);
+    if (widget.active && !old.active) load();
+  }
+
+  Future<void> openOrder(String id) async {
+    await context.push('/os/$id');
+    if (mounted) await load();
   }
 
   @override
   void dispose() {
     BenchScreen.station.removeListener(_onStation);
+    widget.scope.removeListener(_onStation);
     super.dispose();
   }
 
@@ -116,18 +141,12 @@ class _BenchScreenState extends State<BenchScreen> {
   }
 
   List<Map<String, dynamic>> _of(String status) {
-    final rows = [
-      for (final order in orders)
-        if ('${order['status']}' == status) order,
-    ];
-    rows.sort((a, b) {
-      final urgentA = a['priority'] == 'critica' ? 0 : 1;
-      final urgentB = b['priority'] == 'critica' ? 0 : 1;
-      final byUrgent = urgentA.compareTo(urgentB);
-      if (byUrgent != 0) return byUrgent;
-      return '${a['due_at'] ?? '9'}'.compareTo('${b['due_at'] ?? '9'}');
-    });
-    return rows;
+    return selectProduction(
+      orders,
+      sellerId: widget.scope.sellerId,
+      query: query,
+      attention: attention,
+    ).where((row) => row['status'] == status).toList();
   }
 
   @override
@@ -136,7 +155,11 @@ class _BenchScreenState extends State<BenchScreen> {
     final current = BenchScreen.station.value;
     final items = _of(current);
     final total = orders
-        .where((order) => benchStatuses.contains('${order['status']}'))
+        .where(
+          (order) =>
+              widget.scope.matches(order) &&
+              benchStatuses.contains('${order['status']}'),
+        )
         .length;
     return RefreshIndicator(
       color: LaColors.adapt(context, LaColors.grafite),
@@ -176,6 +199,25 @@ class _BenchScreenState extends State<BenchScreen> {
             ),
             SizedBox(height: LaSpace.item),
           ],
+          SellerPicker(scope: widget.scope, orders: orders),
+          const SizedBox(height: 12),
+          TextField(
+            onChanged: (value) => setState(() => query = value),
+            decoration: const InputDecoration(
+              hintText: 'OS, cliente ou vendedora',
+              prefixIcon: Icon(Icons.search),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilterChip(
+              label: const Text('Atenção aos prazos'),
+              selected: attention,
+              onSelected: (value) => setState(() => attention = value),
+            ),
+          ),
+          const SizedBox(height: 12),
           LaAdaptiveGrid(
             minWidth: 150,
             children: [
@@ -232,7 +274,7 @@ class _BenchScreenState extends State<BenchScreen> {
       acaoFinal: action.to == 'pronto',
       carregando: pendingId == id,
       onAcao: action.kind == 'none' ? null : () => run(order),
-      onAbrir: () => context.push('/os/$id'),
+      onAbrir: () => openOrder(id),
     );
   }
 }

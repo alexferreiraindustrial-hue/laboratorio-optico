@@ -3,17 +3,29 @@ import 'package:go_router/go_router.dart';
 
 import '../design/la_design.dart';
 import '../session.dart';
+import '../production_scope.dart';
 import 'bench_screen.dart';
 import 'dashboard_screen.dart';
 import 'launch_screen.dart';
 import 'lenses_screen.dart';
 import 'more_screen.dart';
 
-class ShellScreen extends StatelessWidget {
+class ShellScreen extends StatefulWidget {
   const ShellScreen({super.key, required this.session});
   final Session session;
-
   static const paths = ['/painel', '/lancar', '/bancada', '/lentes', '/mais'];
+  @override
+  State<ShellScreen> createState() => _ShellScreenState();
+}
+
+class _ShellScreenState extends State<ShellScreen> {
+  final scope = ProductionScope();
+  static const paths = ShellScreen.paths;
+  @override
+  void dispose() {
+    scope.dispose();
+    super.dispose();
+  }
 
   int _tabOf(String location) {
     for (var i = 0; i < paths.length; i++) {
@@ -47,7 +59,7 @@ class ShellScreen extends StatelessWidget {
                 destinations: [
                   NavigationRailDestination(
                     icon: Icon(Icons.dashboard_outlined),
-                    label: Text('Hoje'),
+                    label: Text('Visão geral'),
                   ),
                   NavigationRailDestination(
                     icon: Icon(Icons.add_circle_outline),
@@ -77,21 +89,27 @@ class ShellScreen extends StatelessWidget {
                 children: [
                   DashboardScreen(
                     key: ValueKey('tab-painel'),
-                    session: session,
+                    scope: scope,
+                    active: tab == 0,
+                    session: widget.session,
                   ),
-                  LaunchScreen(
-                    key: ValueKey('tab-lancar'),
-                    inShell: true,
-                  ),
+                  LaunchScreen(key: ValueKey('tab-lancar'), inShell: true),
                   BenchScreen(
                     key: ValueKey('tab-bancada'),
-                    session: session,
+                    scope: scope,
+                    active: tab == 2,
+                    session: widget.session,
                   ),
                   LensesScreen(
                     key: ValueKey('tab-lentes'),
-                    session: session,
+                    scope: scope,
+                    active: tab == 3,
+                    session: widget.session,
                   ),
-                  MoreScreen(key: ValueKey('tab-mais'), session: session),
+                  MoreScreen(
+                    key: ValueKey('tab-mais'),
+                    session: widget.session,
+                  ),
                 ],
               ),
             ),

@@ -32,7 +32,7 @@ class LaTabBar extends StatelessWidget {
                     ? const Color(0xFF1A1205)
                     : LaColors.acento,
               ),
-              label: 'Hoje',
+              label: 'Visão geral',
             ),
             NavigationDestination(
               icon: Icon(Icons.add_circle_outline),

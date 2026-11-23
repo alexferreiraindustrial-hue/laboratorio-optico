@@ -43,6 +43,19 @@ void main() {
     );
     expect(scheme.primary, const Color(0xFFF5B53D));
   });
+  test('etiquetas selecionadas preservam contraste AA nos dois temas', () {
+    for (final dark in [false, true]) {
+      final theme = labTheme(dark: dark);
+      final foreground = WidgetStateProperty.resolveAs<Color>(
+        theme.chipTheme.labelStyle!.color!,
+        {WidgetState.selected},
+      );
+      expect(
+        contrast(foreground, theme.chipTheme.selectedColor!),
+        greaterThanOrEqualTo(4.5),
+      );
+    }
+  });
   for (final dark in [false, true]) {
     testWidgets('tema $dark mantém texto, controles e alertas legíveis', (
       tester,

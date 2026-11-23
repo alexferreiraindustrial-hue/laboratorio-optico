@@ -105,6 +105,7 @@ export async function saveSeller(formData: FormData): Promise<ActionResult> {
     if (pinError) return { ok: false, message: pinError.message };
     const login = access && typeof access === "object" && "login" in access ? String((access as { login?: string }).login ?? "") : "";
     revalidatePath("/vendedores", "layout");
+  for(const path of ["/laboratorio/rapido","/laboratorio/nova","/montagem","/lentes","/inicio","/avisos"]) revalidatePath(path);
     revalidatePath("/lojas");
     revalidatePath("/laboratorio");
     return {
@@ -117,6 +118,7 @@ export async function saveSeller(formData: FormData): Promise<ActionResult> {
   }
 
   revalidatePath("/vendedores", "layout");
+  for(const path of ["/laboratorio/rapido","/laboratorio/nova","/montagem","/lentes","/inicio","/avisos"]) revalidatePath(path);
   revalidatePath("/lojas");
   revalidatePath("/laboratorio");
   return { ok: true, id: data.id, message: id ? "Vendedor atualizado." : "Vendedor cadastrado." };
@@ -136,6 +138,7 @@ export async function setSellerAppAccess(formData: FormData): Promise<ActionResu
   if (error) return { ok: false, message: error.message };
   const login = data && typeof data === "object" && "login" in data ? String((data as { login?: string }).login ?? "") : "";
   revalidatePath("/vendedores", "layout");
+  for(const path of ["/laboratorio/rapido","/laboratorio/nova","/montagem","/lentes","/inicio","/avisos"]) revalidatePath(path);
   return { ok: true, message: `Senha do vendedor atualizada no site e no app. Código: ${login}. Entregue a senha só para este vendedor.` };
 }
 
@@ -149,6 +152,7 @@ export async function issuePortalLink(subjectType: "store" | "seller", subjectId
   if (error || typeof data !== "string") return { ok: false, message: error?.message ?? "Não foi possível gerar o link." };
   revalidatePath("/lojas");
   revalidatePath("/vendedores", "layout");
+  for(const path of ["/laboratorio/rapido","/laboratorio/nova","/montagem","/lentes","/inicio","/avisos"]) revalidatePath(path);
   return { ok: true, token: data, message: "Link gerado. Copie agora; ele não será mostrado de novo." };
 }
 
@@ -159,6 +163,7 @@ export async function revokePortalLink(credentialId: string): Promise<ActionResu
   if (error) return { ok: false, message: error.message };
   revalidatePath("/lojas");
   revalidatePath("/vendedores", "layout");
+  for(const path of ["/laboratorio/rapido","/laboratorio/nova","/montagem","/lentes","/inicio","/avisos"]) revalidatePath(path);
   return { ok: true, message: "Link revogado." };
 }
 

@@ -8,6 +8,90 @@ import 'domain.dart';
 final supabase = Supabase.instance.client;
 
 class LabApi {
+  Future<void> mergeOperations(List<Map<String, dynamic>> rows) async {
+    for (var offset = 0; offset < rows.length; offset += 150) {
+      final part = rows.skip(offset).take(150).toList();
+      final operations = await supabase
+          .from('service_orders')
+          .select(
+            'id,frame_state,express_minutes,express_started_at,express_finished_at,lens_arrived_at,updated_at,medical_review_required,medical_review_approved_at,medical_review_note,assistance_kind,assistance_origin_order_id',
+          )
+          .inFilter('id', part.map((row) => row['id'] as String).toList());
+      final byId = {for (final row in operations) row['id']: row};
+      for (final row in part) {
+        final op = byId[row['id']];
+        if (op == null)
+          throw StateError('Atualize a tela: acompanhamento não carregado.');
+        row.addAll(op);
+      }
+    }
+  }
+
+  Future<void> receiveLenses(String id) async {
+    await supabase.rpc('receive_order_lenses', params: {'p_order_id': id});
+  }
+
+  Future<void> receiveFrame(String id) async {
+    await supabase.rpc(
+      'receive_order_frame',
+      params: {'p_order_id': id, 'p_express_minutes': null},
+    );
+  }
+
+  Future<void> medicalReview(String id, bool required, String version) async {
+    await supabase.rpc(
+      'configure_medical_review',
+      params: {
+        'p_order_id': id,
+        'p_required': required,
+        'p_expected_updated_at': version,
+      },
+    );
+  }
+
+  Future<void> approveMedical(String id, String note, String version) async {
+    await supabase.rpc(
+      'approve_medical_review',
+      params: {
+        'p_order_id': id,
+        'p_note': note,
+        'p_expected_updated_at': version,
+      },
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> assistanceOrders() async {
+    final rows = await supabase
+        .from('service_orders')
+        .select('id,number,client_name,status,due_at,assistance_kind')
+        .not('assistance_kind', 'is', null)
+        .not('status', 'in', '(entregue,cancelado)')
+        .order('due_at');
+    return List<Map<String, dynamic>>.from(rows);
+  }
+
+  Future<Map<String, dynamic>> createAssistance({
+    required String original,
+    required String kind,
+    required String description,
+    required DateTime due,
+    required bool lenses,
+    required bool medical,
+  }) async {
+    final row = await supabase.rpc(
+      'create_assistance_order',
+      params: {
+        'p_original_number': original,
+        'p_kind': kind,
+        'p_description': description,
+        'p_due_at': due.toUtc().toIso8601String(),
+        'p_needs_lenses': lenses,
+        'p_medical_required': medical,
+      },
+    );
+    return Map<String, dynamic>.from(row as Map);
+  }
+
   Future<Map<String, int>> pipeline() async {
     final rows = await supabase
         .from('orders_enriched')
@@ -35,7 +119,7 @@ class LabApi {
         .from('sellers')
         .select('id, name, active, quick_code, phone, whatsapp, email, notes');
     if (activeOnly) query = query.eq('active', true);
-    final rows = await query.order('quick_code');
+    final rows = await query.order('name');
     return List<Map<String, dynamic>>.from(rows);
   }
 
@@ -68,31 +152,42 @@ class LabApi {
     String status = 'aguardando_lentes',
     String priority = 'normal',
     String? notes,
+    bool medicalRequired = false,
     String serviceDescription = 'Lançamento rápido',
     Map<String, dynamic>? lensSpec,
     String? lensExpectedAt,
     String? lensSupplierRef,
   }) async {
+    final payload = {
+      'p_client_name': clientName,
+      'p_seller_id': sellerId,
+      'p_store_id': storeId,
+      'p_laboratory_id': laboratoryId,
+      'p_entered_at': enteredAt ?? DateTime.now().toUtc().toIso8601String(),
+      'p_due_at': dueAt,
+      'p_notes':
+          notes ??
+          (orderRef != null && (clientName == 'OS $orderRef')
+              ? 'Lançamento rápido só com o número da OS — completar o nome do cliente.'
+              : 'Lançamento rápido.'),
+      'p_service_description': serviceDescription,
+      'p_external_order_id': orderRef,
+      'p_priority': priority,
+      'p_status': status,
+      'p_lens_spec': lensSpec ?? <String, dynamic>{},
+    };
     final data = await supabase.rpc(
-      'create_service_order',
-      params: {
-        'p_client_name': clientName,
-        'p_seller_id': sellerId,
-        'p_store_id': storeId,
-        'p_laboratory_id': laboratoryId,
-        'p_entered_at': enteredAt ?? DateTime.now().toUtc().toIso8601String(),
-        'p_due_at': dueAt,
-        'p_notes':
-            notes ??
-            (orderRef != null && (clientName == 'OS $orderRef')
-                ? 'Lançamento rápido só com o número da OS — completar o nome do cliente.'
-                : 'Lançamento rápido.'),
-        'p_service_description': serviceDescription,
-        'p_external_order_id': orderRef,
-        'p_priority': priority,
-        'p_status': status,
-        'p_lens_spec': lensSpec ?? <String, dynamic>{},
-      },
+      medicalRequired
+          ? 'create_service_order_followup'
+          : 'create_service_order',
+      params: medicalRequired
+          ? {
+              'p_order': payload,
+              'p_frame_state': 'unknown',
+              'p_express_minutes': null,
+              'p_medical_required': true,
+            }
+          : payload,
     );
     final order = Map<String, dynamic>.from(data as Map);
     if (lensExpectedAt != null ||
@@ -137,10 +232,9 @@ class LabApi {
         )
         .eq('status', 'aguardando_lentes')
         .order('due_at', ascending: true);
-    return onlyQueueStatus(
-      List<Map<String, dynamic>>.from(rows),
-      'aguardando_lentes',
-    );
+    final list = List<Map<String, dynamic>>.from(rows);
+    await mergeOperations(list);
+    return onlyQueueStatus(list, 'aguardando_lentes');
   }
 
   Future<List<Map<String, dynamic>>> readyQueue() async {
@@ -181,6 +275,7 @@ class LabApi {
     for (final order in list) {
       order['steps'] = byOrder[order['id']] ?? [];
     }
+    await mergeOperations(list);
     return list;
   }
 
@@ -377,6 +472,7 @@ class LabApi {
         .eq('id', id)
         .maybeSingle();
     if (order == null) throw StateError('OS não encontrada.');
+    await mergeOperations([order]);
     final stepsRaw = await _rowsOrEmpty(
       supabase
           .from('assembly_steps')
@@ -1028,11 +1124,7 @@ class LabApi {
   ) async {
     final data = await supabase.rpc(
       'seller_app_login',
-      params: {
-        'p_login': login.trim(),
-        'p_pin': pin,
-        'p_ip_hash': ipHash,
-      },
+      params: {'p_login': login.trim(), 'p_pin': pin, 'p_ip_hash': ipHash},
     );
     final row = Map<String, dynamic>.from(data as Map);
     return (

@@ -31,6 +31,7 @@ class _LaunchScreenState extends State<LaunchScreen> {
   String lensDate = '';
   String lensRef = '';
   bool urgent = false;
+  bool medicalRequired = false;
   bool pending = false;
   String? error;
   String? hint;
@@ -197,6 +198,7 @@ class _LaunchScreenState extends State<LaunchScreen> {
     for (final entry in entries) {
       try {
         final order = await api.createOrder(
+          medicalRequired: medicalRequired,
           clientName: quickClientName(entry),
           laboratoryId: labId!,
           sellerId: sellerId,
@@ -256,7 +258,27 @@ class _LaunchScreenState extends State<LaunchScreen> {
             children: [
               SafeArea(
                 bottom: false,
-                child: Text('Lançar', style: LaType.tituloTela),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text('Lançar serviço', style: LaType.tituloTela),
+                    ),
+                    IconButton(
+                      tooltip: 'Atualizar vendedoras e laboratórios',
+                      onPressed: pending ? null : load,
+                      icon: const Icon(Icons.refresh),
+                    ),
+                  ],
+                ),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Precisa passar pelo médico'),
+                subtitle: const Text('Somente quando houver indicação'),
+                value: medicalRequired,
+                onChanged: pending
+                    ? null
+                    : (value) => setState(() => medicalRequired = value),
               ),
               SizedBox(height: LaSpace.secao),
               TextField(
@@ -439,7 +461,9 @@ class _LaunchScreenState extends State<LaunchScreen> {
                   padding: EdgeInsets.only(top: LaSpace.item),
                   child: Text(
                     hint!,
-                    style: LaType.rotulo.copyWith(color: LaColors.adapt(context, LaColors.noPrazo)),
+                    style: LaType.rotulo.copyWith(
+                      color: LaColors.adapt(context, LaColors.noPrazo),
+                    ),
                   ),
                 ),
               if (error != null) ...[
@@ -534,7 +558,9 @@ class _Pick extends StatelessWidget {
             child: Text(
               label,
               style: LaType.rotulo.copyWith(
-                color: selected ? LaColors.branco : LaColors.adapt(context, LaColors.grafite),
+                color: selected
+                    ? LaColors.branco
+                    : LaColors.adapt(context, LaColors.grafite),
               ),
             ),
           ),

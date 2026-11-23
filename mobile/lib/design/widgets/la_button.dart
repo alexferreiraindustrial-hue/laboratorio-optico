@@ -44,13 +44,17 @@ class LaButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final (Color bg, Color fg, BorderSide side) = switch (variant) {
       LaButtonVariant.principal => (
-        Color(0xFF8C6239),
-        LaColors.branco,
+        Theme.of(context).colorScheme.primary,
+        Theme.of(context).colorScheme.onPrimary,
         BorderSide.none,
       ),
       LaButtonVariant.escuro => (
-        Color(0xFF222222),
-        LaColors.branco,
+        Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).colorScheme.primary
+            : const Color(0xFF222222),
+        Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).colorScheme.onPrimary
+            : LaColors.branco,
         BorderSide.none,
       ),
       LaButtonVariant.contorno => (
@@ -75,10 +79,7 @@ class LaButton extends StatelessWidget {
         : Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (leading != null) ...[
-                leading!,
-                SizedBox(width: LaSpace.item),
-              ],
+              if (leading != null) ...[leading!, SizedBox(width: LaSpace.item)],
               Flexible(
                 child: Text(
                   label,

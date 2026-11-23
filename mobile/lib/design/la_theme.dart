@@ -6,12 +6,12 @@ import 'la_tokens.dart';
 ThemeData laTheme({Brightness brightness = Brightness.light}) {
   final dark = brightness == Brightness.dark;
   Color tone(Color color) => LaColors.forBrightness(brightness, color);
-  final surface = dark ? Color(0xFF23211E) : LaColors.branco;
+  final surface = dark ? Color(0xFF131210) : LaColors.branco;
   final scheme = ColorScheme(
     brightness: brightness,
-    primary: LaColors.acento,
-    onPrimary: LaColors.branco,
-    secondary: LaColors.faixa,
+    primary: dark ? const Color(0xFFF5B53D) : LaColors.acento,
+    onPrimary: dark ? const Color(0xFF1A1205) : LaColors.branco,
+    secondary: dark ? const Color(0xFFF5C15A) : LaColors.faixa,
     onSurfaceVariant: tone(LaColors.regua),
     onSecondary: LaColors.branco,
     error: tone(LaColors.perigo),
@@ -23,7 +23,7 @@ ThemeData laTheme({Brightness brightness = Brightness.light}) {
 
   final base = ThemeData(useMaterial3: true, colorScheme: scheme);
   final text = base.textTheme.apply(
-    fontFamily: 'Manrope',
+    fontFamily: 'PlusJakartaSans',
     bodyColor: tone(LaColors.grafite),
     displayColor: tone(LaColors.grafite),
   );
@@ -52,15 +52,43 @@ ThemeData laTheme({Brightness brightness = Brightness.light}) {
       ),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(foregroundColor: tone(LaColors.acento), minimumSize: Size(48, 48)),
+      style: TextButton.styleFrom(
+        foregroundColor: tone(LaColors.acento),
+        minimumSize: Size(48, 48),
+      ),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: surface,
-      indicatorColor: tone(LaColors.acentoSuave),
+      indicatorColor: dark
+          ? const Color(0xFFF5B53D)
+          : tone(LaColors.acentoSuave),
+      indicatorShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
       labelTextStyle: WidgetStatePropertyAll(
         LaType.aba.copyWith(color: tone(LaColors.grafite)),
       ),
       elevation: 0,
+    ),
+    cardTheme: CardThemeData(
+      color: surface,
+      elevation: 0,
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      shape: RoundedRectangleBorder(
+        borderRadius: LaRadius.rCartao,
+        side: BorderSide(color: tone(LaColors.borda)),
+      ),
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: surface,
+      side: BorderSide(color: tone(LaColors.borda)),
+      labelStyle: text.labelMedium,
+    ),
+    expansionTileTheme: ExpansionTileThemeData(
+      textColor: tone(LaColors.grafite),
+      collapsedTextColor: tone(LaColors.grafite),
+      iconColor: tone(LaColors.acento),
+      collapsedIconColor: tone(LaColors.regua),
     ),
     splashFactory: InkRipple.splashFactory,
     appBarTheme: AppBarTheme(

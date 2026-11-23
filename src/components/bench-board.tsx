@@ -1,4 +1,5 @@
 "use client";
+import {sellerFilterNames} from "@/lib/domain/seller-filters";
 import {stageStyle,StepTrack} from "./production-visuals";
 import {LensGauge} from "./lens";
 import {ExpressCountdown} from "./order-operations";
@@ -32,7 +33,7 @@ function timeOf(iso: string | null) {
 
 const SHORT: Record<StepKey, string> = { conferencia_inicial: "Conferência", lensometria: "Lensometria", blocagem: "Blocagem", facetadora: "Facetadora", conferencia_qualidade: "Qualidade" };
 
-export function BenchBoard({ orders, role, error, nowIso, userId = "" }: { orders: BenchOrder[]; role: AppRole; error: string | null; nowIso: string; userId?: string }) {
+export function BenchBoard({ sellers = [], orders, role, error, nowIso, userId = "" }: { sellers?:{name:string;active:boolean}[]; orders: BenchOrder[]; role: AppRole; error: string | null; nowIso: string; userId?: string }) {
   const router = useRouter();
   const { simple } = useOperationMode();
   const boardId = useId();
@@ -103,7 +104,7 @@ export function BenchBoard({ orders, role, error, nowIso, userId = "" }: { order
       {!simple ? <><label className="text-xs font-medium text-[var(--muted)]">Responsável pela etapa<select value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)} className="mt-1 block min-h-11 max-w-56 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 text-sm"><option value="">Todos os responsáveis</option>{people.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></label>
       <label className="text-xs font-medium text-[var(--muted)]">Ordenação<select value={sort} onChange={(event) => setSort(event.target.value as BenchSort)} className="mt-1 block min-h-11 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 text-sm"><option value="risk">Maior risco primeiro</option><option value="deadline">Prazo mais próximo</option><option value="oldest">Entrada mais antiga</option></select></label></> : null}
     </div>
-    <label className="text-sm font-semibold">Vendedora<select value={seller} onChange={event=>setSeller(event.target.value)} className="ml-2 min-h-11 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3"><option value="">Todas as vendedoras</option>{Array.from(new Set(orders.map(order=>order.sellerName||"Sem vendedora"))).sort().map(name=><option key={name}>{name}</option>)}</select></label>
+    <label className="text-sm font-semibold">Vendedora<select value={seller} onChange={event=>setSeller(event.target.value)} className="ml-2 min-h-11 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3"><option value="">Todas as vendedoras</option>{sellerFilterNames(sellers,orders.map(order=>order.sellerName)).map(name=><option key={name}>{name}</option>)}</select></label>
     <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Foco da bancada">
       {([["all", "Todas"], ["risk", "Atenção aos prazos"], ["mine", "Minhas etapas em execução"], ["unassigned", "Sem responsável em execução"], ["critical", "Prioridade crítica"]] as const).filter(([value]) => !simple || ["all", "risk", "mine"].includes(value)).map(([value, label]) => <button key={value} type="button" onClick={() => setFocus(value)} aria-pressed={focus === value} className={cn("min-h-11 rounded-lg border px-3 text-xs font-semibold", focus === value ? "border-[var(--focus)] bg-[var(--accent-soft)] text-[var(--link)]" : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]")}>{label}</button>)}
       <span role="status" className="ml-auto text-xs text-[var(--muted)]">{visible.length} de {orders.length} OS{pending ? " · Salvando…" : ""}</span>

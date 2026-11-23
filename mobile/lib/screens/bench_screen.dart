@@ -27,7 +27,7 @@ class _BenchScreenState extends State<BenchScreen> {
     ('aguardando_montagem', 'Aguardando montagem'),
     ('em_montagem', 'Em montagem'),
     ('em_correcao', 'Em correção'),
-    ('em_conferencia', 'Em conferência'),
+    ('em_conferencia', 'Conferência Médico'),
   ];
 
   @override
@@ -64,6 +64,7 @@ class _BenchScreenState extends State<BenchScreen> {
   Future<void> run(Map<String, dynamic> order) async {
     final role = widget.session.profile?.role ?? 'consulta';
     final action = nextBenchAction(
+      medicalRequired: order['medical_review_required'] == true,
       status: order['status'] as String,
       role: role,
       steps: List<Map<String, dynamic>>.from(order['steps'] as List? ?? []),
@@ -208,6 +209,7 @@ class _BenchScreenState extends State<BenchScreen> {
 
   Widget _card(Map<String, dynamic> order, String role) {
     final action = nextBenchAction(
+      medicalRequired: order['medical_review_required'] == true,
       status: '${order['status']}',
       role: role,
       steps: List<Map<String, dynamic>>.from(order['steps'] as List? ?? []),
@@ -217,6 +219,9 @@ class _BenchScreenState extends State<BenchScreen> {
         ? (statusLabel[action.to!] ?? action.label)
         : action.label;
     return LaOsCard(
+      prazo: dueDeltaLabel(order['due_at'] as String?),
+      dueAt: order['due_at'] as String?,
+      medical: order['medical_review_required'] == true,
       numero: visibleOrderNumber(order),
       cliente: '${order['client_name'] ?? 'Sem nome'}',
       detalhe:
@@ -249,10 +254,14 @@ class _Station extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = selected ? Color(0xFF222222) : LaColors.surface(context);
+    final bg = selected
+        ? Theme.of(context).colorScheme.primary
+        : LaColors.surface(context);
     final fg = selected
-        ? LaColors.branco
-        : (alert ? LaColors.adapt(context, LaColors.alerta) : LaColors.adapt(context, LaColors.grafite));
+        ? Theme.of(context).colorScheme.onPrimary
+        : (alert
+              ? LaColors.adapt(context, LaColors.alerta)
+              : LaColors.adapt(context, LaColors.grafite));
     final number = selected ? LaColors.branco : fg;
     return Semantics(
       button: true,

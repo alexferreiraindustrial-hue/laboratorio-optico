@@ -22,7 +22,7 @@ export default async function LentesPage({ searchParams }: { searchParams: Promi
   const { role } = await requireProfile();
   const [{ rows, error }, stats] = await Promise.all([loadLensQueue(), loadSupplierStats()]);
   const detail = raw.os && /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(raw.os) ? await loadOrderDetail(raw.os) : null;
-  const catalogs = detail && can(role,"orders.write") ? await loadCatalogs() : null;
+  const catalogs = await loadCatalogs();
   const now = new Date();
   const risks = rows.filter(row=>!waitingForFrame(row)).map((row) => lensRisk({ dueAt: row.due_at, lensExpectedAt: row.lens_expected_at, now }).risk);
   const late = risks.filter((risk) => risk === "lente_atrasada").length;
@@ -57,7 +57,7 @@ export default async function LentesPage({ searchParams }: { searchParams: Promi
           tool="Fornecedor"
         />
       </MetricStrip>
-      <LensBoard rows={rows} canEdit={role !== "consulta" && role !== "estoquista"} canRelease={can(role, "orders.status") && role !== "montador"} nowIso={now.toISOString()} />
+      <LensBoard sellers={catalogs.sellers} rows={rows} canEdit={role !== "consulta" && role !== "estoquista"} canRelease={can(role, "orders.status") && role !== "montador"} nowIso={now.toISOString()} />
     </div>
     {detail ? <OrderDrawer key={detail.order.id} title={`OS ${visibleOrderNumber(detail.order)}`} closeHref="/lentes" detailHref={`/laboratorio/${detail.order.id}`}
       editor={catalogs ? <><OrderForm laboratories={catalogs.laboratories} sellers={catalogs.sellers} stores={catalogs.stores} sellerLinks={catalogs.sellerLinks} order={detail.order}/><LensForecastEditor orderId={detail.order.id} expectedAt={detail.order.lens_expected_at} supplierRef={detail.order.lens_supplier_ref}/></> : undefined}

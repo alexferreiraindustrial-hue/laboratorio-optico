@@ -4,21 +4,32 @@ import 'package:flutter/material.dart';
 
 /// Cores. Use sempre o token, nunca o hex solto.
 abstract final class LaColors {
-  static Color surface(BuildContext context) => Theme.of(context).colorScheme.surface;
-  static Color adapt(BuildContext context, Color color) => forBrightness(Theme.of(context).brightness, color);
+  static Color surface(BuildContext context) =>
+      Theme.of(context).colorScheme.surface;
+  static Color adapt(BuildContext context, Color color) =>
+      forBrightness(Theme.of(context).brightness, color);
   static Color forBrightness(Brightness brightness, Color color) {
     if (brightness != Brightness.dark) return color;
-    if (color == piso) return const Color(0xFF181715);
-    if (color == grafite) return const Color(0xFFF2EEE7);
-    if (color == regua || color == abaInativa) return const Color(0xFFC5BDB1);
-    if (color == borda || color == filete || color == linha) return const Color(0xFF514A41);
-    if (color == acentoSuave || color == alertaFundo) return const Color(0xFF382F22);
+    if (color == piso) return const Color(0xFF07070A);
+    if (color == grafite) return const Color(0xFFF3EEE6);
+    if (color == regua || color == abaInativa) return const Color(0xFFCFC6B8);
+    if (color == borda || color == filete || color == linha)
+      return const Color(0xFF48423A);
+    if (color == acentoSuave || color == alertaFundo)
+      return const Color(0xFF332613);
     if (color == perigoFundo) return const Color(0xFF3A2828);
-    if (color == perigo || color == pontoAtrasada) return const Color(0xFFEFAAAA);
-    if (color == alerta || color == alertaBorda || color == pontoProximo || color == acento) return const Color(0xFFE2BD87);
-    if (color == noPrazo || color == pontoNoPrazo) return const Color(0xFF8AD3B0);
+    if (color == perigo || color == pontoAtrasada)
+      return const Color(0xFFFF8A7A);
+    if (color == alerta ||
+        color == alertaBorda ||
+        color == pontoProximo ||
+        color == acento)
+      return const Color(0xFFF5C15A);
+    if (color == noPrazo || color == pontoNoPrazo)
+      return const Color(0xFF4ADE80);
     return color;
   }
+
   static const acento = Color(0xFF8C6239);
   static const acentoSuave = Color(0xFFF3ECE2);
   static const navegacao = Color(0xFF222222);
@@ -61,8 +72,8 @@ abstract final class LaSpace {
 
 abstract final class LaRadius {
   static const double chip = 6;
-  static const double botao = 12;
-  static const double cartao = 16;
+  static const double botao = 14;
+  static const double cartao = 20;
   static const double folha = 24;
 
   static const BorderRadius rChip = BorderRadius.all(Radius.circular(chip));
@@ -91,7 +102,7 @@ abstract final class LaType {
     double? ls,
     Color? c,
   }) => TextStyle(
-    fontFamily: 'Manrope',
+    fontFamily: 'PlusJakartaSans',
     fontSize: size,
     fontWeight: w,
     height: h,
@@ -105,7 +116,7 @@ abstract final class LaType {
     double? h,
     Color? c,
   }) => TextStyle(
-    fontFamily: 'Manrope',
+    fontFamily: 'PlusJakartaSans',
     fontSize: size,
     fontWeight: w,
     height: h,
@@ -129,8 +140,7 @@ abstract final class LaType {
   static TextStyle get botaoGrande => _ui(18, w: FontWeight.w700);
   static TextStyle get rotulo => _ui(14, w: FontWeight.w600);
   static TextStyle get apoio => _ui(13, w: FontWeight.w400);
-  static TextStyle get aba =>
-      _ui(12, w: FontWeight.w600);
+  static TextStyle get aba => _ui(12, w: FontWeight.w600);
   static TextStyle get abaAtiva =>
       _ui(12, w: FontWeight.w700, c: LaColors.branco);
 }

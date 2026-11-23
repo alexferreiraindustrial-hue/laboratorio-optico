@@ -1,4 +1,5 @@
 "use client";
+import {sellerFilterNames} from "@/lib/domain/seller-filters";
 import { ChevronDown, PackageOpen, Printer, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -51,7 +52,7 @@ function LensLine({row,now,index,selected,onToggle,canEdit,canRelease,disabled}:
   </div>
  </li>;
 }
-export function LensBoard({rows,canEdit,canRelease,nowIso}:{rows:LensQueueRow[];canEdit:boolean;canRelease:boolean;nowIso:string}) {
+export function LensBoard({sellers = [],rows,canEdit,canRelease,nowIso}:{sellers?:{name:string;active:boolean}[];rows:LensQueueRow[];canEdit:boolean;canRelease:boolean;nowIso:string}) {
  const router=useRouter();const[clock,setClock]=useState(nowIso);const now=useMemo(()=>new Date(clock),[clock]);
  const[lane,setLane]=useState<"lenses"|"vta">("lenses");
  const queueRows=useMemo(()=>rows.filter(row=>waitingForFrame(row)===(lane==="vta")),[rows,lane]);
@@ -69,7 +70,7 @@ export function LensBoard({rows,canEdit,canRelease,nowIso}:{rows:LensQueueRow[];
   <div className="flex flex-wrap gap-2">{(["lenses","vta"] as const).map(key=><button type="button" key={key} aria-pressed={lane===key} onClick={()=>{setLane(key);setFilter("todas");setSelected(new Set());}} className={`min-h-11 rounded-lg border px-3 text-sm font-semibold ${lane===key?"border-[var(--accent)] bg-[var(--accent)] text-white":"border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]"}`}>{key==="vta"?"VTA · lente recebida":"Lentes a chegar"} <span className="font-mono">{rows.filter(row=>waitingForFrame(row)===(key==="vta")).length}</span></button>)}<Link href="/avisos" className="ml-auto flex min-h-11 items-center px-2 text-sm font-semibold text-[var(--link)]">Gerar avisos por vendedora →</Link></div>
   {lane==="lenses"&&<LensArrivalWeek rows={queueRows} now={now}/>}
   <p className="text-xs text-[var(--muted)]">Ordenado por urgência · atrasadas e prazos mais próximos primeiro.</p>
-  <div className="flex flex-wrap items-end gap-3"><label className="text-xs font-semibold">Vendedora<select value={seller} onChange={event=>{setSeller(event.target.value);setSelected(new Set());}} className="mt-1 block min-h-11 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3"><option value="">Todas as vendedoras</option>{Array.from(new Set(rows.map(row=>row.seller_name||"Sem vendedora"))).sort().map(name=><option key={name}>{name}</option>)}</select></label>
+  <div className="flex flex-wrap items-end gap-3"><label className="text-xs font-semibold">Vendedora<select value={seller} onChange={event=>{setSeller(event.target.value);setSelected(new Set());}} className="mt-1 block min-h-11 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3"><option value="">Todas as vendedoras</option>{sellerFilterNames(sellers,rows.map(row=>row.seller_name)).map(name=><option key={name}>{name}</option>)}</select></label>
   <label className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3"><Search size={17}/><input aria-label="Buscar OS, cliente, vendedora ou pedido" value={query} onChange={event=>{setQuery(event.target.value);setSelected(new Set());}} placeholder="OS, cliente, vendedora ou pedido" className="min-w-0 flex-1 bg-transparent text-sm outline-none"/></label></div>
   {lane!=="vta"&&<div className="flex flex-wrap gap-2">{chips.filter(key=>key==="todas"||counts[key]).map(key=><button key={key} type="button" aria-pressed={filter===key} onClick={()=>changeFilter(key)} className={`min-h-11 rounded-lg border border-[var(--line)] px-3 text-xs font-semibold ${filter===key?"bg-[var(--solid-ink)] text-white":"bg-[var(--surface)] text-[var(--muted)]"}`}>{key==="todas"?"Todas":LENS_RISK[key].label} <span className="font-mono">{key==="todas"?queueRows.length:counts[key]}</span></button>)}</div>}
   <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2"><label className="flex min-h-11 items-center gap-2 text-xs font-semibold"><input type="checkbox" disabled={pending||!visible.length} checked={visible.length>0&&visible.slice(0,100).every(({row})=>selected.has(row.id))} onChange={event=>setSelected(event.target.checked?new Set(visible.slice(0,100).map(({row})=>row.id)):new Set())}/>Selecionar até 100 OS visíveis</label><span className="ml-auto text-xs text-[var(--muted)]">{visible.length} OS · lista por prioridade</span></div>
@@ -79,7 +80,7 @@ export function LensBoard({rows,canEdit,canRelease,nowIso}:{rows:LensQueueRow[];
  </section>;
 }
 
-function LensArrivalWeek({rows,now}:{rows:LensQueueRow[];now:Date}) {
+function LensArrivalWeek({rows,now}:{sellers?:{name:string;active:boolean}[];rows:LensQueueRow[];now:Date}) {
  const today=zonedYmd(now);
  const counts=new Map<string,number>();
  for(const row of rows)if(row.lens_expected_at){const key=zonedYmd(new Date(row.lens_expected_at));counts.set(key,(counts.get(key)||0)+1);}

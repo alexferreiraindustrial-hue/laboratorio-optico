@@ -254,18 +254,19 @@ export function OrderScreen({
                       <Link
                         key={order.id}
                         href={orderHref(order.id)} scroll={false}
-                        className="flex min-h-[72px] items-start justify-between gap-3 overflow-hidden rounded-xl border bg-[var(--surface)]"
-                        style={{ borderLeftWidth: 8, borderLeftColor: late ? "#C0392B" : soon ? "#D97706" : "#1A7A63" }}
+                        className="lg-os-row"
                       >
-                        <span className="min-w-0 flex-1 p-3.5">
-                          <span className="font-mono text-[13px] font-semibold text-[var(--link)]">{visibleOrderNumber(order)}</span>
-                          <span className="mt-0.5 block truncate text-[13px] font-semibold text-[var(--link)]">{order.laboratory_name || "Sem laboratório"}</span>
-                          <span className="mt-0.5 block truncate text-[16px] font-semibold leading-snug">{order.client_name}</span>
-                          <span className={cn("mt-0.5 block truncate text-xs font-semibold", deadlineTone(order))}>
-                            {deltaLabel}
+                        <span className="lg-os-avatar" data-tone={late ? "late" : soon ? "soon" : "ok"} aria-hidden>{order.client_name.trim().split(/\s+/).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span>
+                        <span className="lg-os-row-body">
+                          <span className="flex items-baseline gap-2">
+                            <span className="min-w-0 flex-1 truncate text-[15.5px] font-semibold leading-snug">{order.client_name}</span>
+                            <span className={cn("shrink-0 text-xs font-semibold", deadlineTone(order))}>{deltaLabel}</span>
+                          </span>
+                          <span className="flex items-center gap-2 text-[13px] text-[var(--muted)]">
+                            <span className="min-w-0 flex-1 truncate"><span className="font-mono text-xs">{visibleOrderNumber(order)}</span> · {order.laboratory_name || "Sem laboratório"}</span>
+                            <StatusBadge status={order.status} />
                           </span>
                         </span>
-                        <span className="p-3.5"><StatusBadge status={order.status} /></span>
                       </Link>
                     );
                   })}

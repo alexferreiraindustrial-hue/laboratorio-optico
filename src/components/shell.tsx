@@ -7,6 +7,8 @@ import {
   ClipboardCheck,
   ClipboardList,
   FileText,
+  Glasses,
+  Truck,
   Home,
   LayoutList,
   LayoutDashboard,
@@ -153,6 +155,19 @@ const ACCESS: Record<AppRole, string[] | null> = {
 
 const allItems = groups.flatMap((group) => group.items);
 
+// Barra fina (versão limpa): um ícone com nome curto por grupo; as telas do grupo viram abas no topo.
+const GROUP_RAIL: Record<string, { short: string; icon: typeof LayoutDashboard }> = {
+  "Operação": { short: "Visão do dia", icon: LayoutDashboard },
+  "Entrada": { short: "OS", icon: ClipboardList },
+  "Lentes": { short: "Lentes", icon: Glasses },
+  "Montagem": { short: "Bancada", icon: Wrench },
+  "Saída": { short: "Saída", icon: Truck },
+  "Equipe": { short: "Equipe", icon: Users },
+  "Gestão": { short: "Gestão", icon: Activity },
+};
+/** Configurações fica no rodapé da barra fina, fora das abas. */
+const RAIL_FOOTER = "/configuracoes";
+
 const SIMPLE_ICON: Record<string, typeof LayoutDashboard> = {
   "/inicio": Home,
   "/laboratorio/rapido": Zap,
@@ -177,6 +192,16 @@ function ModeSwitch({ simple, className }: { simple: boolean; className?: string
         {simple ? <LayoutList size={18} /> : <Home size={18} />}
         <span className="flex-1">{simple ? "Ver menu completo" : "Usar modo simples"}</span>
       </button>
+    </form>
+  );
+}
+
+/** Versão em ícone do botão de modo simples, para a barra fina. */
+function ModeSwitchIcon() {
+  return (
+    <form action={setViewMode}>
+      <input type="hidden" name="modo" value="simples" />
+      <button type="submit" aria-label="Usar modo simples" title="Usar modo simples" className="lab-rail-round"><Home size={19} /></button>
     </form>
   );
 }
@@ -241,6 +266,11 @@ export function Shell({
   const current = [...allItems, ...simpleNav]
     .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
     .sort((a, b) => b.href.length - a.href.length)[0];
+  const activeGroup = visibleGroups.find((group) => group.items.some((item) => item.href === current?.href));
+  const sectionTabs = (activeGroup?.items ?? []).filter((item) => item.href !== RAIL_FOOTER);
+  const canSettings = visibleGroups.some((group) => group.items.some((item) => item.href === RAIL_FOOTER));
+  const groupCount = (title: string) => (title === "Entrada" ? openOrders : title === "Lentes" ? lensLate : title === "Montagem" ? boOpen : title === "Equipe" ? unread : 0);
+
   useEffect(() => {
     function focusSearch(event: KeyboardEvent) {
       const target = event.target;
@@ -362,15 +392,43 @@ export function Shell({
     </div>
   );
 
+  const rail = (
+    <aside id="desktop-sidebar" aria-label="Menu principal" className={cn("lab-rail no-print fixed inset-y-0 left-0 z-30 hidden w-[84px] flex-col items-center gap-0.5 border-r border-[var(--line)] bg-[var(--sidebar-bg,var(--surface))] py-3", sidebarCollapsed ? "lg:hidden" : "lg:flex")}>
+      <Link href={hasProductionOverview(role) || !visibleGroups[0] ? "/dashboard" : visibleGroups[0].items[0].href} aria-label="LabGold · início" className="mb-3 grid h-10 w-10 place-items-center"><LensMark size={34} /></Link>
+      <nav aria-label="Áreas do laboratório" className="flex w-full flex-col items-center gap-0.5">
+        {visibleGroups.map((group) => {
+          const meta = GROUP_RAIL[group.title] ?? { short: group.title, icon: LayoutDashboard };
+          const target = group.items.find((item) => item.href !== RAIL_FOOTER);
+          if (!target) return null;
+          const Icon = meta.icon;
+          const active = activeGroup?.title === group.title;
+          const count = groupCount(group.title);
+          return (
+            <Link key={group.title} href={target.href} aria-current={active ? "page" : undefined} title={group.items.map((item) => item.label).join(" · ")} className="lab-rail-item">
+              <span className="lab-rail-icon"><Icon size={20} strokeWidth={1.9} />{count > 0 ? <span className="lab-rail-count" data-alert={group.title === "Lentes" || group.title === "Montagem" || undefined}>{count > 99 ? "99+" : count}</span> : null}</span>
+              <span className="lab-rail-label">{meta.short}</span>
+            </Link>
+          );
+        })}
+      </nav>
+      <div className="mt-auto flex flex-col items-center gap-1.5">
+        <ModeSwitchIcon />
+        {canSettings ? <Link href={RAIL_FOOTER} aria-label="Configurações" title="Configurações" aria-current={current?.href === RAIL_FOOTER ? "page" : undefined} className="lab-rail-round"><Settings size={20} /></Link> : null}
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-[var(--sidebar-active)] text-[13px] font-bold text-[var(--sidebar-active-text)]" title={`${name} · ${ROLE_LABEL[role]}`}>{initials(name)}</span>
+        <form action={signOut}><button type="submit" aria-label="Sair" title="Sair" className="lab-rail-round"><LogOut size={18} /></button></form>
+      </div>
+    </aside>
+  );
+
   return (
     <OperationModeProvider simple={simple}>
     <div className={cn("lg-app min-h-screen", simple && "lab-simple")}>
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-[var(--surface)] focus:p-3">Ir para o conteúdo</a>
-      <aside id="desktop-sidebar" className={cn("lab-sidebar fixed inset-y-0 left-0 z-30 hidden w-[232px] flex-col border-r border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)]", sidebarCollapsed ? "lg:hidden" : "lg:flex")}>
+      {!simple ? rail : <aside id="desktop-sidebar" className={cn("lab-sidebar fixed inset-y-0 left-0 z-30 hidden w-[232px] flex-col border-r border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)]", sidebarCollapsed ? "lg:hidden" : "lg:flex")}>
         {brand}
         <div className="flex-1 overflow-auto px-3 py-3">{nav}</div>
         {footer}
-      </aside>
+      </aside>}
 
       {mobileOpen ? (
         <div className="fixed inset-0 z-40 lg:hidden">
@@ -388,7 +446,7 @@ export function Shell({
         </div>
       ) : null}
 
-      <div className={cn("flex min-h-screen min-w-0 flex-col",sidebarCollapsed?"lg:pl-0":"lg:pl-[232px]")}>
+      <div className={cn("flex min-h-screen min-w-0 flex-col",sidebarCollapsed?"lg:pl-0":simple?"lg:pl-[232px]":"lg:pl-[84px]")}>
         <header className="lg-topbar no-print sticky top-0 z-20 flex min-h-[60px] items-center gap-2 border-b border-[var(--line)] bg-[var(--surface)] px-2 pt-[env(safe-area-inset-top)] sm:gap-4 md:px-5">
           <button type="button" aria-label={sidebarCollapsed?"Expandir menu lateral":"Recolher menu lateral"} title={sidebarCollapsed?"Expandir menu lateral":"Recolher menu lateral"} aria-expanded={!sidebarCollapsed} aria-controls="desktop-sidebar" className="hidden min-h-11 shrink-0 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--ink)] hover:bg-[var(--accent-soft)] lg:inline-flex" onClick={()=>{const next=!sidebarCollapsed;setSidebarCollapsed(next);document.cookie=`lab_sidebar=${next?"collapsed":"expanded"}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol==="https:"?"; Secure":""}`;}}>
             {sidebarCollapsed?<PanelLeftOpen size={18}/>:<PanelLeftClose size={18}/>}<span>{sidebarCollapsed?"Menu":"Recolher"}</span>
@@ -444,7 +502,12 @@ export function Shell({
             </form>
           </div>
         </header>
-        <main id="conteudo" className="lab-workspace flex min-w-0 flex-col px-3 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-5 md:px-6 md:pt-5 lg:pb-12">{children}</main>
+        <main id="conteudo" className="lab-workspace flex min-w-0 flex-col px-3 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-5 md:px-6 md:pt-5 lg:pb-12">
+          {!simple && sectionTabs.length > 1 ? <nav aria-label={`Telas de ${GROUP_RAIL[activeGroup!.title]?.short ?? activeGroup!.title}`} className="lab-section-tabs no-print">
+            {sectionTabs.map((item) => <Link key={item.href} href={item.href} aria-current={current?.href === item.href ? "page" : undefined}>{item.label}<PendingDot /></Link>)}
+          </nav> : null}
+          {children}
+        </main>
       </div>
 
       <MobileDock

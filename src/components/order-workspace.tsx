@@ -97,6 +97,7 @@ export function OrderWorkspace({
               <UrgencyMark urgency={order.urgency} />
             </div>
           </div>
+          <StatusFlow status={order.status} medical={Boolean(order.medical_review_required)} />
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
             <div><dt className="text-[var(--muted)]">Loja</dt><dd>{order.store_name || "—"}</dd></div>
             <div><dt className="text-[var(--muted)]">Laboratório</dt><dd>{order.laboratory_name}</dd></div>
@@ -208,33 +209,9 @@ export function OrderWorkspace({
       </div>
 
       <div className="grid gap-4 self-start">
-        <Panel className="p-4">
-          <h2 className="font-medium">Histórico de status</h2>
-          <ol className="mt-3 grid gap-2 text-sm">
-            {history.map((item) => (
-              <li key={item.id} className="border-b border-[var(--line)] pb-2">
-                <p className="font-medium">
-                  {item.from_status ? `${STATUS_LABEL[item.from_status as OrderStatus] ?? item.from_status} → ` : ""}
-                  {STATUS_LABEL[item.to_status as OrderStatus] ?? item.to_status}
-                </p>
-                <p className="text-xs text-[var(--muted)]">{formatDateTime(item.created_at)} {item.user_name ? `· ${item.user_name}` : ""}</p>
-                {item.note ? <p className="text-xs">{item.note}</p> : null}
-              </li>
-            ))}
-            {attachments
-              .filter((item) => item.entity_type === "order")
-              .map((item) => (
-                <li key={`foto-${item.id}`} className="border-b border-[var(--line)] pb-2">
-                  <p className="font-medium">Foto anexada</p>
-                  <p className="text-xs text-[var(--muted)]">{formatDateTime(item.created_at)} · {item.file_name}</p>
-                  {item.url && item.mime_type.startsWith("image/") ? (
-                    <a className="mt-2 block" href={item.url} target="_blank" rel="noreferrer">
-                      <img src={item.url} alt={item.file_name} className="h-20 w-20 rounded-md object-cover" />
-                    </a>
-                  ) : null}
-                </li>
-              ))}
-          </ol>
+        <Panel className="overflow-hidden p-0">
+          <h2 className="border-b border-[var(--line)] px-4 py-3 font-medium">Histórico da OS</h2>
+          <HistoryChat history={history} photos={attachments.filter((item) => item.entity_type === "order")} />
         </Panel>
         <ConsumeBox orderId={order.id} role={role} movements={movements} />
       </div>
@@ -821,5 +798,65 @@ function ConsumeBox({ orderId, role, movements }: { orderId: string; role: AppRo
         </form>
       ) : null}
     </Panel>
+  );
+}
+
+/** Ordem do fluxo para as pílulas de status (Conferência Médico só quando há indicação médica). */
+function StatusFlow({ status, medical }: { status: OrderStatus; medical: boolean }) {
+  if (status === "cancelado") return null;
+  const flow: OrderStatus[] = ["aguardando_lentes", "aguardando_montagem", "em_montagem", ...(medical || status === "em_conferencia" ? (["em_conferencia"] as OrderStatus[]) : []), "pronto", "entregue"];
+  const at = status === "em_correcao" ? flow.indexOf("em_montagem") : flow.indexOf(status);
+  return (
+    <ol aria-label="Status da OS" className="mt-3 flex flex-wrap items-center gap-1.5">
+      {flow.map((item, index) => (
+        <li key={item} className="flex items-center gap-1.5">
+          <span className="lg-pill" data-state={index < at ? "done" : index === at ? "current" : undefined} aria-current={index === at ? "step" : undefined}>
+            {status === "em_correcao" && index === at ? "Em correção" : STATUS_LABEL[item]}
+          </span>
+          {index < flow.length - 1 ? <span aria-hidden className="text-[var(--muted)]">›</span> : null}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** Histórico de status e fotos em formato de conversa, do mais antigo para o mais novo. */
+function HistoryChat({ history, photos }: { history: HistoryItem[]; photos: AttachmentItem[] }) {
+  const items = [
+    ...history.map((item) => ({ kind: "status" as const, at: item.created_at, item })),
+    ...photos.map((item) => ({ kind: "photo" as const, at: item.created_at, item })),
+  ].sort((a, b) => Date.parse(a.at ?? "") - Date.parse(b.at ?? ""));
+  if (!items.length) return <p className="p-4 text-sm text-[var(--muted)]">Nenhum registro ainda.</p>;
+  return (
+    <ol className="lg-chat max-h-[560px] overflow-y-auto" aria-label="Histórico da OS">
+      {items.map((entry) => {
+        if (entry.kind === "photo") {
+          const photo = entry.item;
+          return (
+            <li key={`foto-${photo.id}`} className="lg-bubble" data-out="true">
+              <span className="block text-xs font-semibold text-[var(--sidebar-active-text,var(--link))]">Foto anexada</span>
+              {photo.url && photo.mime_type.startsWith("image/") ? (
+                <a className="mt-1 block" href={photo.url} target="_blank" rel="noreferrer"><img src={photo.url} alt={photo.file_name} className="h-28 w-28 rounded-md object-cover" /></a>
+              ) : <span className="block text-sm">{photo.file_name}</span>}
+              <span className="mt-1 block text-right text-[11px] text-[var(--muted)]">{formatDateTime(photo.created_at)}</span>
+            </li>
+          );
+        }
+        const item = entry.item;
+        const label = `${item.from_status ? `${STATUS_LABEL[item.from_status as OrderStatus] ?? item.from_status} → ` : ""}${STATUS_LABEL[item.to_status as OrderStatus] ?? item.to_status}`;
+        return (
+          <li key={item.id} className="contents">
+            <span className="lg-chat-event">{label} · {formatDateTime(item.created_at)}</span>
+            {item.note ? (
+              <span className="lg-bubble" data-out="true">
+                {item.user_name ? <span className="block text-xs font-semibold text-[var(--sidebar-active-text,var(--link))]">{item.user_name}</span> : null}
+                <span className="block text-sm">{item.note}</span>
+                <span className="mt-1 block text-right text-[11px] text-[var(--muted)]">{formatDateTime(item.created_at)}</span>
+              </span>
+            ) : null}
+          </li>
+        );
+      })}
+    </ol>
   );
 }

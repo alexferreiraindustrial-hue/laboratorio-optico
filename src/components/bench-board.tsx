@@ -12,7 +12,7 @@ import { QuickOrderPhoto } from "./quick-order-photo";
 import { can } from "@/lib/domain/permissions";
 import {
   ArrowDownUp, Check, ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock3, Columns3, EyeOff,
-  ExternalLink, GripVertical, Kanban, LayoutList, MoreHorizontal, Play, ScanLine, SlidersHorizontal, Wrench, X,
+  ExternalLink, GripVertical, Rows3, Search, Kanban, LayoutList, MoreHorizontal, Play, ScanLine, SlidersHorizontal, Wrench, X,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -40,7 +40,8 @@ import { cn } from "@/lib/utils";
 import { advanceStep, changeOrderStatus } from "@/server/actions";
 
 type LaneStatus = BenchOrder["status"];
-type Prefs = { hidden: LaneStatus[]; collapsed: LaneStatus[]; widths: Partial<Record<LaneStatus, number>>; laneSort: Partial<Record<LaneStatus, BenchSort>> };
+type BenchView = "coluna" | "kanban";
+type Prefs = { view?: BenchView; hidden: LaneStatus[]; collapsed: LaneStatus[]; widths: Partial<Record<LaneStatus, number>>; laneSort: Partial<Record<LaneStatus, BenchSort>> };
 
 const PREFS_KEY = "lab.bancada.kanban.v1";
 const EMPTY_PREFS: Prefs = { hidden: [], collapsed: [], widths: {}, laneSort: {} };
@@ -70,7 +71,7 @@ function parsePrefs(raw: string | null): Prefs {
   try {
     const parsed = JSON.parse(raw) as Partial<Prefs>;
     const valid = (list: unknown) => (Array.isArray(list) ? list.filter((item): item is LaneStatus => BENCH_LANES.some((lane) => lane.status === item)) : []);
-    return { hidden: valid(parsed.hidden), collapsed: valid(parsed.collapsed), widths: parsed.widths ?? {}, laneSort: parsed.laneSort ?? {} };
+    return { view: parsed.view === "kanban" ? "kanban" : "coluna", hidden: valid(parsed.hidden), collapsed: valid(parsed.collapsed), widths: parsed.widths ?? {}, laneSort: parsed.laneSort ?? {} };
   } catch {
     return EMPTY_PREFS;
   }
@@ -146,12 +147,14 @@ export function BenchBoard({ sellers = [], orders, role, error, nowIso, userId =
   const [filtersOpen, setFiltersOpen] = useState(false);
   const prefsRaw = useSyncExternalStore(subscribePrefs, readRawPrefs, () => null);
   const prefs = useMemo(() => parsePrefs(prefsRaw), [prefsRaw]);
+  const view: BenchView = prefs.view ?? "coluna";
   const [expanded, setExpanded] = useState<string[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [moveError, setMoveError] = useState<string | null>(null);
   const [pending, startMove] = useTransition();
   const [clock, setClock] = useState(nowIso);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [columnLane, setColumnLane] = useState<LaneStatus>(() => (BENCH_LANES.find((lane) => orders.some((order) => order.status === lane.status && lane.status === "em_montagem")) ?? BENCH_LANES.find((lane) => orders.some((order) => order.status === lane.status)) ?? BENCH_LANES[0]).status);
   const draggingOrder = orders.find((order) => order.id === draggingId);
 
   const updatePrefs = useCallback((change: (current: Prefs) => Prefs) => {
@@ -200,7 +203,7 @@ export function BenchBoard({ sellers = [], orders, role, error, nowIso, userId =
 
   function followStatus(status: string) {
     const lane = BENCH_LANES.find((item) => item.status === status);
-    if (lane) viewportRef.current?.goTo(lane.status);
+    if (lane) { viewportRef.current?.goTo(lane.status); setColumnLane(lane.status); }
     if (status === "pronto") setNotice("Serviço conferido e pronto. Agora ele aparece em Retirada e entrega.");
   }
 
@@ -226,7 +229,8 @@ export function BenchBoard({ sellers = [], orders, role, error, nowIso, userId =
         <h1 className="flex items-baseline gap-2 text-[26px] font-semibold tracking-tight">Bancada de montagem <span className="text-sm font-medium text-[var(--muted)]">{orders.length} OS</span></h1>
       </div>
       <div className="bk-segment" role="group" aria-label="Modo de visualização">
-        <span className="is-on" aria-current="page"><Kanban size={16} />Kanban</span>
+        <button type="button" aria-pressed={view === "coluna"} className={cn(view === "coluna" && "is-on")} onClick={() => updatePrefs((current) => ({ ...current, view: "coluna" }))}><Rows3 size={16} />Por coluna</button>
+        <button type="button" aria-pressed={view === "kanban"} className={cn(view === "kanban" && "is-on")} onClick={() => updatePrefs((current) => ({ ...current, view: "kanban" }))}><Kanban size={16} />Kanban</button>
         <Link href="/montagem?view=lista"><LayoutList size={16} />Lista</Link>
       </div>
     </header>
@@ -235,6 +239,28 @@ export function BenchBoard({ sellers = [], orders, role, error, nowIso, userId =
       {([["Na bancada", orders.length, ""], ["Atenção aos prazos", lateCount, lateCount ? "warn" : ""], ["Etapa em execução", runningCount, ""], ["Em correção", orders.filter((order) => order.status === "em_correcao").length, orders.some((order) => order.status === "em_correcao") ? "late" : ""]] as const).map(([label, value, tone]) => <div key={label} className="bk-stat" data-tone={tone || undefined}><span>{label}</span><strong>{value}</strong></div>)}
     </div> : null}
 
+    {view === "coluna" ? <>
+      <Feedback error={moveError || error} />
+      {notice ? <div role="status" className="rounded-xl border border-[var(--line)] bg-[var(--accent-soft)] p-4 text-sm text-[var(--link)]">{notice}<Link href="/entrega" className="mt-2 block min-h-11 py-2 font-semibold underline">Ver serviços para retirada</Link></div> : null}
+      <BenchColumns
+        lanes={BENCH_LANES}
+        orders={orders}
+        visible={visible}
+        lane={columnLane}
+        onLane={setColumnLane}
+        query={query}
+        onQuery={setQuery}
+        sort={sort}
+        onSort={setSort}
+        focus={focus}
+        onFocus={setFocus}
+        simple={simple}
+        role={role}
+        now={now}
+        boardPending={pending}
+        onProgress={followStatus}
+      />
+    </> : <>
     <div className="bk-toolbar">
       <label className="bk-search">
         <ScanLine size={17} aria-hidden />
@@ -313,6 +339,7 @@ export function BenchBoard({ sellers = [], orders, role, error, nowIso, userId =
       </div> : null}</DragOverlay>
     </DndContext>
     <p className="text-xs text-[var(--muted)]">Arraste o cartão para outra coluna (no celular, segure e arraste, ou use o menu ⋯ › Mover para). As preferências de colunas ficam salvas neste aparelho.</p>
+    </>}
   </div>;
 }
 
@@ -517,5 +544,112 @@ function BenchCard({ order, expanded, onToggle, role, now, boardPending, onMove,
         <Link href={`/montagem?os=${order.id}`} scroll={false} className="flex min-h-11 items-center justify-center rounded-lg border border-[var(--line)] text-xs font-semibold text-[var(--link)] hover:bg-[var(--background)]">Detalhes, fotos e histórico</Link>
       </div>
     </article>
+  );
+}
+
+/* ===== Bancada "por coluna" (versão limpa): colunas à esquerda e a lista da coluna à direita ===== */
+const FOCUS_OPTIONS: [BenchFocus, string][] = [["all", "Todas"], ["risk", "Em risco"], ["mine", "Minhas"], ["unassigned", "Sem responsável"], ["critical", "Críticas"]];
+const SHORT_SORT: Record<BenchSort, string> = { risk: "Risco", deadline: "Prazo", oldest: "Mais antigas" };
+
+function BenchColumns({ lanes, orders, visible, lane, onLane, query, onQuery, sort, onSort, focus, onFocus, simple, role, now, boardPending, onProgress }: {
+  lanes: typeof BENCH_LANES; orders: BenchOrder[]; visible: BenchOrder[]; lane: LaneStatus; onLane: (status: LaneStatus) => void;
+  query: string; onQuery: (value: string) => void; sort: BenchSort; onSort: (value: BenchSort) => void; focus: BenchFocus; onFocus: (value: BenchFocus) => void;
+  simple: boolean; role: AppRole; now: Date; boardPending: boolean; onProgress: (status: string) => void;
+}) {
+  const selected = lanes.find((item) => item.status === lane) ?? lanes[0];
+  const rows = visible.filter((order) => order.status === selected.status);
+  const focusOptions = FOCUS_OPTIONS.filter(([value]) => !simple || ["all", "risk", "mine"].includes(value));
+  return (
+    <div className="bc-wrap">
+      <nav className="bc-lanes" aria-label="Colunas da bancada">
+        {lanes.map((item) => {
+          const count = visible.filter((order) => order.status === item.status).length;
+          const late = orders.some((order) => order.status === item.status && ["late", "critical"].includes(benchDeadlineSignal(order, now).level));
+          return (
+            <button key={item.status} type="button" aria-pressed={item.status === selected.status} onClick={() => onLane(item.status)} className="bc-lane" style={stageStyle(item.status)}>
+              <span className="bc-dot" aria-hidden />
+              <span className="bc-lane-text"><span className="bc-lane-title">{item.title}</span><span className="bc-lane-hint">{item.hint}</span></span>
+              <span className="bc-count" data-alert={late || undefined} aria-label={`${count} OS${late ? ", com atraso" : ""}`}>{count}</span>
+            </button>
+          );
+        })}
+      </nav>
+      <section className="bc-main" aria-label={`OS em ${selected.title}`}>
+        <header className="bc-head">
+          <div className="mr-auto min-w-0">
+            <h2 className="text-[17px] font-semibold">{selected.title}</h2>
+            <p className="text-[12.5px] text-[var(--muted)]">{selected.hint}</p>
+          </div>
+          <label className="bc-search"><Search size={16} aria-hidden /><span className="sr-only">Buscar na bancada</span><input value={query} onChange={(event) => onQuery(event.target.value)} placeholder="Bipe ou busque OS, cliente, vendedora" />{query ? <button type="button" aria-label="Limpar busca" onClick={() => onQuery("")} className="bk-icon-btn is-small"><X size={14} /></button> : null}</label>
+          {!simple ? <label className="bc-sort">Ordenar<select value={sort} onChange={(event) => onSort(event.target.value as BenchSort)}>{(Object.keys(SHORT_SORT) as BenchSort[]).map((value) => <option key={value} value={value}>{SHORT_SORT[value]}</option>)}</select></label> : null}
+        </header>
+        <div className="bc-focus" role="group" aria-label="Filtros rápidos">
+          {focusOptions.map(([value, label]) => <button key={value} type="button" aria-pressed={focus === value} onClick={() => onFocus(value)} className={cn("bk-chip", focus === value && "is-on")}>{label}</button>)}
+          <span role="status" className="ml-auto self-center text-xs text-[var(--muted)]">{rows.length} OS{boardPending ? " · Salvando…" : ""}</span>
+        </div>
+        <ul className="bc-list">
+          {rows.length ? rows.map((order) => <BenchRow key={order.id} order={order} role={role} now={now} boardPending={boardPending} onProgress={onProgress} />) : <li className="bc-empty">{orders.some((order) => order.status === selected.status) ? "Nenhuma OS nesta coluna com esse filtro." : "Nenhuma OS nesta coluna."}</li>}
+        </ul>
+      </section>
+    </div>
+  );
+}
+
+function BenchRow({ order, role, now, boardPending, onProgress }: { order: BenchOrder; role: AppRole; now: Date; boardPending: boolean; onProgress: (status: string) => void }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const action = nextBenchAction(order, role);
+  const deadline = benchDeadlineSignal(order, now);
+  const running = order.steps.find((step) => step.status === "em_andamento");
+  const number = visibleOrderNumber(order);
+  const age = stageAge(order.stageSince, now);
+  const tone = deadline.level === "late" || deadline.level === "critical" ? "late" : deadline.level === "soon" || deadline.level === "attention" ? "soon" : "ok";
+  const who = running ? `${STEP_LABEL[running.key]}${running.assignee ? ` com ${running.assignee.split(" ")[0]}` : ""}` : order.status === "aguardando_montagem" ? "aguardando" : age ? `nesta coluna há ${age.label}` : "";
+
+  function run() {
+    if (action.kind === "none" || pending || boardPending) return;
+    setError(null);
+    startTransition(async () => {
+      try {
+        let result;
+        if (action.kind === "status") result = await changeOrderStatus(order.id, action.to, action.note);
+        else {
+          const data = new FormData();
+          data.set("orderId", order.id);
+          data.set("stepKey", action.step);
+          data.set("action", action.action);
+          result = await advanceStep(data);
+        }
+        if (!result.ok) setError(result.message ?? "Não foi possível registrar.");
+        else {
+          toast.success(action.kind === "status" ? `OS ${number}: ${STATUS_LABEL[action.to]}` : "Etapa registrada com sucesso.");
+          if (action.kind === "status") onProgress(action.to);
+          router.refresh();
+        }
+      } catch { setError("Não foi possível registrar. Confira a conexão e tente novamente."); }
+    });
+  }
+
+  return (
+    <li className="bc-row">
+      <span className="bc-avatar" data-tone={tone} aria-hidden>{initials(order.clientName)}</span>
+      <div className="bc-row-body">
+        <div className="min-w-0 flex-1">
+          <p className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+            <span className="text-[15px] font-semibold">{order.clientName}</span>
+            <span className="bc-signal" data-tone={tone}>{deadline.label}{order.dueAt && order.status !== "pronto" ? ` · ${dueDeltaLabel(order.dueAt, now, order.status)}` : ""}</span>
+            {order.urgent ? <span className="lg-badge">urgente</span> : null}
+            {order.medical_review_required ? <span className="bk-tag" data-tone="warn">Conferência médica</span> : null}
+            {(order.openOccurrences ?? 0) > 0 ? <span className="bk-tag" data-tone="late">{order.openOccurrences} ocorrência(s)</span> : null}
+          </p>
+          <p className="mt-0.5 truncate text-[13px] text-[var(--muted)]"><span className="font-mono text-xs">{number}</span>{order.sellerName ? ` · ${order.sellerName}` : ""}{who ? ` · ${who}` : ""}</p>
+          <ExpressCountdown operations={order} nowIso={now.toISOString()} />
+          {error ? <Feedback error={error} /> : null}
+        </div>
+        <Link href={`/montagem?os=${order.id}`} scroll={false} className="bc-details">Detalhes</Link>
+        {action.kind !== "none" ? <button type="button" onClick={run} disabled={pending || boardPending} className="bc-action">{pending ? "Registrando..." : action.label}</button> : <span className="bc-idle">{action.label}</span>}
+      </div>
+    </li>
   );
 }

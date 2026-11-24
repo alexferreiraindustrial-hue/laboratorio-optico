@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import { Toaster } from "sonner";
 import "./globals.css";
 import "./labgold-dark.css";
+import "./labgold-whatsapp.css";
 
 const jakarta = localFont({
   src: "./fonts/PlusJakartaSans-Variable.ttf",

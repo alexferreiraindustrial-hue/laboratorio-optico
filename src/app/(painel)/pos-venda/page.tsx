@@ -10,8 +10,8 @@ export default async function PosVendaPage() {
   return (
     <div className="grid gap-5">
       <PageHeading
-        title="Entrega ao cliente e pós-venda"
-        description="Confirme a entrega real e acompanhe a adaptação após cinco dias corridos. Mensagens são preparadas para envio manual."
+        title="Pós-venda"
+        description="Cinco dias depois da entrega, confira se o cliente se adaptou bem aos óculos."
       />
       <ClientFollowupPanel rows={rows} nowIso={new Date().toISOString()} />
     </div>

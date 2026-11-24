@@ -1,280 +1,238 @@
 "use client";
+// Pós-venda (versão limpa): lista de clientes à esquerda e o contato à direita, no estilo do WhatsApp.
+// Usa os mesmos dados e ações de antes: client_delivery_followups, updateClientFollowup e confirmClientDelivery.
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  feedbackMessage,
-  feedbackPending,
-  matchesFollowup,
-  type ClientFollowupRow,
-} from "@/lib/domain/client-followup";
+import { CalendarCheck2, ClipboardCopy, HeartHandshake, MessageCircle, PackageCheck, Search, Send, Smile, ThumbsUp, X } from "lucide-react";
+import { feedbackMessage, feedbackPending, matchesFollowup, type ClientFollowupRow } from "@/lib/domain/client-followup";
 import { formatDateTime } from "@/lib/format";
 import { updateClientFollowup } from "@/server/fast-operations-actions";
 import { findOrdersForQuick, type FoundOrder } from "@/server/quick-actions";
 import { ClientDeliveryForm } from "./client-delivery";
-import { Button, Feedback } from "./ui";
-const field =
-  "mt-1 min-h-11 w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 text-sm";
-function FollowupCard({ row, now }: { row: ClientFollowupRow; now: Date }) {
+import { Feedback } from "./ui";
+import { cn } from "@/lib/utils";
+
+const DAY = 86400000;
+const OUTCOMES = [
+  { value: "adaptacao_ok", label: "Adaptou bem", hint: "Cliente respondeu que está tudo bem", icon: Smile, tone: "ok" },
+  { value: "precisa_ajuda", label: "Precisa de ajuda", hint: "Relatou dificuldade · precisa de atenção", icon: HeartHandshake, tone: "late" },
+  { value: "contato_realizado", label: "Mensagem enviada", hint: "Aguardando a resposta do cliente", icon: Send, tone: "info" },
+  { value: "sem_resposta", label: "Sem resposta", hint: "Contato feito, ainda sem retorno", icon: MessageCircle, tone: "warn" },
+] as const;
+const OUTCOME_LABEL: Record<string, string> = Object.fromEntries(OUTCOMES.map((item) => [item.value, item.label]));
+const TABS = [
+  { mode: "pending", label: "Contatar agora" },
+  { mode: "await", label: "Aguardando 5 dias" },
+  { mode: "help", label: "Precisa de atenção" },
+  { mode: "contacted", label: "Já contatados" },
+  { mode: "all", label: "Todos" },
+] as const;
+
+function initials(name: string) {
+  return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]).join("").toUpperCase() || "?";
+}
+function waLink(phone: string | null, text: string) {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  if (digits.length < 10) return null;
+  const full = digits.length <= 11 ? `55${digits}` : digits;
+  return `https://wa.me/${full}?text=${encodeURIComponent(text)}`;
+}
+function rowTone(row: ClientFollowupRow, now: Date) {
+  if (row.outcome === "precisa_ajuda") return "late";
+  if (row.outcome === "adaptacao_ok") return "ok";
+  if (feedbackPending(row, now)) return "warn";
+  return "info";
+}
+function dayInfo(row: ClientFollowupRow, now: Date) {
+  const days = Math.max(0, Math.floor((now.getTime() - Date.parse(row.client_delivered_at)) / DAY));
+  const progress = Math.min(5, days);
+  const label = row.contacted_at ? `Contato em ${formatDateTime(row.contacted_at)}` : feedbackPending(row, now) ? (days > 5 ? `Entregue há ${days} dias · contatar` : "Dia 5 · contatar hoje") : `Dia ${Math.max(1, days)} de 5`;
+  return { days, progress, label };
+}
+
+export function ClientFollowupPanel({ rows, nowIso }: { rows: ClientFollowupRow[]; nowIso: string }) {
+  const [now] = useState(() => new Date(nowIso));
+  const [seller, setSeller] = useState("");
+  const [mode, setMode] = useState<string>("pending");
+  const [search, setSearch] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [registering, setRegistering] = useState(false);
+  const sellers = [...new Map(rows.filter((row) => row.seller_id).map((row) => [row.seller_id!, row.seller_name || "Vendedora"])).entries()];
+  const counts = useMemo(() => Object.fromEntries(TABS.map((tab) => [tab.mode, rows.filter((row) => matchesFollowup(row, seller, tab.mode, now)).length])), [rows, seller, now]);
+  const term = search.trim().toLowerCase();
+  const visible = rows.filter((row) => matchesFollowup(row, seller, mode, now) && (!term || `${row.client_name} ${row.number} ${row.seller_name ?? ""}`.toLowerCase().includes(term)));
+  const selected = visible.find((row) => row.id === selectedId) ?? visible[0] ?? null;
+
+  return (
+    <div className="pv grid gap-4">
+      <div className="pv-kpis" role="tablist" aria-label="Situação do pós-venda">
+        {TABS.map((tab) => (
+          <button key={tab.mode} type="button" role="tab" aria-selected={mode === tab.mode} onClick={() => { setMode(tab.mode); setSelectedId(null); }} className="pv-kpi" data-tone={tab.mode === "pending" ? "warn" : tab.mode === "help" ? "late" : undefined}>
+            <span>{tab.label}</span><strong>{counts[tab.mode] ?? 0}</strong>
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="pv-search"><Search size={16} aria-hidden /><span className="sr-only">Buscar cliente ou OS</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar cliente, OS ou vendedora" />{search ? <button type="button" aria-label="Limpar busca" onClick={() => setSearch("")} className="grid h-7 w-7 place-items-center rounded-full"><X size={14} /></button> : null}</label>
+        <label className="pv-select"><span className="sr-only">Vendedora</span><select value={seller} onChange={(event) => setSeller(event.target.value)}><option value="">Todas as vendedoras</option>{sellers.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></label>
+        <button type="button" onClick={() => setRegistering((value) => !value)} aria-expanded={registering} className="pv-btn is-primary ml-auto"><PackageCheck size={17} />Registrar entrega ao cliente</button>
+      </div>
+
+      {registering ? <RegisterDelivery rows={rows} onClose={() => setRegistering(false)} /> : null}
+
+      <div className="pv-wrap">
+        <ul className="pv-list" aria-label="Clientes no pós-venda">
+          {visible.length ? visible.map((row) => {
+            const info = dayInfo(row, now);
+            const tone = rowTone(row, now);
+            return (
+              <li key={row.id}>
+                <button type="button" aria-pressed={selected?.id === row.id} onClick={() => setSelectedId(row.id)} className="pv-row">
+                  <span className="pv-avatar" data-tone={tone} aria-hidden>{initials(row.client_name)}</span>
+                  <span className="pv-row-body">
+                    <span className="flex items-baseline gap-2"><span className="min-w-0 flex-1 truncate text-[15px] font-semibold">{row.client_name}</span><span className="pv-when" data-tone={tone}>{info.label}</span></span>
+                    <span className="flex items-center gap-2 text-[13px] text-[var(--muted)]"><span className="min-w-0 flex-1 truncate"><span className="font-mono text-xs">{row.number}</span> · {row.seller_name || "Sem vendedora"}</span>{row.outcome ? <span className="pv-chip" data-tone={tone}>{OUTCOME_LABEL[row.outcome] ?? row.outcome}</span> : null}</span>
+                  </span>
+                </button>
+              </li>
+            );
+          }) : <li className="pv-empty">{mode === "pending" ? "Nenhum cliente para contatar agora. Bom trabalho!" : "Nenhum cliente neste filtro."}</li>}
+        </ul>
+        <section className="pv-detail" aria-label="Contato do pós-venda">
+          {selected ? <FollowupDetail key={`${selected.id}-${selected.updated_at}`} row={selected} now={now} /> : (
+            <div className="pv-placeholder"><CalendarCheck2 size={40} aria-hidden /><p className="font-semibold">Acompanhe a adaptação dos clientes</p><p className="text-sm text-[var(--muted)]">Ao marcar “Entregue ao cliente”, o contato aparece aqui depois de 5 dias corridos.</p></div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function FollowupDetail({ row, now }: { row: ClientFollowupRow; now: Date }) {
+  const router = useRouter();
+  const [phone, setPhone] = useState(row.client_phone ?? "");
+  const [outcome, setOutcome] = useState<string>("");
+  const [note, setNote] = useState(row.feedback_note ?? "");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, start] = useTransition();
-  const router = useRouter();
+  const info = dayInfo(row, now);
+  const text = feedbackMessage(row.client_name);
+  const whatsapp = waLink(phone, text);
+
+  function save() {
+    if (pending) return;
+    start(async () => {
+      setError(null);
+      try {
+        const result = await updateClientFollowup(row.id, outcome || null, note, phone, row.updated_at);
+        if (!result.ok) { setError(result.message); return; }
+        setMessage(result.message);
+        router.refresh();
+      } catch { setError("Atualize a tela antes de tentar novamente."); }
+    });
+  }
+
   return (
-    <article className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <Link
-            href={`/laboratorio/${row.order_id}`}
-            className="font-semibold text-[var(--link)]"
-          >
-            OS {row.number} · {row.client_name}
-          </Link>
-          <p className="mt-1 text-xs text-[var(--muted)]">
-            {row.seller_name || "Sem vendedora"} · cliente recebeu{" "}
-            {formatDateTime(row.client_delivered_at)}
-          </p>
-          <p className="mt-1 text-xs">
-            {feedbackPending(row, now)
-              ? "Contato pendente desde"
-              : "Acompanhamento a partir de"}{" "}
-            {formatDateTime(row.followup_due_at)}
-            {!row.client_phone ? " · falta telefone" : ""}
-          </p>
+    <div className="flex h-full flex-col">
+      <header className="pv-head">
+        <span className="pv-avatar is-big" data-tone={rowTone(row, now)} aria-hidden>{initials(row.client_name)}</span>
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-[17px] font-semibold">{row.client_name}</h2>
+          <p className="truncate text-[12.5px] text-[var(--muted)]"><Link href={`/laboratorio?os=${row.order_id}`} className="font-mono text-[var(--link)]">{row.number}</Link> · {row.seller_name || "Sem vendedora"}</p>
         </div>
-        <span className="text-xs font-semibold">
-          {row.outcome || "Pendente"}
-        </span>
+        {row.outcome ? <span className="pv-chip" data-tone={rowTone(row, now)}>{OUTCOME_LABEL[row.outcome] ?? row.outcome}</span> : null}
+      </header>
+
+      <div className="pv-body">
+        <div className="pv-timeline" aria-label="Linha do tempo da entrega">
+          <div className="flex justify-between text-[12.5px] text-[var(--muted)]"><span>Entregue em <b className="text-[var(--ink)]">{formatDateTime(row.client_delivered_at)}</b></span><span>Contato a partir de <b className="text-[var(--ink)]">{formatDateTime(row.followup_due_at)}</b></span></div>
+          <ol className="pv-days">{[1, 2, 3, 4, 5].map((day) => <li key={day} data-done={info.progress >= day || undefined} data-today={info.progress + 1 === day && !feedbackPending(row, now) || undefined}><span>{day}</span></li>)}</ol>
+          <p className="text-[12.5px] text-[var(--muted)]">{info.label}</p>
+        </div>
+
+        <div className="lg-chat rounded-xl">
+          <span className="lg-chat-event">Mensagem sugerida para o cliente</span>
+          <p className="lg-bubble" data-out="true">{text}</p>
+          {row.feedback_note ? <><span className="lg-chat-event">Retorno registrado</span><p className="lg-bubble">{row.feedback_note}</p></> : null}
+        </div>
+
+        <label className="grid gap-1 text-sm font-medium">WhatsApp do cliente
+          <input type="tel" inputMode="tel" value={phone} maxLength={24} onChange={(event) => setPhone(event.target.value)} placeholder="(12) 99999-9999" className="pv-input" />
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {whatsapp ? <a href={whatsapp} target="_blank" rel="noreferrer" className="pv-btn is-whats"><MessageCircle size={17} />Abrir no WhatsApp</a> : <span className="pv-btn is-disabled" title="Informe o telefone com DDD"><MessageCircle size={17} />Abrir no WhatsApp</span>}
+          <button type="button" className="pv-btn" onClick={async () => { try { await navigator.clipboard.writeText(text); setMessage("Mensagem copiada. Depois de enviar, marque o resultado abaixo."); } catch { setError("Copie o texto da mensagem manualmente."); } }}><ClipboardCopy size={16} />Copiar mensagem</button>
+        </div>
+
+        <fieldset className="grid gap-2">
+          <legend className="mb-1 text-sm font-medium">Como foi o contato?</legend>
+          <div className="pv-outcomes">
+            {OUTCOMES.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button key={item.value} type="button" aria-pressed={outcome === item.value} onClick={() => setOutcome(outcome === item.value ? "" : item.value)} className="pv-outcome" data-tone={item.tone}>
+                  <Icon size={20} aria-hidden /><span><b>{item.label}</b><small>{item.hint}</small></span>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+        <label className="grid gap-1 text-sm font-medium">O que o cliente disse?
+          <textarea value={note} onChange={(event) => setNote(event.target.value)} maxLength={2000} rows={3} placeholder="Ex.: está enxergando bem de longe, sentiu um pouco de tontura no primeiro dia…" className="pv-input py-2" />
+        </label>
+        <Feedback error={error} message={message} />
       </div>
-      <details className="mt-3">
-        <summary className="min-h-11 cursor-pointer text-sm text-[var(--link)]">
-          Mensagem, contato e retorno do cliente
-        </summary>
-        <p className="mt-2 rounded-lg bg-[var(--background)] p-3 text-sm">
-          {feedbackMessage(row.client_name)}
-        </p>
-        <Button
-          variant="secondary"
-          disabled={!row.client_phone}
-          onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(
-                feedbackMessage(row.client_name),
-              );
-              setMessage(
-                "Mensagem copiada. O envio e a confirmação do contato são manuais.",
-              );
-            } catch {
-              setError("Copie o texto acima manualmente.");
-            }
-          }}
-        >
-          Copiar mensagem · não marca como enviada
-        </Button>
-        <form
-          className="mt-3 grid gap-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (pending) return;
-            const form = new FormData(e.currentTarget);
-            start(async () => {
-              setError(null);
-              try {
-                const result = await updateClientFollowup(
-                  row.id,
-                  String(form.get("outcome") || "") || null,
-                  String(form.get("note") || ""),
-                  String(form.get("phone") || ""),
-                  row.updated_at,
-                );
-                if (!result.ok) {
-                  setError(result.message);
-                  return;
-                }
-                setMessage(result.message);
-                router.refresh();
-              } catch {
-                setError("Atualize a tela antes de tentar novamente.");
-              }
-            });
-          }}
-        >
-          <label className="text-sm">
-            Telefone
-            <input
-              name="phone"
-              type="tel"
-              defaultValue={row.client_phone ?? ""}
-              maxLength={24}
-              className={field}
-            />
-          </label>
-          <label className="text-sm">
-            Registro do contato
-            <select name="outcome" defaultValue="" className={field}>
-              <option value="">Apenas atualizar contato / observação</option>
-              <option value="contato_realizado">
-                Mensagem enviada · aguardando resposta
-              </option>
-              <option value="adaptacao_ok">
-                Cliente respondeu · está tudo bem
-              </option>
-              <option value="precisa_ajuda">
-                Cliente relatou dificuldade · precisa de atenção
-              </option>
-              <option value="sem_resposta">
-                Contato realizado · ainda sem resposta
-              </option>
-            </select>
-          </label>
-          <label className="text-sm">
-            O que o cliente informou?
-            <textarea
-              name="note"
-              defaultValue={row.feedback_note ?? ""}
-              maxLength={2000}
-              rows={2}
-              className={field}
-            />
-          </label>
-          <Button disabled={pending} type="submit">
-            {pending ? "Salvando…" : "Salvar acompanhamento"}
-          </Button>
-        </form>
-      </details>
-      <Feedback error={error} message={message} />
-    </article>
+
+      <footer className="pv-foot">
+        <span className="text-xs text-[var(--muted)]">{outcome ? `Resultado: ${OUTCOME_LABEL[outcome]}` : "Sem escolher resultado, salva só telefone e observação."}</span>
+        <button type="button" disabled={pending} onClick={save} className="pv-btn is-primary"><ThumbsUp size={16} />{pending ? "Salvando…" : "Salvar acompanhamento"}</button>
+      </footer>
+    </div>
   );
 }
-export function ClientFollowupPanel({
-  rows,
-  nowIso,
-}: {
-  rows: ClientFollowupRow[];
-  nowIso: string;
-}) {
-  const [now] = useState(() => new Date(nowIso));
-  const [seller, setSeller] = useState("");
-  const [mode, setMode] = useState("pending");
+
+/** Dar baixa da entrega ao cliente por número da OS (mesma confirmação de antes). */
+function RegisterDelivery({ rows, onClose }: { rows: ClientFollowupRow[]; onClose: () => void }) {
   const [query, setQuery] = useState("");
   const [found, setFound] = useState<FoundOrder[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
-  const visible = rows.filter((r) => matchesFollowup(r, seller, mode, now));
-  const sellers = [
-    ...new Map(
-      rows
-        .filter((r) => r.seller_id)
-        .map((r) => [r.seller_id!, r.seller_name || "Vendedora"]),
-    ).entries(),
-  ];
   return (
-    <div className="grid gap-4">
-      <section className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4">
-        <h2 className="font-semibold">Dar baixa da entrega ao cliente</h2>
-        <p className="mt-1 text-xs text-[var(--muted)]">
-          Bipe ou informe a OS. Só esta confirmação inicia os cinco dias;
-          entregas antigas não foram presumidas.
-        </p>
-        <form
-          className="mt-3 flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (pending) return;
-            start(async () => {
-              setError(null);
-              try {
-                const result = await findOrdersForQuick(query);
-                setFound(
-                  result.orders.filter((o) =>
-                    ["pronto", "entregue"].includes(o.status),
-                  ),
-                );
-                if (!result.ok) setError(result.message || "Não encontrado.");
-                else if (
-                  !result.orders.some((o) =>
-                    ["pronto", "entregue"].includes(o.status),
-                  )
-                )
-                  setError(
-                    "Este serviço ainda não está pronto ou não saiu do laboratório.",
-                  );
-              } catch {
-                setError("Não foi possível consultar a OS.");
-              }
-            });
-          }}
-        >
-          <input
-            required
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Número da OS"
-            className={field}
-          />
-          <Button disabled={pending} type="submit">
-            Localizar
-          </Button>
-        </form>
-        {found.map((order) => (
-          <div key={order.id} className="mt-2">
-            <strong className="text-sm">
-              {order.number} · {order.client_name}
-            </strong>
-            <ClientDeliveryForm
-              id={order.id}
-              status={order.status}
-              delivery={rows.find((r) => r.order_id === order.id)}
-            />
-          </div>
-        ))}
-        <Feedback error={error} />
-      </section>
-      <div className="flex flex-wrap gap-3">
-        <label className="text-sm">
-          Vendedora
-          <select
-            value={seller}
-            onChange={(e) => setSeller(e.target.value)}
-            className={field}
-          >
-            <option value="">Todas</option>
-            {sellers.map(([id, name]) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm">
-          Mostrar
-          <select
-            value={mode}
-            onChange={(e) => setMode(e.target.value)}
-            className={field}
-          >
-            <option value="pending">
-              Prazo de cinco dias vencido · falta contato
-            </option>
-            <option value="await">Aguardando completar cinco dias</option>
-            <option value="help">Cliente precisa de atenção</option>
-            <option value="contacted">Contatos já registrados</option>
-            <option value="all">Todos</option>
-          </select>
-        </label>
+    <section className="pv-register">
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <h2 className="font-semibold">Registrar entrega ao cliente</h2>
+          <p className="text-[13px] text-[var(--muted)]">Bipe ou digite a OS pronta. O pós-venda começa a contar a partir desta confirmação. Dica: na Bancada ou na lista de OS, clique com o botão direito e escolha “Entregue ao cliente”.</p>
+        </div>
+        <button type="button" aria-label="Fechar" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full text-[var(--muted)] hover:bg-[var(--surface-secondary)]"><X size={18} /></button>
       </div>
-      <p className="text-sm text-[var(--muted)]">
-        {visible.length} acompanhamento(s). Sem telefone, complete o contato
-        antes de copiar a mensagem.
-      </p>
-      {visible.map((row) => (
-        <FollowupCard key={`${row.id}-${row.updated_at}`} row={row} now={now} />
+      <form className="mt-3 flex gap-2" onSubmit={(event) => {
+        event.preventDefault();
+        if (pending) return;
+        start(async () => {
+          setError(null);
+          try {
+            const result = await findOrdersForQuick(query);
+            const ready = result.orders.filter((order) => ["pronto", "entregue"].includes(order.status));
+            setFound(ready);
+            if (!result.ok) setError(result.message || "Não encontrado.");
+            else if (!ready.length) setError("Este serviço ainda não está pronto ou não saiu do laboratório.");
+          } catch { setError("Não foi possível consultar a OS."); }
+        });
+      }}>
+        <label className="pv-search flex-1"><Search size={16} aria-hidden /><span className="sr-only">Número da OS</span><input required value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Número da OS" /></label>
+        <button type="submit" disabled={pending} className="pv-btn is-primary">{pending ? "Buscando…" : "Localizar"}</button>
+      </form>
+      {found.map((order) => (
+        <div key={order.id} className="mt-3">
+          <strong className={cn("text-sm")}>{order.number} · {order.client_name}</strong>
+          <ClientDeliveryForm id={order.id} status={order.status} delivery={rows.find((row) => row.order_id === order.id)} />
+        </div>
       ))}
-      {!visible.length && (
-        <p className="rounded-lg border border-dashed border-[var(--line)] p-5 text-sm">
-          Nenhum acompanhamento neste filtro.
-        </p>
-      )}
-    </div>
+      <Feedback error={error} />
+    </section>
   );
 }

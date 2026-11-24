@@ -1,3 +1,4 @@
+import { OrderContextMenu, OrderMenuRow } from "./order-context-menu";
 import { Fragment } from "react";
 import { ArrowUpRight, ChevronDown, ListFilter, PackageCheck, Plus, Search, Zap } from "lucide-react";
 import Link from "next/link";
@@ -251,8 +252,8 @@ export function OrderScreen({
                     const late = order.urgency === "vermelho" || (order.due_at && new Date(order.due_at).getTime() < Date.now());
                     const soon = order.urgency === "amarelo";
                     return (
+                      <OrderContextMenu key={order.id} role={role} order={{ id: order.id, number: visibleOrderNumber(order), status: order.status, clientName: order.client_name, detailsHref: orderHref(order.id) }}>
                       <Link
-                        key={order.id}
                         href={orderHref(order.id)} scroll={false}
                         className="lg-os-row"
                       >
@@ -268,6 +269,7 @@ export function OrderScreen({
                           </span>
                         </span>
                       </Link>
+                      </OrderContextMenu>
                     );
                   })}
                 </details>
@@ -306,7 +308,7 @@ export function OrderScreen({
                 const deltaLabel = dueDeltaLabel(order.due_at, new Date(), order.status);
                 const forecast = forecastOrder({ status: order.status, dueAt: order.due_at, stepsDone: order.steps_done, lensExpectedAt: order.lens_expected_at });
                 return (
-                  <Fragment key={order.id}>{(index===0 || bySeller[index-1].seller_id!==order.seller_id) && <tr><th colSpan={5} scope="rowgroup" className="bg-[var(--accent-soft)] px-4 py-3 text-sm font-semibold text-[var(--link)]">{order.seller_name || "Sem vendedora"} · {bySeller.filter(item=>item.seller_id===order.seller_id).length} OS nesta página</th></tr>}<tr className="group border-b border-[var(--line)] last:border-b-0 hover:bg-[var(--background)]">
+                  <Fragment key={order.id}>{(index===0 || bySeller[index-1].seller_id!==order.seller_id) && <tr><th colSpan={5} scope="rowgroup" className="bg-[var(--accent-soft)] px-4 py-3 text-sm font-semibold text-[var(--link)]">{order.seller_name || "Sem vendedora"} · {bySeller.filter(item=>item.seller_id===order.seller_id).length} OS nesta página</th></tr>}<OrderMenuRow role={role} order={{ id: order.id, number: visibleOrderNumber(order), status: order.status, clientName: order.client_name, detailsHref: orderHref(order.id) }} className="group border-b border-[var(--line)] last:border-b-0 hover:bg-[var(--background)]">
                     {/* OS + Lab */}
                     <td className="py-2.5 pl-4 pr-3">
                       <Link href={orderHref(order.id)} scroll={false} className="flex flex-col gap-0.5">
@@ -340,7 +342,7 @@ export function OrderScreen({
                       <p className="mt-2 text-xs text-[var(--muted)]">{order.steps_done ?? 0} etapas opcionais registradas</p>
                     </td>
                     <td className="pr-4"><Link href={orderHref(order.id)} scroll={false} aria-label={`Abrir OS ${visibleOrderNumber(order)}`} className="grid h-10 w-10 place-items-center rounded-lg border border-[var(--line)] text-[var(--link)] hover:bg-[var(--accent-soft)]"><ArrowUpRight size={17} /></Link></td>
-                  </tr></Fragment>
+                  </OrderMenuRow></Fragment>
                 );
               })}
             </tbody>

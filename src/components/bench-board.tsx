@@ -18,6 +18,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, useTransition, type CSSProperties, type ReactNode } from "react";
 import { useOperationMode } from "./operation-mode";
+import { useOrderMenu } from "./order-context-menu";
 import { RiskChip } from "@/components/forecast-ui";
 import { Feedback } from "@/components/ui";
 import {
@@ -419,6 +420,7 @@ function BenchCard({ order, expanded, onToggle, role, now, boardPending, onMove,
   const age = stageAge(order.stageSince, now);
   const number = visibleOrderNumber(order);
   const stop = { onMouseDown: (event: React.MouseEvent) => event.stopPropagation(), onTouchStart: (event: React.TouchEvent) => event.stopPropagation() };
+  const quick = useOrderMenu({ id: order.id, number, status: order.status, clientName: order.clientName, detailsHref: `/montagem?os=${order.id}` }, role);
 
   function run() {
     if (action.kind === "none" || pending || boardPending) return;
@@ -455,6 +457,7 @@ function BenchCard({ order, expanded, onToggle, role, now, boardPending, onMove,
       {...(targets.length > 0 ? listeners : {})}
       {...(targets.length > 0 ? attributes : {})}
       aria-roledescription={targets.length > 0 ? "cartão arrastável" : undefined}
+      onContextMenu={quick.handlers.onContextMenu}
     >
       {/* Linha de cima: número, prioridade, tempo na etapa e menu */}
       <div className="bk-card-top">
@@ -543,6 +546,7 @@ function BenchCard({ order, expanded, onToggle, role, now, boardPending, onMove,
         {targets.length > 0 ? <label className="flex items-center gap-2 text-xs text-[var(--muted)]">Mover para<select aria-label={`Mover OS ${number} para`} value="" disabled={pending || boardPending} onChange={(event) => { if (event.target.value) onMove(order, event.target.value); }} className="min-h-11 min-w-0 flex-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 text-[var(--ink)]"><option value="">Escolher status</option>{targets.map((status) => <option key={status} value={status}>{STATUS_LABEL[status]}</option>)}</select></label> : null}
         <Link href={`/montagem?os=${order.id}`} scroll={false} className="flex min-h-11 items-center justify-center rounded-lg border border-[var(--line)] text-xs font-semibold text-[var(--link)] hover:bg-[var(--background)]">Detalhes, fotos e histórico</Link>
       </div>
+      {quick.element}
     </article>
   );
 }
@@ -605,6 +609,7 @@ function BenchRow({ order, role, now, boardPending, onProgress }: { order: Bench
   const number = visibleOrderNumber(order);
   const age = stageAge(order.stageSince, now);
   const tone = deadline.level === "late" || deadline.level === "critical" ? "late" : deadline.level === "soon" || deadline.level === "attention" ? "soon" : "ok";
+  const quick = useOrderMenu({ id: order.id, number, status: order.status, clientName: order.clientName, detailsHref: `/montagem?os=${order.id}` }, role);
   const who = running ? `${STEP_LABEL[running.key]}${running.assignee ? ` com ${running.assignee.split(" ")[0]}` : ""}` : order.status === "aguardando_montagem" ? "aguardando" : age ? `nesta coluna há ${age.label}` : "";
 
   function run() {
@@ -632,7 +637,7 @@ function BenchRow({ order, role, now, boardPending, onProgress }: { order: Bench
   }
 
   return (
-    <li className="bc-row">
+    <li className="bc-row" {...quick.handlers}>
       <span className="bc-avatar" data-tone={tone} aria-hidden>{initials(order.clientName)}</span>
       <div className="bc-row-body">
         <div className="min-w-0 flex-1">
@@ -649,7 +654,9 @@ function BenchRow({ order, role, now, boardPending, onProgress }: { order: Bench
         </div>
         <Link href={`/montagem?os=${order.id}`} scroll={false} className="bc-details">Detalhes</Link>
         {action.kind !== "none" ? <button type="button" onClick={run} disabled={pending || boardPending} className="bc-action">{pending ? "Registrando..." : action.label}</button> : <span className="bc-idle">{action.label}</span>}
+        <button type="button" aria-label={`Mais ações da OS ${number}`} title="Mais ações (ou clique com o botão direito)" onClick={(event) => { const rect = event.currentTarget.getBoundingClientRect(); quick.open(rect.right - 260, rect.bottom + 4); }} className="bk-icon-btn"><MoreHorizontal size={18} /></button>
       </div>
+      {quick.element}
     </li>
   );
 }

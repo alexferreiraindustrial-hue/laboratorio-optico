@@ -1,5 +1,6 @@
 "use client";
 
+import { useOrderMenu } from "./order-context-menu";
 import { DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { KANBAN_AUTO_SCROLL, KanbanViewport } from "./kanban-viewport";
 import { ChevronDown, ChevronRight, Clock, Gauge, GripVertical, Search } from "lucide-react";
@@ -32,9 +33,11 @@ function Card({ order, href, role, pending, onMove, now }: { order: OrderRow; hr
   const forecast = orderForecast(order, now);
   const riskTone = RISK_TONE[forecast.risk];
   const targets = allowedTargets(order.status, role).filter((status) => QUEUE_STATUSES.includes(status));
+  const quick = useOrderMenu({ id: order.id, number: visibleOrderNumber(order), status: order.status, clientName: order.client_name, detailsHref: href }, role);
   return (
     <article
       ref={setNodeRef}
+      onContextMenu={quick.handlers.onContextMenu}
       style={stageStyle(order.status)}
       data-kanban-card
       data-urgency={forecast.risk === "atrasada" ? "late" : order.priority === "critica" ? "critical" : "normal"}
@@ -88,6 +91,7 @@ function Card({ order, href, role, pending, onMove, now }: { order: OrderRow; hr
           Abrir
         </Link>
       </div>
+      {quick.element}
     </article>
   );
 }

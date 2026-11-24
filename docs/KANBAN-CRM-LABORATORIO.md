@@ -21,7 +21,7 @@ Os filtros combinam vendedor, pesquisa e foco (prazos, prioridade crítica ou le
 
 ## Regras preservadas
 
-Mesmos status, permissões, painel lateral e histórico. Arraste e seletor passam pela mesma ação de servidor e RPC; a liberação continua sujeita às etapas concluídas e às ocorrências de qualidade. Não foram criadas colunas livres que contornem essas regras. Nenhuma migração ou alteração de registros foi executada.
+Mesmos status, permissões, painel lateral e histórico. Arraste e seletor passam pela mesma ação de servidor e RPC; a liberação mantém os impedimentos de qualidade e a indicação médica selecionada; os registros de etapas são opcionais. Não foram criadas colunas livres que contornem essas regras. Nenhuma migração ou alteração de registros foi executada.
 
 ## Próximas etapas
 
@@ -31,3 +31,17 @@ Mesmos status, permissões, painel lateral e histórico. Arraste e seletor passa
 4. Calendário, alertas persistentes e automações somente após definir SLA e permissões.
 
 Esses itens exigem avaliação separada; não foram simulados com campos de observação. O APK Flutter mantém a versão anterior: esta entrega modifica o Kanban web compartilhado pelas telas que já o utilizam.
+
+## Navegação lateral — 23/11/2026
+
+Foi consultado por SSH, somente em leitura, o container ativo do CRM Industrial na VPS: `crm-industrial-chatwoot-1`, imagem de 23/11/2026. Referências: `/app/public/crm-industrial/kanban.css` (colunas e corpo, linhas 270–340), `/app/public/crm-industrial/kanban.js` (`initSortables`, linhas 2204–2223, e setas/roda nas faixas, linhas 4369–4409). A licença da base em `/app/LICENSE` identifica MIT fora de Enterprise, com licenças próprias para terceiros. Não foram copiados arquivos, bibliotecas ou trechos comerciais; os comportamentos foram implementados no React/dnd-kit já usados pelo LabGold. Nenhuma alteração foi feita na VPS.
+
+| Antes | Depois | Motivo |
+| --- | --- | --- |
+| 25 cartões tornavam o quadro local quase 3.900px alto | Quadro com altura controlada e rolagem própria por coluna | A barra horizontal fica próxima, mesmo com filas longas |
+| Dependência da barra no fim do conteúdo | Setas de 44px, seletor de etapa e navegação por teclado | Chegar às últimas etapas sem procurar a barra |
+| Recolher escondia cartões mas mantinha toda a largura | Coluna recolhida ocupa 52px e mantém nome/contador | Liberar espaço para as etapas de trabalho |
+| Arraste podia ficar recortado pela coluna | Prévia de arraste separada e rolagem automática dentro do quadro | Alcançar etapas fora da área visível |
+| Navegação diferente na bancada, produção e resumo | Componente `KanbanViewport` compartilhado | Mesma operação nas três telas |
+
+Mouse: setas, Shift + roda e arraste do espaço vazio. Toque: deslizar horizontalmente e rolar verticalmente dentro da coluna. Teclado: Tab até o quadro, setas esquerda/direita e Home/End. A navegação não chama ações de servidor e não muda a posição operacional de nenhuma OS. Movimentação de cartão continua passando pelas ações e permissões existentes.

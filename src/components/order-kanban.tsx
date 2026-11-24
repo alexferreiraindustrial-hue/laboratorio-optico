@@ -1,6 +1,7 @@
 "use client";
 
-import { DndContext, MouseSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { KANBAN_AUTO_SCROLL, KanbanViewport } from "./kanban-viewport";
 import { ChevronDown, ChevronRight, Clock, Gauge, GripVertical, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -27,17 +28,17 @@ function deadlineStyle(order: OrderRow) {
 }
 
 function Card({ order, href, role, pending, onMove, now }: { order: OrderRow; href: string; role: AppRole; pending: boolean; onMove: (order: OrderRow, status: OrderStatus) => void; now: Date }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: order.id, disabled: pending || allowedTargets(order.status, role).length === 0 });
-  const style = transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined;
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: order.id, disabled: pending || allowedTargets(order.status, role).length === 0 });
   const forecast = orderForecast(order, now);
   const riskTone = RISK_TONE[forecast.risk];
   const targets = allowedTargets(order.status, role).filter((status) => QUEUE_STATUSES.includes(status));
   return (
     <article
       ref={setNodeRef}
-      style={{...style,...stageStyle(order.status)}}
+      style={stageStyle(order.status)}
+      data-kanban-card
       data-urgency={forecast.risk === "atrasada" ? "late" : order.priority === "critica" ? "critical" : "normal"}
-      className={`lg-card flex flex-col gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-3 pb-2.5 pt-3 shadow-[0_1px_2px_rgba(19,32,31,0.04)] transition-shadow hover:border-[var(--line)] hover:shadow-[0_4px_12px_-6px_rgba(19,32,31,0.18)] ${isDragging ? "z-10 opacity-80 shadow-lg" : ""}`}
+      className={`lg-card flex flex-col gap-2 rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-3 pb-2.5 pt-3 shadow-[0_1px_2px_rgba(19,32,31,0.04)] transition-shadow hover:border-[var(--line)] hover:shadow-[0_4px_12px_-6px_rgba(19,32,31,0.18)] ${isDragging ? "opacity-30" : ""}`}
     >
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
@@ -103,12 +104,15 @@ function Column({ status, orders, hrefBase, drawerBase, limit, total, collapsed,
   return (
     <div
       ref={setNodeRef}
+      data-kanban-column={status}
+      data-collapsed={collapsed||undefined}
       style={stageStyle(status)}
-      className={`lg-lane flex min-h-60 w-[min(86vw,280px)] shrink-0 snap-start flex-col gap-2 rounded-xl p-2.5 transition-[box-shadow,background-color] duration-300 md:w-[292px] ${tone} ${isOver ? "ring-2 ring-[var(--focus)]" : ""}`}
+      className={`kanban-column lg-lane ${tone} ${isOver ? "ring-2 ring-[var(--focus)]" : ""}`}
     >
-      <div className="flex items-center gap-2 px-1 pb-1.5 pt-1">
+      {collapsed ? <h2 className="kanban-column-heading"><button type="button" onClick={onToggle} aria-expanded={false} aria-label={`Expandir coluna ${STATUS_LABEL[status]}`} className="kanban-column-strip"><ChevronRight size={16}/><span>{STATUS_LABEL[status]}</span><span>{orders.length}</span></button></h2> : <>
+      <div className="kanban-column-heading flex items-center gap-2 px-1 pb-1.5 pt-1">
         <span className="h-2 w-2 rounded-[2px]" style={{ background: "var(--lane)" }} />
-        <h2 className="flex-1 text-[13px] font-semibold"><button type="button" onClick={onToggle} aria-expanded={!collapsed} className="flex min-h-11 w-full items-center gap-1 text-left">{collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}{status === "em_conferencia" ? "Em conferência" : STATUS_LABEL[status]}</button></h2>
+        <h2 className="flex-1 text-[13px] font-semibold"><button type="button" onClick={onToggle} aria-label={`Recolher coluna ${STATUS_LABEL[status]}`} aria-expanded={!collapsed} className="flex min-h-11 w-full items-center gap-1 text-left">{collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}{STATUS_LABEL[status]}</button></h2>
         {limit ? (
           <span
             title="Limite WIP (trabalho em processo) desta coluna"
@@ -127,12 +131,15 @@ function Column({ status, orders, hrefBase, drawerBase, limit, total, collapsed,
       {wip === "estourado" ? (
         <div className="rounded-md bg-[var(--danger-solid)] px-2 py-1 text-[11px] font-semibold text-white">Acima do limite WIP: termine antes de puxar mais</div>
       ) : null}
+      <div className="kanban-column-body" data-kanban-column-body tabIndex={0} role="region" aria-label={`Serviços em ${STATUS_LABEL[status]}`}>
       {!collapsed && orders.map((order) => (
         <Card key={order.id} order={order} role={role} pending={pending} onMove={onMove} now={now} href={drawerBase ? `${drawerBase}${drawerBase.includes("?") ? "&" : "?"}os=${order.id}` : `${hrefBase}/${order.id}`} />
       ))}
       {!collapsed && orders.length === 0 ? (
         <div className="rounded-[10px] border border-dashed border-[var(--line)] px-3 py-[18px] text-center text-xs text-[var(--muted)]">Nenhuma OS</div>
       ) : null}
+      </div>
+      </>}
     </div>
   );
 }
@@ -152,6 +159,7 @@ export function OrderKanban({
 }) {
   const router = useRouter();
   const boardId = useId();
+  const [draggingId,setDraggingId]=useState<string|null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startMove] = useTransition();
   const [query, setQuery] = useState("");
@@ -165,6 +173,7 @@ export function OrderKanban({
     state.map((order) => (order.id === move.id ? { ...order, status: move.status } : order)),
   );
   const sensors = useSensors(
+    useSensor(KeyboardSensor),
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
   );
@@ -173,7 +182,10 @@ export function OrderKanban({
   const visible = selectBoardOrders(loaded, { query, focus, sellerId, sort }, now);
   const sellers = Array.from(new Map(orders.filter((order) => order.seller_id).map((order) => [order.seller_id!, order.seller_name || "Sem nome"])).entries()).sort((a, b) => a[1].localeCompare(b[1]));
 
+  const draggingOrder=board.find(order=>order.id===draggingId);
+
   function onDragEnd(event: DragEndEvent) {
+    setDraggingId(null);
     const order = board.find((item) => item.id === event.active.id);
     const status = event.over?.id as OrderStatus | undefined;
     if (order && status) moveOrder(order, status);
@@ -219,12 +231,13 @@ export function OrderKanban({
       </div>
       <p className="text-xs text-[var(--muted)]">Use a alça para arrastar ou escolha “Mover para” no cartão. Filtros e ordenação se aplicam às OS carregadas; a capacidade considera todo o quadro carregado.</p>
       <Feedback error={error} />
-      <DndContext id={boardId} sensors={sensors} onDragEnd={onDragEnd}>
-        <div className="-mx-3 flex items-start gap-3.5 overflow-x-auto px-3 pb-2 snap-x snap-mandatory md:mx-0 md:px-0 md:snap-none">
+      <DndContext id={boardId} sensors={sensors} autoScroll={KANBAN_AUTO_SCROLL} onDragStart={event=>setDraggingId(String(event.active.id))} onDragCancel={()=>setDraggingId(null)} onDragEnd={onDragEnd}>
+        <KanbanViewport label="Kanban de produção" dragging={Boolean(draggingId)} lanes={QUEUE_STATUSES.map(status=>({id:status,label:STATUS_LABEL[status],count:visible.filter(order=>order.status===status).length}))}>
           {QUEUE_STATUSES.map((status) => (
             <Column key={status} status={status} hrefBase={hrefBase} drawerBase={drawerBase} limit={wipLimits?.[status]} total={board.filter((order) => order.status === status).length} orders={visible.filter((order) => order.status === status)} collapsed={collapsed.includes(status)} onToggle={() => setCollapsed((current) => current.includes(status) ? current.filter((item) => item !== status) : [...current, status])} role={role} pending={pending} onMove={moveOrder} now={now} />
           ))}
-        </div>
+        </KanbanViewport>
+        <DragOverlay>{draggingOrder?<article className="w-[280px] rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-lg"><p className="font-mono text-xs text-[var(--link)]">OS {visibleOrderNumber(draggingOrder)}</p><p className="mt-2 text-sm font-semibold">{draggingOrder.client_name}</p><p className="mt-2 text-xs text-[var(--muted)]">{STATUS_LABEL[draggingOrder.status]}</p></article>:null}</DragOverlay>
       </DndContext>
     </div>
   );

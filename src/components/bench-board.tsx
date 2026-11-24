@@ -1,4 +1,5 @@
 "use client";
+import {KANBAN_AUTO_SCROLL,KanbanViewport,type KanbanViewportHandle} from "./kanban-viewport";
 import {sellerFilterNames} from "@/lib/domain/seller-filters";
 import {stageStyle,StepTrack} from "./production-visuals";
 import {LensGauge} from "./lens";
@@ -9,7 +10,7 @@ import { can } from "@/lib/domain/permissions";
 import { Check, ChevronDown, ChevronRight, GripVertical, LayoutList, Play, ScanLine, Wrench } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useMemo, useState, useTransition } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
 import { useOperationMode } from "./operation-mode";
 import { RiskChip } from "@/components/forecast-ui";
 import { Feedback } from "@/components/ui";
@@ -37,7 +38,7 @@ export function BenchBoard({ sellers = [], orders, role, error, nowIso, userId =
   const router = useRouter();
   const { simple } = useOperationMode();
   const boardId = useId();
-  const [activeLane, setActiveLane] = useState<BenchOrder["status"]>(() => BENCH_LANES.find((lane) => orders.some((order) => order.status === lane.status))?.status ?? "aguardando_montagem");
+  const viewportRef=useRef<KanbanViewportHandle>(null);
   const [query, setQuery] = useState("");
   const [seller,setSeller]=useState("");
   const [focus, setFocus] = useState<BenchFocus>("all");
@@ -80,9 +81,8 @@ export function BenchBoard({ sellers = [], orders, role, error, nowIso, userId =
   }
 
   function followStatus(status: string) {
-    if (!simple) return;
     const lane = BENCH_LANES.find((item) => item.status === status);
-    if (lane) { setActiveLane(lane.status); document.getElementById(`bench-lane-${lane.status}`)?.scrollIntoView({block:"nearest",inline:"center"}); }
+    if (lane) viewportRef.current?.goTo(lane.status);
     if (status === "pronto") setNotice("Serviço conferido e pronto. Agora ele aparece em Retirada e entrega.");
   }
 
@@ -111,13 +111,13 @@ export function BenchBoard({ sellers = [], orders, role, error, nowIso, userId =
       <span role="status" className="ml-auto text-xs text-[var(--muted)]">{visible.length} de {orders.length} OS{pending ? " · Salvando…" : ""}</span>
       {query || focus !== "all" || assigneeId || seller ? <button type="button" onClick={() => { setQuery(""); setFocus("all"); setAssigneeId(""); setSeller(""); }} className="min-h-11 px-2 text-xs font-semibold text-[var(--link)]">Limpar filtros</button> : null}
     </div>
-    {simple ? <><details className="text-sm text-[var(--muted)]"><summary className="inline-flex min-h-11 items-center font-medium text-[var(--link)]">Como usar a bancada</summary><p className="max-w-3xl pb-2">Arraste pela alça entre as colunas ou expanda o cartão para iniciar processos e anexar fotos. Vermelho indica atraso ou prioridade alta; laranja e amarelo indicam prazo próximo.</p></details><div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="Escolher fila de montagem">{BENCH_LANES.map((lane) => <button key={lane.status} type="button" onClick={() => {setActiveLane(lane.status);document.getElementById(`bench-lane-${lane.status}`)?.scrollIntoView({block:"nearest",inline:"center"});}} aria-pressed={activeLane === lane.status} className={cn("min-h-14 rounded-xl border px-3 py-2 text-left text-sm font-semibold", activeLane === lane.status ? "border-[var(--focus)] bg-[var(--accent)] text-white" : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]")}>{lane.title}<span className="ml-2 font-mono">{visible.filter((order) => order.status === lane.status).length}</span></button>)}</div></> : <p className="text-xs text-[var(--muted)]">Arraste pela alça ou use “Mover para”. A próxima ação registra cada etapa; mover a OS não conclui etapas. Filtros aplicados às até 200 OS carregadas.</p>}
+    <p className="text-xs text-[var(--muted)]">Arraste pela alça para mover uma OS. Expanda o cartão para registrar observações e fotos; as etapas são opcionais.</p>
     {notice ? <div role="status" className="rounded-xl border border-[var(--edge-b5ddd0)] bg-[var(--accent-soft)] p-4 text-sm text-[var(--link)]">{notice}<Link href="/entrega" className="mt-2 block min-h-11 py-2 font-semibold underline">Ver serviços para retirada</Link></div> : null}
     <Feedback error={moveError || error} />
-    <DndContext id={boardId} sensors={sensors} collisionDetection={args=>{const hits=pointerWithin(args);return hits.length?hits:closestCenter(args);}} onDragStart={event=>setDraggingId(String(event.active.id))} onDragCancel={()=>setDraggingId(null)} onDragEnd={onDragEnd}>
-      <div className="-mx-3 flex min-w-0 snap-x snap-mandatory items-start gap-3 overflow-x-auto px-3 pb-4 md:mx-0 md:px-0 md:snap-none" aria-label="Kanban da bancada">
+    <DndContext id={boardId} sensors={sensors} autoScroll={KANBAN_AUTO_SCROLL} collisionDetection={args=>{const hits=pointerWithin(args);return hits.length?hits:closestCenter(args);}} onDragStart={event=>setDraggingId(String(event.active.id))} onDragCancel={()=>setDraggingId(null)} onDragEnd={onDragEnd}>
+      <KanbanViewport ref={viewportRef} label="Kanban da bancada" dragging={Boolean(draggingId)} lanes={BENCH_LANES.map(lane=>({id:lane.status,label:lane.title,count:visible.filter(order=>order.status===lane.status).length}))}>
         {BENCH_LANES.map((lane) => <BenchLane key={lane.status} lane={lane} orders={visible.filter((order) => order.status === lane.status)} total={orders.filter((order) => order.status === lane.status).length} collapsed={collapsed.includes(lane.status)} onToggle={() => setCollapsed((current) => current.includes(lane.status) ? current.filter((status) => status !== lane.status) : [...current, lane.status])} role={role} now={now} pending={pending} onMove={moveOrder} onProgress={followStatus} />)}
-      </div>
+      </KanbanViewport>
       <DragOverlay>{draggingOrder ? <div className="bench-compact-card w-[300px] rounded-xl border p-3 shadow-xl" data-urgency={benchDeadlineSignal(draggingOrder,now).level}><p className="text-xs font-semibold">OS {visibleOrderNumber(draggingOrder)}</p><p className="mt-1 text-base font-semibold">{draggingOrder.clientName}</p><p className="mt-2 text-xs">{draggingOrder.dueAt?formatDateTime(draggingOrder.dueAt):"Sem prazo"}</p><p className="bench-deadline-label mt-1 text-xs font-semibold">{benchDeadlineSignal(draggingOrder,now).label}</p></div> : null}</DragOverlay>
     </DndContext>
   </div>;
@@ -125,9 +125,11 @@ export function BenchBoard({ sellers = [], orders, role, error, nowIso, userId =
 
 function BenchLane({ lane, orders, total, collapsed, onToggle, role, now, pending, onMove, onProgress }: { lane: typeof BENCH_LANES[number]; orders: BenchOrder[]; total: number; collapsed: boolean; onToggle: () => void; role: AppRole; now: Date; pending: boolean; onMove: (order: BenchOrder, status: string) => void; onProgress: (status: string) => void }) {
   const { setNodeRef, isOver } = useDroppable({ id: lane.status });
-  return <section id={`bench-lane-${lane.status}`} ref={setNodeRef} style={stageStyle(lane.status)} className={cn("lg-lane flex min-h-52 w-[min(88vw,340px)] shrink-0 snap-start flex-col gap-3 rounded-xl bg-[var(--bg-e8eeee)] p-2.5 md:w-[328px]", isOver && "ring-2 ring-[var(--focus)]")}>
-    <header className="flex items-start gap-2 px-1"><span className="mt-4 h-2 w-2 shrink-0 rounded-sm" style={{ background: "var(--lane)" }} /><div className="min-w-0 flex-1"><h2><button type="button" onClick={onToggle} aria-expanded={!collapsed} className="flex min-h-11 w-full items-center gap-1 text-left text-sm font-semibold">{collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}{lane.title}</button></h2><p className="text-xs text-[var(--muted)]">{lane.hint}</p></div><span className="mt-3 font-mono text-xs text-[var(--muted)]" title={`${orders.length} visíveis de ${total}`}>{orders.length === total ? total : `${orders.length}/${total}`}</span></header>
-    {!collapsed && (orders.length ? <div className="grid gap-2">{orders.map((order) => <BenchCard key={order.id} order={order} role={role} now={now} boardPending={pending} onMove={onMove} onProgress={onProgress} />)}</div> : <p className="rounded-lg border border-dashed border-[var(--edge-c5d1d2)] px-3 py-8 text-center text-xs text-[var(--muted)]">{total ? "Nenhuma OS corresponde aos filtros." : "Nenhuma OS nesta etapa."}</p>)}
+  return <section id={`bench-lane-${lane.status}`} data-kanban-column={lane.status} data-collapsed={collapsed||undefined} ref={setNodeRef} style={stageStyle(lane.status)} className={cn("kanban-column lg-lane bg-[var(--surface-secondary)]", isOver && "ring-2 ring-[var(--focus)]")}>
+    {collapsed ? <h2 className="kanban-column-heading"><button type="button" onClick={onToggle} aria-expanded={false} aria-label={`Expandir coluna ${lane.title}`} className="kanban-column-strip"><ChevronRight size={16}/><span>{lane.title}</span><span>{orders.length}</span></button></h2> : <>
+    <header className="flex items-start justify-between gap-2 p-1"><div className="min-w-0"><h2 className="text-sm font-semibold"><button type="button" onClick={onToggle} aria-expanded aria-label={`Recolher coluna ${lane.title}`} className="flex min-h-11 items-center gap-1 text-left"><ChevronDown size={15}/>{lane.title}</button></h2><p className="text-xs leading-relaxed text-[var(--muted)]">{lane.hint}</p></div><span className="mt-2 rounded-lg bg-[var(--surface)] px-2 py-1 font-mono text-xs font-semibold">{orders.length}{orders.length!==total?`/${total}`:""}</span></header>
+    <div className="kanban-column-body" data-kanban-column-body tabIndex={0} role="region" aria-label={`Serviços em ${lane.title}`}>{orders.length ? orders.map((order) => <BenchCard key={order.id} order={order} role={role} now={now} boardPending={pending} onMove={onMove} onProgress={onProgress} />) : <p className="rounded-lg border border-dashed border-[var(--line)] px-3 py-8 text-center text-xs text-[var(--muted)]">{total ? "Nenhuma OS corresponde aos filtros." : "Nenhuma OS nesta etapa."}</p>}</div>
+    </>}
   </section>;
 }
 
@@ -173,6 +175,7 @@ function BenchCard({ order, role, now, boardPending, onMove, onProgress }: { ord
   return (
     <article
       ref={setNodeRef}
+      data-kanban-card
       data-urgency={deadline.level}
       style={stageStyle(order.status)}
       className={cn("lg-card bench-compact-card grid gap-2 rounded-xl border p-3", isDragging && "opacity-30", pending && "opacity-80")}

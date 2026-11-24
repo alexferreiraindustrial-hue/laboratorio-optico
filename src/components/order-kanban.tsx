@@ -62,7 +62,7 @@ function Card({ order, href, role, pending, onMove, now }: { order: OrderRow; hr
         ) : null}
         {order.priority === "critica" ? <span className="text-xs font-semibold text-[var(--danger)]">Prioridade crítica</span> : null}
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
-          <span>Montagem: {order.steps_done ?? 0}/5 etapas</span>
+          <span>Etapas opcionais registradas: {order.steps_done ?? 0}</span>
           {order.lens_arrived_at ? <span>Lentes recebidas</span> : order.status === "aguardando_lentes" ? <span>{order.lens_expected_at ? `Chegada: ${new Date(order.lens_expected_at).toLocaleDateString("pt-BR")}` : "Lentes sem previsão"}</span> : null}
           {order.lens_supplier_ref ? <span>Pedido: {order.lens_supplier_ref}</span> : null}
         </div>

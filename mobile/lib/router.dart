@@ -1,3 +1,6 @@
+import 'screens/ready_entry_screen.dart';
+import 'screens/client_followup_screen.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -99,6 +102,16 @@ GoRouter createRouter(Session session) {
                 : 'aguardando_lentes',
           );
         },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootKey,
+        path: '/registrar-pronto',
+        builder: (context, state) => const ReadyEntryScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootKey,
+        path: '/pos-venda',
+        builder: (context, state) => ClientFollowupScreen(session: session),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,

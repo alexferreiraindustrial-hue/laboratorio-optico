@@ -11,5 +11,5 @@ export function stageStyle(status:OrderStatus): CSSProperties {return {"--lane":
 
 export function StepTrack({done}:{done:number}) {
  const completed=Math.max(0,Math.min(5,done));
- return <div className="lg-step-track" role="img" aria-label={`${completed} de 5 etapas concluídas`}>{Array.from({length:5},(_,i)=><span key={i} data-done={i<completed}/>)}</div>;
+ return <div className="lg-step-track" role="img" aria-label={`${completed} etapas opcionais registradas`}>{Array.from({length:5},(_,i)=><span key={i} data-done={i<completed}/>)}</div>;
 }

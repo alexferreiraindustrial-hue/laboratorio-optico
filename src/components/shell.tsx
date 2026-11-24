@@ -85,7 +85,7 @@ const groups: { title: string; step?: string; adminOnly?: boolean; items: NavIte
   {
     title: "Saída",
     step: "4",
-    items: [{ href: "/entrega", label: "Retirada e entrega", icon: PackageCheck }],
+    items: [{ href: "/entrega", label: "Saída do laboratório", icon: PackageCheck }, { href: "/pos-venda", label: "Entrega ao cliente · pós-venda", icon: MessageSquare }],
   },
   {
     title: "Equipe",

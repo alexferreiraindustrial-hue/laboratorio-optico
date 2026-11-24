@@ -211,7 +211,7 @@ export async function saveOrder(formData: FormData): Promise<ActionResult> {
 export async function changeOrderStatus(orderId: string, status: string, note: string): Promise<ActionResult> {
   const { supabase, role } = await requireProfile();
   if (!can(role, "orders.status")) return { ok: false, message: "Sem permissão para movimentar a OS." };
-  const { error } = await supabase.rpc("change_order_status", {
+  const { error } = status==="em_correcao"?await supabase.rpc("send_order_to_correction",{p_order_id:orderId,p_problem:note}):await supabase.rpc("change_order_status", {
     p_order_id: orderId,
     p_to: status,
     p_note: note,

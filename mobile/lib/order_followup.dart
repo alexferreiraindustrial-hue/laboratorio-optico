@@ -131,6 +131,19 @@ class _OrderFollowupState extends State<OrderFollowup> {
                     ? 'Conferência médica indicada'
                     : 'Sem indicação médica',
               ),
+            if (widget.editable && o['status'] == 'pronto')
+              OutlinedButton(
+                onPressed: busy
+                    ? null
+                    : () => run(
+                        () => api.changeStatus(
+                          o['id'] as String,
+                          'em_conferencia',
+                          'Encaminhamento médico decidido após a montagem pronta',
+                        ),
+                      ),
+                child: const Text('Enviar ao médico · decisão posterior'),
+              ),
             if (o['medical_review_note'] != null)
               Text('${o['medical_review_note']}'),
             if (required && o['medical_review_approved_at'] == null)

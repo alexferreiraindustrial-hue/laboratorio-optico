@@ -67,6 +67,7 @@ export function BenchBoard({ sellers = [], orders, role, error, nowIso, userId =
     const lane = BENCH_LANES.find((item) => item.status === target);
     if (!lane || pending || lane.status === order.status) return;
     if (!canTransition(order.status, lane.status, role)) { setMoveError("Esta mudança não faz parte do fluxo ou do seu perfil. Use a próxima ação do cartão."); return; }
+    if(lane.status==="em_correcao"){setMoveError("Abra os detalhes e registre o problema antes de enviar para correção.");return;}
     setMoveError(null);
     startMove(async () => {
       try {
@@ -178,7 +179,7 @@ function BenchCard({ order, role, now, boardPending, onMove, onProgress }: { ord
     >
       <div className="flex items-start justify-between gap-2">
         <Link href={`/montagem?os=${order.id}`} scroll={false} className="min-w-0 break-words font-mono text-xs font-semibold text-[var(--link)]">OS {visibleOrderNumber(order)}</Link>
-        <div className="flex shrink-0 items-center gap-1"><span className="text-xs text-[var(--muted)]">{stepsDone}/5</span>{targets.length>0 && <button type="button" aria-label={`Arrastar OS ${visibleOrderNumber(order)}`} title="Arrastar para outra coluna" className="flex h-11 w-11 touch-none items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--accent-soft)] cursor-grab active:cursor-grabbing" {...listeners} {...attributes}><GripVertical size={19}/></button>}</div>
+        <div className="flex shrink-0 items-center gap-1"><span className="text-xs text-[var(--muted)]">{stepsDone} reg. opcionais</span>{targets.length>0 && <button type="button" aria-label={`Arrastar OS ${visibleOrderNumber(order)}`} title="Arrastar para outra coluna" className="flex h-11 w-11 touch-none items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--accent-soft)] cursor-grab active:cursor-grabbing" {...listeners} {...attributes}><GripVertical size={19}/></button>}</div>
       </div>
       <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={()=>setExpanded(value=>!value)} className="grid min-h-11 gap-1.5 text-left">
         <span className="flex items-start gap-2"><span className="min-w-0 flex-1 break-words text-base font-semibold leading-snug">{order.clientName}</span>{expanded?<ChevronDown size={18}/>:<ChevronRight size={18}/>}</span>
@@ -191,13 +192,13 @@ function BenchCard({ order, role, now, boardPending, onMove, onProgress }: { ord
         {(order.openOccurrences??0)>0 && <span className="text-xs font-semibold text-[var(--danger)]">{order.openOccurrences} ocorrência(s) aberta(s)</span>}
         <span className="mt-1 text-xs font-medium text-[var(--muted)]">{expanded?"Recolher cartão":"Expandir · processos e fotos"}{pending?" · Salvando…":""}</span>
       </button>
-      <StepTrack done={stepsDone}/><div id={detailsId} hidden={!expanded}>
+      <div id={detailsId} hidden={!expanded}><StepTrack done={stepsDone}/>
       <div className="grid gap-3 border-t border-[var(--line)] pt-3"><div className="flex items-center justify-between gap-3"><span className="text-sm font-semibold">Processos da montagem</span><LensGauge value={stepsDone*20} risk={forecast.risk} size={68}/></div>
         <div className="text-xs text-[var(--muted)]"><p>{[order.storeName,order.sellerName].filter(Boolean).join(" · ")||"Sem loja ou vendedor"}</p><p className="mt-1">{order.laboratoryName||"Sem laboratório"}</p></div>
       {can(role,"orders.write") && <QuickOrderPhoto orderId={order.id} stepKey={running?.key}/>}
       {order.openOccurrences ? <Link href={`/montagem?os=${order.id}`} scroll={false} className="rounded-lg bg-[var(--danger-soft)] px-2.5 py-2 text-xs font-semibold text-[var(--danger)]">{order.openOccurrences} ocorrência(s) de qualidade aberta(s) · verificar</Link> : null}
       <details open className="rounded-lg bg-[var(--background)] p-2.5">
-        <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 text-sm"><span className="font-semibold">Ver etapas da montagem</span><span className="font-mono text-[var(--muted)]">{stepsDone}/5</span></summary>
+        <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 text-sm"><span className="font-semibold">Ver etapas da montagem</span><span className="font-mono text-[var(--muted)]">{stepsDone} reg. opcionais</span></summary>
         <ol className="grid gap-1.5" aria-label="Etapas da montagem">
           {STEP_KEYS.map((key) => {
             const step = order.steps.find((item) => item.key === key);

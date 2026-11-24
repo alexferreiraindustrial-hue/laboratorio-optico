@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { QuickLaunch } from "@/components/quick-launch";
 import { PageHeading } from "@/components/shell";
 import { loadCatalogs } from "@/server/queries";
@@ -11,6 +12,7 @@ export default async function EntregaPage() {
         title="Saída e entrega"
         description="Bipe as OS prontas que estão saindo do laboratório para o vendedor ou a loja. O vendedor vê a OS como entregue no link de acompanhamento."
       />
+      {["admin","gestor"].includes(role)&&<Link href="/pos-venda" className="min-h-11 py-2 text-sm font-semibold text-[var(--link)] underline">Confirmar entrega ao cliente e acompanhar os cinco dias →</Link>}
       <QuickLaunch
         role={role}
         laboratories={catalogs.laboratories}

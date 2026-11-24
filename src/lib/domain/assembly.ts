@@ -1,4 +1,4 @@
-import { STEP_KEYS, STEP_LABEL, type StepKey, type StepStatus } from "./constants";
+import { STEP_KEYS, type StepKey, type StepStatus } from "./constants";
 
 export type StepSnapshot = {
   key: StepKey;
@@ -32,12 +32,6 @@ export function prontoBlockers(input: {
   openOccurrences: number;
 }): string[] {
   const reasons: string[] = [];
-  for (const key of STEP_KEYS) {
-    const step = input.steps.find((item) => item.key === key);
-    if (!step || step.status !== "concluida") {
-      reasons.push(`${STEP_LABEL[key]} ainda não foi concluída.`);
-    }
-  }
   if (input.openOccurrences > 0) {
     reasons.push("Há ocorrência de qualidade aberta ou em tratamento.");
   }

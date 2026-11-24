@@ -1,6 +1,5 @@
 import type {OrderOperations} from "./operations";
-import { canCompleteStep, canStartStep } from "./assembly";
-import { STEP_KEYS, STEP_LABEL, type AppRole, type OrderStatus, type StepKey, type StepStatus } from "./constants";
+import { type AppRole, type OrderStatus, type StepKey, type StepStatus } from "./constants";
 import { forecastOrder, type Risk } from "./forecast";
 import { can } from "./permissions";
 import { canTransition } from "./status";
@@ -17,7 +16,7 @@ export type BenchOrder = OrderOperations & {
   externalOrderId: string | null;
   dueAt: string | null;
   enteredAt: string;
-  status: Extract<OrderStatus, "aguardando_montagem" | "em_montagem" | "em_correcao" | "em_conferencia">;
+  status: Extract<OrderStatus, "aguardando_montagem" | "em_montagem" | "em_correcao" | "em_conferencia" | "pronto">;
   urgent: boolean;
   openOccurrences: number | null;
   steps: { key: StepKey; status: StepStatus; startedAt: string | null; assignee: string | null; assigneeId: string | null }[];
@@ -29,6 +28,7 @@ type NextAction =
   | { kind: "none"; label: string };
 
 export function nextBenchAction(order: BenchOrder, role: AppRole): NextAction {
+  if(order.status==="pronto")return {kind:"none",label:"Pronto · decidir médico ou entrega nos detalhes"};
   if (order.status === "aguardando_montagem") {
     return canTransition(order.status, "em_montagem", role)
       ? { kind: "status", to: "em_montagem", label: "Começar montagem", note: "Início pela bancada" }
@@ -40,28 +40,15 @@ export function nextBenchAction(order: BenchOrder, role: AppRole): NextAction {
       : { kind: "none", label: "Correção em acompanhamento" };
   }
   if (!can(role, "assembly.write")) return { kind: "none", label: "Somente consulta" };
-  const snapshots = order.steps.map((step) => ({ key: step.key, status: step.status }));
-  for (const key of STEP_KEYS) {
-    const step = order.steps.find((item) => item.key === key);
-    if (!step) return { kind: "none", label: "Etapas incompletas: abrir detalhes" };
-    if (step.status === "concluida") continue;
-    if (step.status === "em_andamento" && canCompleteStep(snapshots, key)) {
-      return { kind: "step", action: "concluir", step: key, label: `Concluir ${STEP_LABEL[key].toLowerCase()}` };
-    }
-    if (canStartStep(snapshots, key)) {
-      return { kind: "step", action: "iniciar", step: key, label: `Iniciar ${STEP_LABEL[key].toLowerCase()}` };
-    }
-    return { kind: "none", label: `${STEP_LABEL[key]} bloqueada` };
-  }
   if ((order.status === "em_conferencia" || order.status === "em_montagem") && order.openOccurrences !== 0) {
     return { kind: "none", label: order.openOccurrences === null ? "Conferir ocorrências nos detalhes" : "Resolver ocorrências antes de liberar" };
   }
   if (order.status === "em_conferencia" && order.medical_review_required && !order.medical_review_approved_at) return {kind:"none",label:"Aguardando retorno médico · abrir detalhes"};
   if (order.status === "em_conferencia" && canTransition(order.status, "pronto", role)) {
-    return { kind: "status", to: "pronto", label: "Marcar como pronta", note: "Conferida na bancada" };
+    return { kind: "status", to: "pronto", label: "Concluir montagem · pronto", note: "Conferida na bancada" };
   }
   if (order.status === "em_montagem" && canTransition(order.status, "em_conferencia", role)) {
-    return order.medical_review_required ? { kind: "status", to: "em_conferencia", label: "Enviar para conferência médica", note: "Etapas concluídas · aguarda retorno médico" } : {kind:"status",to:"pronto",label:"Marcar como pronta",note:"Cinco etapas técnicas concluídas · sem indicação médica"};
+    return order.medical_review_required ? { kind: "status", to: "em_conferencia", label: "Enviar para conferência médica", note: "Montagem finalizada · indicação médica selecionada" } : {kind:"status",to:"pronto",label:"Marcar como pronta",note:"Conclusão da montagem confirmada pelo operador · sem indicação médica"};
   }
   return { kind: "none", label: "Sem ação pendente" };
 }
@@ -69,8 +56,9 @@ export function nextBenchAction(order: BenchOrder, role: AppRole): NextAction {
 
 export const BENCH_LANES: { status: BenchOrder["status"]; title: string; hint: string; color: string }[] = [
   { status: "aguardando_montagem", title: "Aguardando montagem", hint: "Lentes liberadas · puxar próxima OS", color: "#6e6a63" },
-  { status: "em_montagem", title: "Em montagem", hint: "Executar e registrar as cinco etapas", color: "#8c6239" },
+  { status: "em_montagem", title: "Em montagem", hint: "Montar, registrar exceções e concluir sem cliques por etapa", color: "#8c6239" },
   { status: "em_correcao", title: "Em correção", hint: "Resolver impedimentos e retomar", color: "#b83a3a" },
+  {status:"pronto",title:"Pronto",hint:"Montagem concluída · retirada ou decisão médica",color:"#2e7d5b"},
   { status: "em_conferencia", title: "Conferência Médico", hint: "Somente serviços com indicação médica", color: "#8a5a00" },
 ];
 
@@ -110,6 +98,7 @@ export function selectBenchOrders(orders: BenchOrder[], options: { query: string
 
 /** Deadline signals remain explicit even when the card is collapsed. */
 export function benchDeadlineSignal(order: BenchOrder, now: Date): { level: "late" | "critical" | "soon" | "attention" | "normal" | "none"; label: string } {
+ if(order.status==="pronto")return {level:"normal",label:"Pronto para retirada"};
  const hours = order.dueAt ? (Date.parse(order.dueAt)-now.getTime())/3600000 : NaN;
  if (Number.isFinite(hours) && hours < 0) return {level:"late",label:"Em atraso"};
  if (order.urgent) return {level:"critical",label:"Prioridade crítica"};

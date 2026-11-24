@@ -40,6 +40,7 @@ class _BenchScreenState extends State<BenchScreen> {
     ('em_montagem', 'Em montagem'),
     ('em_correcao', 'Em correção'),
     ('em_conferencia', 'Conferência Médico'),
+    ('pronto', 'Pronto'),
   ];
 
   @override
@@ -115,7 +116,10 @@ class _BenchScreenState extends State<BenchScreen> {
         SnackBar(
           content: Text('OS $numero movida para $destino'),
           duration: Duration(seconds: 5),
-          action: action.kind == 'status'
+          action:
+              action.kind == 'status' &&
+                  action.to != null &&
+                  allowedTargets(action.to!, role).contains(previous)
               ? SnackBarAction(
                   label: 'Desfazer',
                   onPressed: () async {

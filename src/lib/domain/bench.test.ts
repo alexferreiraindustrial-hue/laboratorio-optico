@@ -18,16 +18,12 @@ describe("próxima ação da bancada", () => {
     expect(nextBenchAction(order({ status: "aguardando_montagem" }), "montador")).toMatchObject({ kind: "status", to: "em_montagem" });
     expect(nextBenchAction(base, "consulta").kind).toBe("none");
   });
-  it("propõe iniciar e concluir apenas a primeira etapa pendente na sequência", () => {
-    expect(nextBenchAction(base, "montador")).toMatchObject({ kind: "step", step: "conferencia_inicial", action: "iniciar" });
-    const steps = base.steps.map((step, index) => ({ ...step, status: index === 0 ? "concluida" as const : index === 1 ? "em_andamento" as const : "pendente" as const }));
-    expect(nextBenchAction(order({ steps }), "montador")).toMatchObject({ step: "lensometria", action: "concluir" });
-  });
+  it("conclui montagem em uma ação sem exigir registros de cada etapa",()=>{expect(nextBenchAction(base,"montador")).toMatchObject({kind:"status",to:"pronto"});expect(nextBenchAction(order({steps:[]}),"montador")).toMatchObject({kind:"status",to:"pronto"});});
   it("retoma OS em correção antes de oferecer avanço das etapas", () => {
     expect(nextBenchAction(order({ status: "em_correcao" }), "montador")).toMatchObject({ kind: "status", to: "em_montagem" });
   });
-  it("não oferece liberação quando faltam etapas carregadas ou existem ocorrências", () => {
-    expect(nextBenchAction(order({ status: "em_conferencia", steps: [] }), "admin").kind).toBe("none");
+  it("não oferece liberação quando existem ocorrências ou a consulta falhou", () => {
+    expect(nextBenchAction(order({ status: "em_conferencia", steps: [] }), "admin")).toMatchObject({kind:"status",to:"pronto"});
     for (const openOccurrences of [1, null]) {
       expect(nextBenchAction(order({ status: "em_conferencia", steps: complete, openOccurrences }), "admin").kind).toBe("none");
     }

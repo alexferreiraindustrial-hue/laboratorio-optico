@@ -1,3 +1,4 @@
+import {loadClientDelivery} from "./client-followup";
 import {loadOperations} from "./operations";
 import { notFound } from "next/navigation";
 import type { OccurrenceRow, OrderRow, StepRow } from "@/lib/types";
@@ -57,6 +58,7 @@ export async function loadOrderDetail(id: string) {
   const urlByPath = new Map((signed.data ?? []).map((item) => [item.path, item.signedUrl]));
 
   return {
+    clientDelivery:await loadClientDelivery(id),
     nowIso:new Date().toISOString(),
     role,
     seller: (seller.data ?? null) as { id: string; name: string; phone: string | null; whatsapp: string | null } | null,

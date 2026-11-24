@@ -336,7 +336,7 @@ export function OrderScreen({
                     {/* Status */}
                     <td className="py-2.5 pl-3 pr-4">
                       <StatusBadge status={order.status} />
-                      <p className="mt-2 text-xs text-[var(--muted)]">{order.steps_done ?? 0}/5 etapas concluídas</p>
+                      <p className="mt-2 text-xs text-[var(--muted)]">{order.steps_done ?? 0} etapas opcionais registradas</p>
                     </td>
                     <td className="pr-4"><Link href={orderHref(order.id)} scroll={false} aria-label={`Abrir OS ${visibleOrderNumber(order)}`} className="grid h-10 w-10 place-items-center rounded-lg border border-[var(--line)] text-[var(--link)] hover:bg-[var(--accent-soft)]"><ArrowUpRight size={17} /></Link></td>
                   </tr></Fragment>

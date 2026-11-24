@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../design/la_design.dart';
 import '../domain.dart';
 import '../order_followup.dart';
+import '../operational_controls.dart';
 import '../floor_format.dart';
 import '../lab_api.dart';
 import '../os_chat.dart';
@@ -48,16 +49,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     try {
       final next = await api.orderDetail(widget.id);
       if (!mounted) return;
-      final order = next['order'] as Map<String, dynamic>;
-      final targets = allowedTargets(order['status'] as String, role);
       setState(() {
         data = next;
         error = null;
-        nextStatus = targets.isEmpty
-            ? null
-            : (nextStatus != null && targets.contains(nextStatus)
-                  ? nextStatus
-                  : targets.first);
+        nextStatus = null;
       });
     } catch (e) {
       if (mounted) setState(() => error = friendlyError(e));
@@ -66,6 +61,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Future<void> move() async {
     if (nextStatus == null) return;
+    if (nextStatus == 'em_correcao' && note.text.trim().length < 3) {
+      setState(() => error = 'Descreva o problema que exige correção.');
+      return;
+    }
     setState(() => pending = true);
     try {
       await api.changeStatus(
@@ -107,7 +106,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
-  Future<void> attachPhoto(ImageSource source) async {
+  Future<void> attachPhoto(ImageSource source, {String? stepKey}) async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: source,
@@ -120,6 +119,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       final bytes = await picked.readAsBytes();
       await api.uploadOrderPhoto(
         orderId: widget.id,
+        stepKey: stepKey,
         bytes: bytes,
         mime: picked.mimeType ?? 'image/jpeg',
         fileName: picked.name,
@@ -192,6 +192,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       OrderFollowup(
                         order: order,
                         editable: canWriteOrders(role),
+                        onChanged: load,
+                      ),
+                    if (order != null &&
+                        canWriteOrders(role) &&
+                        !['entregue', 'cancelado'].contains(status))
+                      StageNoteControl(
+                        key: ValueKey("note-${widget.id}"),
+                        id: widget.id,
+                        status: status,
+                        onChanged: load,
+                        photo: (source, step) =>
+                            attachPhoto(source, stepKey: step),
+                      ),
+                    if (order != null &&
+                        canManage(role) &&
+                        ['pronto', 'entregue'].contains(status))
+                      ClientDeliveryControl(
+                        key: ValueKey("delivery-${widget.id}"),
+                        id: widget.id,
+                        delivery:
+                            data?['client_delivery'] as Map<String, dynamic>?,
                         onChanged: load,
                       ),
                     LabSheet(
@@ -311,6 +332,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             DropdownButtonFormField<String>(
                               key: ValueKey('next-$nextStatus'),
                               initialValue: nextStatus,
+                              hint: const Text('Escolha o destino do serviço'),
                               dropdownColor: colors.paper,
                               items: [
                                 for (final status in targets)
@@ -335,7 +357,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 backgroundColor: Color(0xFF222222),
                                 foregroundColor: LaColors.branco,
                               ),
-                              onPressed: pending ? null : move,
+                              onPressed: pending || nextStatus == null
+                                  ? null
+                                  : move,
                               child: Text(
                                 pending ? 'Salvando...' : 'Movimentar',
                               ),
@@ -406,28 +430,33 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             },
                           ),
                           SizedBox(height: 8),
-                          for (final key in stepKeys)
-                            Padding(
-                              padding: EdgeInsets.symmetric(vertical: 8),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      stepLabel[key]!,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium,
-                                    ),
+                          ExpansionTile(
+                            title: const Text('Etapas técnicas · opcionais'),
+                            children: [
+                              for (final key in stepKeys)
+                                Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          stepLabel[key]!,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium,
+                                        ),
+                                      ),
+                                      Text(
+                                        _stepStatus(steps, key),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    _stepStatus(steps, key),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall,
-                                  ),
-                                ],
-                              ),
-                            ),
+                                ),
+                            ],
+                          ),
                         ],
                       ),
                     ),

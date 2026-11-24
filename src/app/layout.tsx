@@ -7,11 +7,12 @@ import "./globals.css";
 import "./labgold-dark.css";
 import "./labgold-whatsapp.css";
 
+// Fonte do modelo do designer (versão limpa): Inter.
 const jakarta = localFont({
-  src: "./fonts/PlusJakartaSans-Variable.ttf",
+  src: "./fonts/Inter-Variable-latin.woff2",
   display: "swap",
   variable: "--font-ui",
-  weight: "400 800",
+  weight: "100 900",
 });
 
 const mono = localFont({

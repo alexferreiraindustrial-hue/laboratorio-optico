@@ -18,8 +18,6 @@ import {
   Loader2,
   LogOut,
   Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
   MessageSquare,
   Package,
   PackageCheck,
@@ -197,11 +195,11 @@ function ModeSwitch({ simple, className }: { simple: boolean; className?: string
 }
 
 /** Versão em ícone do botão de modo simples, para a barra fina. */
-function ModeSwitchIcon() {
+function ModeSwitchIcon({ simple }: { simple: boolean }) {
   return (
     <form action={setViewMode}>
-      <input type="hidden" name="modo" value="simples" />
-      <button type="submit" aria-label="Usar modo simples" title="Usar modo simples" className="lab-rail-round"><Home size={19} /></button>
+      <input type="hidden" name="modo" value={simple ? "completo" : "simples"} />
+      <button type="submit" aria-label={simple ? "Ver menu completo" : "Usar modo simples"} title={simple ? "Ver menu completo" : "Usar modo simples"} className="lab-rail-round">{simple ? <LayoutList size={19} /> : <Home size={19} />}</button>
     </form>
   );
 }
@@ -223,7 +221,6 @@ function initials(name: string) {
 export function Shell({
   children,
   simple = false,
-  initialSidebarCollapsed = false,
   name,
   role,
   orgName,
@@ -245,7 +242,6 @@ export function Shell({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [sidebarCollapsed,setSidebarCollapsed] = useState(initialSidebarCollapsed);
   useEffect(() => {
     if (!mobileOpen) return;
     const previous = document.body.style.overflow;
@@ -393,10 +389,20 @@ export function Shell({
   );
 
   const rail = (
-    <aside id="desktop-sidebar" aria-label="Menu principal" className={cn("lab-rail no-print fixed inset-y-0 left-0 z-30 hidden w-[84px] flex-col items-center gap-0.5 border-r border-[var(--line)] bg-[var(--sidebar-bg,var(--surface))] py-3", sidebarCollapsed ? "lg:hidden" : "lg:flex")}>
+    <aside id="desktop-sidebar" aria-label="Menu principal" className={cn("lab-rail no-print fixed inset-y-0 left-0 z-30 hidden w-[84px] flex-col items-center gap-0.5 border-r border-[var(--line)] bg-[var(--sidebar-bg,var(--surface))] py-3 lg:flex")}>
       <Link href={hasProductionOverview(role) || !visibleGroups[0] ? "/dashboard" : visibleGroups[0].items[0].href} aria-label="LabGold · início" className="mb-3 grid h-10 w-10 place-items-center"><LensMark size={34} /></Link>
       <nav aria-label="Áreas do laboratório" className="flex w-full flex-col items-center gap-0.5">
-        {visibleGroups.map((group) => {
+        {simple ? simpleNav.map((item) => {
+          const Icon = item.icon;
+          const active = current?.href === item.href || (hasProductionOverview(role) && item.href === "/inicio" && pathname === "/dashboard");
+          const count = item.href === "/lentes" ? lensLate : 0;
+          return (
+            <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} title={item.hint} className="lab-rail-item">
+              <span className="lab-rail-icon"><Icon size={20} strokeWidth={1.9} />{count > 0 ? <span className="lab-rail-count" data-alert>{count}</span> : null}</span>
+              <span className="lab-rail-label">{item.label}</span>
+            </Link>
+          );
+        }) : visibleGroups.map((group) => {
           const meta = GROUP_RAIL[group.title] ?? { short: group.title, icon: LayoutDashboard };
           const target = group.items.find((item) => item.href !== RAIL_FOOTER);
           if (!target) return null;
@@ -412,7 +418,7 @@ export function Shell({
         })}
       </nav>
       <div className="mt-auto flex flex-col items-center gap-1.5">
-        <ModeSwitchIcon />
+        <ModeSwitchIcon simple={simple} />
         {canSettings ? <Link href={RAIL_FOOTER} aria-label="Configurações" title="Configurações" aria-current={current?.href === RAIL_FOOTER ? "page" : undefined} className="lab-rail-round"><Settings size={20} /></Link> : null}
         <span className="grid h-10 w-10 place-items-center rounded-full bg-[var(--sidebar-active)] text-[13px] font-bold text-[var(--sidebar-active-text)]" title={`${name} · ${ROLE_LABEL[role]}`}>{initials(name)}</span>
         <form action={signOut}><button type="submit" aria-label="Sair" title="Sair" className="lab-rail-round"><LogOut size={18} /></button></form>
@@ -424,11 +430,7 @@ export function Shell({
     <OperationModeProvider simple={simple}>
     <div className={cn("lg-app min-h-screen", simple && "lab-simple")}>
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-[var(--surface)] focus:p-3">Ir para o conteúdo</a>
-      {!simple ? rail : <aside id="desktop-sidebar" className={cn("lab-sidebar fixed inset-y-0 left-0 z-30 hidden w-[232px] flex-col border-r border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)]", sidebarCollapsed ? "lg:hidden" : "lg:flex")}>
-        {brand}
-        <div className="flex-1 overflow-auto px-3 py-3">{nav}</div>
-        {footer}
-      </aside>}
+      {rail}
 
       {mobileOpen ? (
         <div className="fixed inset-0 z-40 lg:hidden">
@@ -446,20 +448,20 @@ export function Shell({
         </div>
       ) : null}
 
-      <div className={cn("flex min-h-screen min-w-0 flex-col",sidebarCollapsed?"lg:pl-0":simple?"lg:pl-[232px]":"lg:pl-[84px]")}>
+      <div className={cn("flex min-h-screen min-w-0 flex-col","lg:pl-[84px]")}>
         <header className="lg-topbar no-print sticky top-0 z-20 flex min-h-[60px] items-center gap-2 border-b border-[var(--line)] bg-[var(--surface)] px-2 pt-[env(safe-area-inset-top)] sm:gap-4 md:px-5">
-          <button type="button" aria-label={sidebarCollapsed?"Expandir menu lateral":"Recolher menu lateral"} title={sidebarCollapsed?"Expandir menu lateral":"Recolher menu lateral"} aria-expanded={!sidebarCollapsed} aria-controls="desktop-sidebar" className="hidden min-h-11 shrink-0 items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--ink)] hover:bg-[var(--accent-soft)] lg:inline-flex" onClick={()=>{const next=!sidebarCollapsed;setSidebarCollapsed(next);document.cookie=`lab_sidebar=${next?"collapsed":"expanded"}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol==="https:"?"; Secure":""}`;}}>
-            {sidebarCollapsed?<PanelLeftOpen size={18}/>:<PanelLeftClose size={18}/>}<span>{sidebarCollapsed?"Menu":"Recolher"}</span>
-          </button>
+          {sectionTabs.length > 1 && !simple ? <nav aria-label={`Telas de ${GROUP_RAIL[activeGroup!.title]?.short ?? activeGroup!.title}`} className="lab-section-tabs hidden lg:flex">
+            {sectionTabs.map((item) => <Link key={item.href} href={item.href} aria-current={current?.href === item.href ? "page" : undefined}>{item.label}<PendingDot /></Link>)}
+          </nav> : <span className="hidden lg:block lg:flex-1" />}
           <button aria-label="Abrir menu" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-[var(--muted)] hover:bg-[var(--accent-soft)] lg:hidden" onClick={() => setMobileOpen(true)} type="button">
             <Menu size={22} />
           </button>
-          <div className="hidden shrink-0 items-center gap-2 whitespace-nowrap text-[13px] text-[var(--muted)] sm:flex">
+          <div className="hidden shrink-0 items-center gap-2 whitespace-nowrap text-[13px] text-[var(--muted)] sm:flex lg:hidden">
             <span>LabGold</span>
             <span className="text-[var(--fg-e2ddd5)]">/</span>
             <span className="font-semibold text-[var(--ink)]">{current?.label ?? "Início"}</span>
           </div>
-          <form action="/laboratorio" method="get" className="min-w-0 max-w-[380px] flex-1 md:ml-3">
+          <form action="/laboratorio" method="get" className="min-w-0 max-w-[380px] flex-1 md:ml-3 lg:ml-auto lg:max-w-[300px]">
             <label className="flex h-11 w-full items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 text-[var(--muted)] focus-within:border-[var(--accent)] md:h-9">
               <Search size={16} className="shrink-0" />
               <input
@@ -485,10 +487,10 @@ export function Shell({
             <span className="hidden sm:inline">QR Code</span>
           </Link>
           {allItems.some(item=>item.href==="/recados") && <Link href="/recados" aria-label={unread ? `${unread} recados não lidos` : "Recados do laboratório"} className="relative hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] xl:flex"><Bell size={18}/>{unread>0&&<span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[var(--accent)]"/>}</Link>}
-          {canLaunch && <Link href="/laboratorio/rapido" className="lg-gold hidden min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-semibold xl:inline-flex"><Plus size={17}/>Lançar serviço</Link>}
+          {canLaunch && <Link href="/laboratorio/rapido" className="lg-gold hidden min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-semibold lg:inline-flex"><Plus size={17}/>Lançar serviço</Link>}
           <div id="theme-control" className="lab-theme-slot" />
-          <div className="hidden h-6 w-px bg-[var(--line)] sm:block" />
-          <div className="hidden shrink-0 items-center gap-2 whitespace-nowrap sm:flex">
+          <div className="hidden h-6 w-px bg-[var(--line)] sm:block lg:hidden" />
+          <div className="hidden shrink-0 items-center gap-2 whitespace-nowrap sm:flex lg:hidden">
             <div className="grid h-8 w-8 place-items-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">{initials(name)}</div>
             <div className="hidden flex-col leading-tight md:flex">
               <span className="text-[13px] font-semibold">{name}</span>
@@ -502,8 +504,8 @@ export function Shell({
             </form>
           </div>
         </header>
-        <main id="conteudo" className="lab-workspace flex min-w-0 flex-col px-3 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-5 md:px-6 md:pt-5 lg:pb-12">
-          {!simple && sectionTabs.length > 1 ? <nav aria-label={`Telas de ${GROUP_RAIL[activeGroup!.title]?.short ?? activeGroup!.title}`} className="lab-section-tabs no-print">
+        <main id="conteudo" className="lab-workspace flex min-w-0 flex-col px-3 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-5 md:px-6 md:pt-5 lg:px-9 lg:pt-4 lg:pb-12">
+          {!simple && sectionTabs.length > 1 ? <nav aria-label={`Telas de ${GROUP_RAIL[activeGroup!.title]?.short ?? activeGroup!.title}`} className="lab-section-tabs no-print lg:hidden">
             {sectionTabs.map((item) => <Link key={item.href} href={item.href} aria-current={current?.href === item.href ? "page" : undefined}>{item.label}<PendingDot /></Link>)}
           </nav> : null}
           {children}

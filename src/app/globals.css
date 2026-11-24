@@ -713,3 +713,23 @@ body { background: var(--background); line-height: 1.45; }
   body:has(.lab-drawer[data-docked]) .bc-row-body { flex-wrap: wrap; gap: 8px; }
   body:has(.lab-drawer[data-docked]) .bc-row-body > div { flex-basis: 100%; }
 }
+
+/* ===== Modelo do designer (versão limpa): letras equilibradas, mais espaço, topo enxuto ===== */
+body { letter-spacing: 0; font-size: 14px; }
+h1, .display { letter-spacing: -0.02em; font-weight: 700; }
+.lab-workspace h1 { font-size: 24px; line-height: 1.2; }
+.lab-workspace h2 { letter-spacing: -0.005em; }
+@media (min-width: 1024px) {
+  .lg-topbar { min-height: 64px; gap: 12px; padding: 0 36px 0 36px; border-bottom: 0; background: transparent !important; position: static; }
+  .lg-topbar .lab-section-tabs { margin: 0; flex: 1; flex-wrap: wrap; }
+  .lg-topbar .lab-section-tabs a { min-height: 34px; padding: 0 14px; border: 0; background: var(--surface); }
+  .lg-topbar .lab-section-tabs a[aria-current="page"] { background: var(--sidebar-active); color: var(--sidebar-active-text); }
+  .lg-topbar label { border: 0 !important; background: var(--surface) !important; height: 40px !important; border-radius: 20px; }
+  .lg-topbar > a:not(.lg-gold), .lg-topbar #theme-control > button { border: 0 !important; background: var(--surface) !important; height: 40px !important; border-radius: 20px !important; }
+  .lg-topbar .lg-gold { height: 40px; min-height: 40px; padding: 0 18px; border-radius: 20px; }
+}
+/* Painéis planos como no modelo: branco sobre o fundo cinza, sem contorno */
+:root[data-theme="light"] .lg-glass, :root:not([data-theme]) .lg-glass { border-color: transparent; }
+.lab-rail { padding-top: 14px; padding-bottom: 14px; }
+.lab-rail-item { width: 70px; padding: 7px 0; font-size: 11px; }
+.lab-rail-icon { width: 46px; height: 32px; }

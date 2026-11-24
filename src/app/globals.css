@@ -827,3 +827,13 @@ h1, .display { letter-spacing: -0.02em; font-weight: 700; }
   .pv-outcomes { grid-template-columns: 1fr; }
   .pv-body { padding: 16px; }
 }
+
+/* ===== OS aberta no painel lateral: tudo em uma coluna, nada cortado ===== */
+.lab-drawer { container-type: inline-size; }
+.lab-drawer .lab-ws { grid-template-columns: minmax(0, 1fr) !important; }
+.lab-drawer .lab-ws dl { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+.lab-drawer .lab-ws :is(button, a) { max-width: 100%; }
+.lab-drawer .lab-ws .flex-wrap > :is(button, a) { white-space: normal; text-align: center; }
+.lab-drawer .lab-ws textarea, .lab-drawer .lab-ws input:not([type="checkbox"]):not([type="radio"]), .lab-drawer .lab-ws select { min-width: 0; max-width: 100%; }
+@container (min-width: 900px) { .lab-drawer .lab-ws { grid-template-columns: minmax(0, 1fr) 320px !important; } }
+@media (max-width: 520px) { .lab-drawer .lab-ws dl { grid-template-columns: minmax(0, 1fr) !important; } }

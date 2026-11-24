@@ -1,7 +1,7 @@
 "use client";
 // Menu de ações rápidas da OS: botão direito do mouse (ou toque longo no celular).
 // Usa só as ações que já existem no servidor: changeOrderStatus e confirmClientDelivery.
-import { Check, ClipboardCopy, ExternalLink, MoveRight, PackageCheck, X } from "lucide-react";
+import { Check, ClipboardCopy, ExternalLink, MoveRight, PackageCheck, Stethoscope, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
@@ -14,9 +14,19 @@ import { toDateTimeLocalValue } from "@/lib/format";
 import { dateTimeLocalToIso } from "@/lib/domain/calendar";
 import { changeOrderStatus } from "@/server/actions";
 import { confirmClientDelivery } from "@/server/fast-operations-actions";
+import { approveMedicalReview } from "@/server/followup-actions";
 import { stageStyle } from "./production-visuals";
 
-export type MenuOrder = { id: string; number: string; status: string; clientName: string; detailsHref: string };
+export type MenuOrder = {
+  id: string; number: string; status: string; clientName: string; detailsHref: string;
+  /** Preencha quando souber: libera o botão "Voltou do médico". */
+  medicalRequired?: boolean | null; medicalApproved?: string | null; updatedAt?: string | null;
+};
+
+/** OS que está esperando o retorno do médico (a liberação médica já leva para Pronto). */
+export function awaitingDoctor(order: Pick<MenuOrder, "status" | "medicalRequired" | "medicalApproved">) {
+  return order.status === "em_conferencia" && Boolean(order.medicalRequired) && !order.medicalApproved;
+}
 
 /** Quem pode dar "Entregue ao cliente" (a regra do banco aceita só administrador e gestor). */
 function canConfirmClient(role: AppRole, status: string) {
@@ -27,6 +37,7 @@ function canConfirmClient(role: AppRole, status: string) {
 export function useOrderMenu(order: MenuOrder, role: AppRole) {
   const [at, setAt] = useState<{ x: number; y: number } | null>(null);
   const [deliver, setDeliver] = useState(false);
+  const [doctor, setDoctor] = useState(false);
   const press = useRef<number | null>(null);
   function openAt(x: number, y: number) {
     setAt({ x: Math.max(8, Math.min(x, window.innerWidth - 268)), y: Math.max(8, Math.min(y, window.innerHeight - 368)) });
@@ -34,6 +45,7 @@ export function useOrderMenu(order: MenuOrder, role: AppRole) {
   const stop = () => { if (press.current) window.clearTimeout(press.current); };
   const close = useCallback(() => setAt(null), []);
   const closeDeliver = useCallback(() => setDeliver(false), []);
+  const closeDoctor = useCallback(() => setDoctor(false), []);
   const handlers = {
     onContextMenu: (event: React.MouseEvent) => {
       // O menu normal do navegador continua em campos de texto.
@@ -49,10 +61,11 @@ export function useOrderMenu(order: MenuOrder, role: AppRole) {
     onTouchEnd: stop,
   };
   const element = <>
-    {at ? createPortal(<ActionsMenu order={order} role={role} at={at} onClose={close} onDeliver={() => { setAt(null); setDeliver(true); }} />, document.body) : null}
+    {at ? createPortal(<ActionsMenu order={order} role={role} at={at} onClose={close} onDeliver={() => { setAt(null); setDeliver(true); }} onDoctor={() => { setAt(null); setDoctor(true); }} />, document.body) : null}
+    {doctor ? createPortal(<DoctorReturnDialog order={order} onClose={closeDoctor} />, document.body) : null}
     {deliver ? createPortal(<DeliverDialog order={order} onClose={closeDeliver} />, document.body) : null}
   </>;
-  return { handlers, element, open: (x: number, y: number) => openAt(x, y) };
+  return { handlers, element, open: (x: number, y: number) => openAt(x, y), openDoctor: () => setDoctor(true) };
 }
 
 export function OrderContextMenu({ order, role, children, className }: { order: MenuOrder; role: AppRole; children: ReactNode; className?: string }) {
@@ -60,12 +73,13 @@ export function OrderContextMenu({ order, role, children, className }: { order: 
   return <div className={className} {...menu.handlers}>{children}{menu.element}</div>;
 }
 
-function ActionsMenu({ order, role, at, onClose, onDeliver }: { order: MenuOrder; role: AppRole; at: { x: number; y: number }; onClose: () => void; onDeliver: () => void }) {
+function ActionsMenu({ order, role, at, onClose, onDeliver, onDoctor }: { order: MenuOrder; role: AppRole; at: { x: number; y: number }; onClose: () => void; onDeliver: () => void; onDoctor: () => void }) {
   const router = useRouter();
   const box = useRef<HTMLDivElement>(null);
   const [pending, start] = useTransition();
   const targets = allowedTargets(order.status as OrderStatus, role).filter((status) => status !== "entregue" && status !== "em_correcao" && status !== "cancelado");
-  const ready = targets.includes("pronto");
+  const doctor = awaitingDoctor(order) && can(role, "orders.write");
+  const ready = targets.includes("pronto") && !awaitingDoctor(order);
   const others = targets.filter((status) => status !== "pronto");
 
   useEffect(() => {
@@ -103,13 +117,14 @@ function ActionsMenu({ order, role, at, onClose, onDeliver }: { order: MenuOrder
     <div ref={box} role="menu" aria-label={`Ações da OS ${order.number}`} className="ocm" style={{ left: at.x, top: at.y }} onMouseDown={(event) => event.stopPropagation()} onTouchStart={(event) => event.stopPropagation()} onContextMenu={(event) => event.preventDefault()}>
       <p className="ocm-head"><span className="font-mono">{order.number}</span> · {order.clientName}<span className="ocm-status" style={stageStyle(order.status as OrderStatus)}>{STATUS_LABEL[order.status as OrderStatus] ?? order.status}</span></p>
       <Link role="menuitem" href={order.detailsHref} scroll={false} onClick={onClose} className="ocm-item"><ExternalLink size={16} />Abrir a OS</Link>
+      {doctor ? <button type="button" role="menuitem" disabled={pending || !order.updatedAt} onClick={onDoctor} className="ocm-item is-main"><Stethoscope size={16} />Voltou do médico · pronto…</button> : null}
       {ready ? <button type="button" role="menuitem" disabled={pending} onClick={() => move("pronto")} className="ocm-item is-main"><Check size={16} />Marcar como pronto</button> : null}
       {canConfirmClient(role, order.status) ? <button type="button" role="menuitem" disabled={pending} onClick={onDeliver} className="ocm-item is-main"><PackageCheck size={16} />Entregue ao cliente…</button> : null}
       {others.length ? <>
         <p className="ocm-title"><MoveRight size={13} />Mover para</p>
         {others.map((status) => <button key={status} type="button" role="menuitem" disabled={pending} onClick={() => move(status)} className="ocm-item"><span className="ocm-dot" style={stageStyle(status)} />{STATUS_LABEL[status]}</button>)}
       </> : null}
-      {!ready && !others.length && !canConfirmClient(role, order.status) ? <p className="ocm-note">Nenhuma mudança de etapa disponível para o seu perfil agora.</p> : null}
+      {!doctor && !ready && !others.length && !canConfirmClient(role, order.status) ? <p className="ocm-note">Nenhuma mudança de etapa disponível para o seu perfil agora.</p> : null}
       <hr className="ocm-sep" />
       <button type="button" role="menuitem" onClick={async () => { try { await navigator.clipboard.writeText(order.number); toast.success("Número da OS copiado."); } catch { toast.error("Não foi possível copiar."); } onClose(); }} className="ocm-item"><ClipboardCopy size={16} />Copiar nº da OS</button>
       {pending ? <p className="ocm-note">Salvando…</p> : null}
@@ -178,4 +193,71 @@ function DeliverDialog({ order, onClose }: { order: MenuOrder; onClose: () => vo
 export function OrderMenuRow({ order, role, className, children }: { order: MenuOrder; role: AppRole; className?: string; children: ReactNode }) {
   const menu = useOrderMenu(order, role);
   return <tr className={className} {...menu.handlers}>{children}{menu.element}</tr>;
+}
+
+/** "Voltou do médico": registra a liberação médica (mesma função da OS) e a OS passa para Pronto. */
+export function DoctorReturnDialog({ order, onClose }: { order: MenuOrder; onClose: () => void }) {
+  const router = useRouter();
+  const [note, setNote] = useState("Retorno do médico: conferido e liberado");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  useEffect(() => {
+    const esc = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [onClose]);
+  return (
+    <div className="ocm-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`medico-${order.id}`}
+        className="ocm-dialog"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (pending) return;
+          if (!order.updatedAt) { setError("Atualize a tela e tente novamente."); return; }
+          if (note.trim().length < 3) { setError("Escreva quem conferiu ou qual foi o retorno."); return; }
+          start(async () => {
+            setError(null);
+            try {
+              const result = await approveMedicalReview(order.id, note.trim(), order.updatedAt!);
+              if (!result.ok) { setError(result.message ?? "Não foi possível registrar o retorno médico."); return; }
+              toast.success(`OS ${order.number}: voltou do médico. Pronto para entregar.`);
+              onClose();
+              router.refresh();
+            } catch { setError("Não foi possível confirmar. Confira a conexão."); }
+          });
+        }}
+      >
+        <div className="flex items-start gap-3">
+          <span className="ocm-dialog-icon"><Stethoscope size={20} /></span>
+          <div className="min-w-0 flex-1">
+            <h2 id={`medico-${order.id}`} className="text-lg font-semibold">Voltou do médico</h2>
+            <p className="text-sm text-[var(--muted)]"><span className="font-mono">{order.number}</span> · {order.clientName}</p>
+          </div>
+          <button type="button" aria-label="Fechar" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full text-[var(--muted)] hover:bg-[var(--surface-secondary)]"><X size={18} /></button>
+        </div>
+        <p className="rounded-xl bg-[var(--accent-soft)] px-3 py-2 text-sm text-[var(--sidebar-active-text,var(--link))]">Ao confirmar, a OS fica <strong>Pronto para entregar</strong>. Se o médico pediu ajuste, use <strong>Mover para › Em correção</strong> e registre a ocorrência.</p>
+        <label className="grid gap-1 text-sm font-medium">Quem conferiu e qual foi o retorno?
+          <textarea required minLength={3} maxLength={1000} rows={3} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Ex.: Dr. João · conferido e liberado" className="ocm-input py-2" />
+        </label>
+        {error ? <p role="alert" className="rounded-lg bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">{error}</p> : null}
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="ocm-btn">Cancelar</button>
+          <button type="submit" disabled={pending} className="ocm-btn is-primary">{pending ? "Confirmando…" : "Confirmar · pronto para entregar"}</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+/** Botão grande "Voltou do médico" para colocar em qualquer tela (Bancada, OS aberta). */
+export function DoctorReturnButton({ order, className }: { order: MenuOrder; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
+  return <>
+    <button type="button" disabled={!order.updatedAt} onClick={() => setOpen(true)} className={className ?? "ocm-btn is-primary inline-flex items-center gap-2"}><Stethoscope size={16} />Voltou do médico · pronto</button>
+    {open ? createPortal(<DoctorReturnDialog order={order} onClose={close} />, document.body) : null}
+  </>;
 }

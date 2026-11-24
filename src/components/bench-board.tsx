@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, useTransition, type CSSProperties, type ReactNode } from "react";
 import { useOperationMode } from "./operation-mode";
-import { useOrderMenu } from "./order-context-menu";
+import { awaitingDoctor, DoctorReturnButton, useOrderMenu } from "./order-context-menu";
 import { RiskChip } from "@/components/forecast-ui";
 import { Feedback } from "@/components/ui";
 import {
@@ -420,7 +420,7 @@ function BenchCard({ order, expanded, onToggle, role, now, boardPending, onMove,
   const age = stageAge(order.stageSince, now);
   const number = visibleOrderNumber(order);
   const stop = { onMouseDown: (event: React.MouseEvent) => event.stopPropagation(), onTouchStart: (event: React.TouchEvent) => event.stopPropagation() };
-  const quick = useOrderMenu({ id: order.id, number, status: order.status, clientName: order.clientName, detailsHref: `/montagem?os=${order.id}` }, role);
+  const quick = useOrderMenu({ id: order.id, number, status: order.status, clientName: order.clientName, detailsHref: `/montagem?os=${order.id}`, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, updatedAt: order.updated_at }, role);
 
   function run() {
     if (action.kind === "none" || pending || boardPending) return;
@@ -505,7 +505,9 @@ function BenchCard({ order, expanded, onToggle, role, now, boardPending, onMove,
         <button type="button" onClick={onToggle} aria-label={expanded ? "Recolher cartão" : "Expandir cartão"} className="bk-icon-btn is-small" {...stop}>{expanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}</button>
       </div>
 
-      {action.kind === "none" ? (
+      {awaitingDoctor({ status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at }) && can(role, "orders.write") ? (
+        <span {...stop}><DoctorReturnButton className="lg-bench-action bk-next w-full" order={{ id: order.id, number, status: order.status, clientName: order.clientName, detailsHref: `/montagem?os=${order.id}`, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, updatedAt: order.updated_at }} /></span>
+      ) : action.kind === "none" ? (
         expanded ? <p className="bk-next is-idle">{action.label}</p> : null
       ) : (
         <button type="button" onClick={run} disabled={pending || boardPending} className={cn("lg-bench-action bk-next", action.kind === "status" && action.to === "pronto" && "is-done")} {...stop}>
@@ -609,7 +611,7 @@ function BenchRow({ order, role, now, boardPending, onProgress }: { order: Bench
   const number = visibleOrderNumber(order);
   const age = stageAge(order.stageSince, now);
   const tone = deadline.level === "late" || deadline.level === "critical" ? "late" : deadline.level === "soon" || deadline.level === "attention" ? "soon" : "ok";
-  const quick = useOrderMenu({ id: order.id, number, status: order.status, clientName: order.clientName, detailsHref: `/montagem?os=${order.id}` }, role);
+  const quick = useOrderMenu({ id: order.id, number, status: order.status, clientName: order.clientName, detailsHref: `/montagem?os=${order.id}`, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, updatedAt: order.updated_at }, role);
   const who = running ? `${STEP_LABEL[running.key]}${running.assignee ? ` com ${running.assignee.split(" ")[0]}` : ""}` : order.status === "aguardando_montagem" ? "aguardando" : age ? `nesta coluna há ${age.label}` : "";
 
   function run() {
@@ -653,7 +655,8 @@ function BenchRow({ order, role, now, boardPending, onProgress }: { order: Bench
           {error ? <Feedback error={error} /> : null}
         </div>
         <Link href={`/montagem?os=${order.id}`} scroll={false} className="bc-details">Detalhes</Link>
-        {action.kind !== "none" ? <button type="button" onClick={run} disabled={pending || boardPending} className="bc-action">{pending ? "Registrando..." : action.label}</button> : <span className="bc-idle">{action.label}</span>}
+        {awaitingDoctor({ status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at }) && can(role, "orders.write") ? <DoctorReturnButton className="bc-action inline-flex items-center gap-2" order={{ id: order.id, number, status: order.status, clientName: order.clientName, detailsHref: `/montagem?os=${order.id}`, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, updatedAt: order.updated_at }} />
+          : action.kind !== "none" ? <button type="button" onClick={run} disabled={pending || boardPending} className="bc-action">{pending ? "Registrando..." : action.label}</button> : <span className="bc-idle">{action.label}</span>}
         <button type="button" aria-label={`Mais ações da OS ${number}`} title="Mais ações (ou clique com o botão direito)" onClick={(event) => { const rect = event.currentTarget.getBoundingClientRect(); quick.open(rect.right - 260, rect.bottom + 4); }} className="bk-icon-btn"><MoreHorizontal size={18} /></button>
       </div>
       {quick.element}

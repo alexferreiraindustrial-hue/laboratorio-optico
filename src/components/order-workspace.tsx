@@ -3,7 +3,7 @@ import {StageNoteEditor} from "./stage-note-editor";
 import {ClientDeliveryForm} from "./client-delivery";
 import type {ClientDelivery} from "@/lib/domain/client-followup";
 import {MedicalReview} from "./medical-review";
-import {awaitingDoctor, DoctorReturnButton} from "./order-context-menu";
+import {awaitingDoctor, DoctorReturnButton, OrderActionsButton, StageArrows} from "./order-context-menu";
 import {OrderOperationsEditor,ExpressCountdown} from "./order-operations";
 
 import Link from "next/link";
@@ -96,9 +96,11 @@ export function OrderWorkspace({
             <div className="flex flex-col items-end gap-2">
               <StatusBadge status={order.status} />
               <UrgencyMark urgency={order.urgency} />
+              <OrderActionsButton role={role} order={{id:order.id,number:osNumber,status:order.status,clientName:order.client_name,detailsHref:"#",medicalRequired:order.medical_review_required,medicalApproved:order.medical_review_approved_at,updatedAt:order.updated_at}} />
             </div>
           </div>
           <StatusFlow status={order.status} medical={Boolean(order.medical_review_required)} />
+          <div className="mt-3"><StageArrows waitingDoctor={awaitingDoctor({status:order.status,medicalRequired:order.medical_review_required,medicalApproved:order.medical_review_approved_at})} status={order.status} role={role} orderId={order.id} number={osNumber} /></div>
           {can(role,"orders.write")&&awaitingDoctor({status:order.status,medicalRequired:order.medical_review_required,medicalApproved:order.medical_review_approved_at})?<div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-[var(--warning-soft)] px-3 py-2.5"><p className="min-w-0 flex-1 text-sm text-[var(--warning)]"><b>Aguardando retorno do médico.</b> Quando voltar liberado, confirme aqui.</p><DoctorReturnButton order={{id:order.id,number:osNumber,status:order.status,clientName:order.client_name,detailsHref:"#",medicalRequired:order.medical_review_required,medicalApproved:order.medical_review_approved_at,updatedAt:order.updated_at}}/></div>:null}
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
             <div><dt className="text-[var(--muted)]">Loja</dt><dd>{order.store_name || "—"}</dd></div>

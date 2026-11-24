@@ -1,7 +1,7 @@
 "use client";
 // Menu de ações rápidas da OS: botão direito do mouse (ou toque longo no celular).
 // Usa só as ações que já existem no servidor: changeOrderStatus e confirmClientDelivery.
-import { Check, ClipboardCopy, ExternalLink, MoveRight, PackageCheck, Stethoscope, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronLeft, ChevronRight, ClipboardCopy, ExternalLink, PackageCheck, Stethoscope, X, Zap } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
@@ -26,6 +26,20 @@ export type MenuOrder = {
 /** OS que está esperando o retorno do médico (a liberação médica já leva para Pronto). */
 export function awaitingDoctor(order: Pick<MenuOrder, "status" | "medicalRequired" | "medicalApproved">) {
   return order.status === "em_conferencia" && Boolean(order.medicalRequired) && !order.medicalApproved;
+}
+
+/** Ordem das etapas, da entrada até a entrega. */
+const STAGE_ORDER: string[] = ["aguardando_lentes", "aguardando_montagem", "em_montagem", "em_conferencia", "pronto", "entregue"];
+
+/** Para onde a OS pode ir agora, separado em "avançar" e "voltar" (só caminhos que o sistema já aceita). */
+export function stageMoves(status: string, role: AppRole) {
+  const here = STAGE_ORDER.indexOf(status);
+  const targets = allowedTargets(status as OrderStatus, role).filter((to) => to !== "entregue" && to !== "em_correcao" && to !== "cancelado");
+  const forward = targets.filter((to) => STAGE_ORDER.indexOf(to) > here).sort((a, b) => STAGE_ORDER.indexOf(a) - STAGE_ORDER.indexOf(b));
+  const back = targets.filter((to) => STAGE_ORDER.indexOf(to) < here).sort((a, b) => STAGE_ORDER.indexOf(b) - STAGE_ORDER.indexOf(a));
+  // Avançar pula a conferência médica (ela é opcional e entra pelo menu); voltar vai para a etapa anterior mais próxima.
+  const next = forward.find((to) => to !== "em_conferencia") ?? forward[0] ?? null;
+  return { forward, back, next, prev: back[0] ?? null };
 }
 
 /** Quem pode dar "Entregue ao cliente" (a regra do banco aceita só administrador e gestor). */
@@ -77,10 +91,11 @@ function ActionsMenu({ order, role, at, onClose, onDeliver, onDoctor }: { order:
   const router = useRouter();
   const box = useRef<HTMLDivElement>(null);
   const [pending, start] = useTransition();
-  const targets = allowedTargets(order.status as OrderStatus, role).filter((status) => status !== "entregue" && status !== "em_correcao" && status !== "cancelado");
+  const moves = stageMoves(order.status, role);
   const doctor = awaitingDoctor(order) && can(role, "orders.write");
-  const ready = targets.includes("pronto") && !awaitingDoctor(order);
-  const others = targets.filter((status) => status !== "pronto");
+  const ready = moves.forward.includes("pronto") && !awaitingDoctor(order);
+  const forward = moves.forward.filter((status) => status !== "pronto");
+  const back = moves.back;
 
   useEffect(() => {
     box.current?.querySelector<HTMLElement>("[role=menuitem]:not(:disabled)")?.focus();
@@ -120,11 +135,15 @@ function ActionsMenu({ order, role, at, onClose, onDeliver, onDoctor }: { order:
       {doctor ? <button type="button" role="menuitem" disabled={pending || !order.updatedAt} onClick={onDoctor} className="ocm-item is-main"><Stethoscope size={16} />Voltou do médico · pronto…</button> : null}
       {ready ? <button type="button" role="menuitem" disabled={pending} onClick={() => move("pronto")} className="ocm-item is-main"><Check size={16} />Marcar como pronto</button> : null}
       {canConfirmClient(role, order.status) ? <button type="button" role="menuitem" disabled={pending} onClick={onDeliver} className="ocm-item is-main"><PackageCheck size={16} />Entregue ao cliente…</button> : null}
-      {others.length ? <>
-        <p className="ocm-title"><MoveRight size={13} />Mover para</p>
-        {others.map((status) => <button key={status} type="button" role="menuitem" disabled={pending} onClick={() => move(status)} className="ocm-item"><span className="ocm-dot" style={stageStyle(status)} />{STATUS_LABEL[status]}</button>)}
+      {forward.length ? <>
+        <p className="ocm-title"><ArrowRight size={13} />Avançar para</p>
+        {forward.map((status) => <button key={status} type="button" role="menuitem" disabled={pending} onClick={() => move(status as OrderStatus)} className="ocm-item"><span className="ocm-dot" style={stageStyle(status as OrderStatus)} />{STATUS_LABEL[status as OrderStatus]}</button>)}
       </> : null}
-      {!doctor && !ready && !others.length && !canConfirmClient(role, order.status) ? <p className="ocm-note">Nenhuma mudança de etapa disponível para o seu perfil agora.</p> : null}
+      {back.length ? <>
+        <p className="ocm-title"><ArrowLeft size={13} />Voltar para</p>
+        {back.map((status) => <button key={status} type="button" role="menuitem" disabled={pending} onClick={() => move(status as OrderStatus)} className="ocm-item"><span className="ocm-dot" style={stageStyle(status as OrderStatus)} />{STATUS_LABEL[status as OrderStatus]}</button>)}
+      </> : null}
+      {!doctor && !ready && !forward.length && !back.length && !canConfirmClient(role, order.status) ? <p className="ocm-note">Nenhuma mudança de etapa disponível para o seu perfil agora.</p> : null}
       <hr className="ocm-sep" />
       <button type="button" role="menuitem" onClick={async () => { try { await navigator.clipboard.writeText(order.number); toast.success("Número da OS copiado."); } catch { toast.error("Não foi possível copiar."); } onClose(); }} className="ocm-item"><ClipboardCopy size={16} />Copiar nº da OS</button>
       {pending ? <p className="ocm-note">Salvando…</p> : null}
@@ -260,4 +279,49 @@ export function DoctorReturnButton({ order, className }: { order: MenuOrder; cla
     <button type="button" disabled={!order.updatedAt} onClick={() => setOpen(true)} className={className ?? "ocm-btn is-primary inline-flex items-center gap-2"}><Stethoscope size={16} />Voltou do médico · pronto</button>
     {open ? createPortal(<DoctorReturnDialog order={order} onClose={close} />, document.body) : null}
   </>;
+}
+
+/** Botão visível "Ações": abre o mesmo menu do botão direito, logo abaixo do botão. */
+export function OrderActionsButton({ order, role, className, compact = false }: { order: MenuOrder; role: AppRole; className?: string; compact?: boolean }) {
+  const menu = useOrderMenu(order, role);
+  return <>
+    <button type="button" aria-haspopup="menu" aria-label={`Ações da OS ${order.number}`} title="Ações rápidas: pronto, entregue, mover…"
+      onClick={(event) => { event.preventDefault(); event.stopPropagation(); const rect = event.currentTarget.getBoundingClientRect(); menu.open(rect.right - 260, rect.bottom + 6); }}
+      onPointerDown={(event) => event.stopPropagation()}
+      className={className ?? "ocm-trigger"} data-compact={compact || undefined}>
+      <Zap size={15} />{compact ? null : <><span>Ações</span><ChevronDown size={14} /></>}
+    </button>
+    {menu.element}
+  </>;
+}
+
+const SHORT: Record<string, string> = { aguardando_lentes: "Lentes", aguardando_montagem: "Fila", em_montagem: "Montagem", em_conferencia: "Médico", pronto: "Pronto", entregue: "Entregue" };
+
+/** Botões ◀ Voltar / Avançar ▶ no cartão do Kanban. Usa a mesma movimentação de status já existente. */
+export function StageArrows({ status, role, orderId, number, onMove, disabled, waitingDoctor = false }: { status: string; role: AppRole; orderId: string; number: string; onMove?: (to: string) => void; disabled?: boolean; waitingDoctor?: boolean }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const moves = stageMoves(status, role);
+  // Esperando o médico: "Pronto" só pelo botão "Voltou do médico", que registra a liberação.
+  const next = waitingDoctor && moves.next === "pronto" ? null : moves.next;
+  const prev = moves.prev;
+  if (!next && !prev) return null;
+  function go(to: string) {
+    if (onMove) { onMove(to); return; }
+    start(async () => {
+      try {
+        const result = await changeOrderStatus(orderId, to as OrderStatus, "Movimentação pelo Kanban");
+        if (!result.ok) toast.error(result.message ?? "Não foi possível mover a OS.");
+        else toast.success(`OS ${number}: ${STATUS_LABEL[to as OrderStatus]}`);
+      } catch { toast.error("Não foi possível confirmar. Confira a conexão."); }
+      finally { router.refresh(); }
+    });
+  }
+  const busy = pending || disabled;
+  return (
+    <div className="ocm-arrows" onPointerDown={(event) => event.stopPropagation()}>
+      {prev ? <button type="button" disabled={busy} onClick={() => go(prev)} className="ocm-arrow" title={`Voltar para ${STATUS_LABEL[prev as OrderStatus]}`} aria-label={`Voltar OS ${number} para ${STATUS_LABEL[prev as OrderStatus]}`}><ChevronLeft size={16} /><span><i className="ocm-verb">Voltar · </i>{SHORT[prev] ?? STATUS_LABEL[prev as OrderStatus]}</span></button> : <span />}
+      {next ? <button type="button" disabled={busy} onClick={() => go(next)} className="ocm-arrow is-next" title={`Avançar para ${STATUS_LABEL[next as OrderStatus]}`} aria-label={`Avançar OS ${number} para ${STATUS_LABEL[next as OrderStatus]}`}><span><i className="ocm-verb">Avançar · </i>{SHORT[next] ?? STATUS_LABEL[next as OrderStatus]}</span><ChevronRight size={16} /></button> : null}
+    </div>
+  );
 }

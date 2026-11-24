@@ -837,3 +837,33 @@ h1, .display { letter-spacing: -0.02em; font-weight: 700; }
 .lab-drawer .lab-ws textarea, .lab-drawer .lab-ws input:not([type="checkbox"]):not([type="radio"]), .lab-drawer .lab-ws select { min-width: 0; max-width: 100%; }
 @container (min-width: 900px) { .lab-drawer .lab-ws { grid-template-columns: minmax(0, 1fr) 320px !important; } }
 @media (max-width: 520px) { .lab-drawer .lab-ws dl { grid-template-columns: minmax(0, 1fr) !important; } }
+
+/* Botão "Ações" visível e setas de etapa (◀ voltar · avançar ▶) */
+.ocm-trigger { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 10px 0 11px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--link); font-size: 13px; font-weight: 600; white-space: nowrap; flex-shrink: 0; cursor: pointer; }
+.ocm-trigger:hover { background: var(--accent-soft); border-color: var(--accent); }
+.ocm-trigger[data-compact] { width: 44px; height: 44px; padding: 0; justify-content: center; }
+.ocm-arrows { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
+.ocm-arrow { display: inline-flex; align-items: center; gap: 4px; min-height: 34px; min-width: 0; max-width: 62%; padding: 0 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; }
+.ocm-arrow > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ocm-arrow > svg { flex-shrink: 0; }
+.ocm-arrow:hover:not(:disabled) { color: var(--ink); border-color: var(--accent); }
+.ocm-arrow.is-next { margin-left: auto; background: var(--accent-soft); border-color: transparent; color: var(--link); }
+.ocm-arrow:disabled { opacity: .5; cursor: default; }
+.bc-row-body .ocm-arrows { flex-shrink: 0; }
+.lg-os-row-wrap { display: flex; align-items: center; gap: 6px; }
+.lg-os-row-wrap > .lg-os-row { flex: 1 1 auto; min-width: 0; }
+/* Com a OS aberta ao lado, a tabela cabe sem rolagem: some só o prazo detalhado */
+@media (min-width: 1280px) {
+  body:has(.lab-drawer[data-docked]) .lg-os-table { min-width: 0; }
+  body:has(.lab-drawer[data-docked]) .lg-os-table :is(th, td):nth-child(3) { display: none; }
+  body:has(.lab-drawer[data-docked]) .lg-os-table .lg-os-steps { display: none; }
+  body:has(.lab-drawer[data-docked]) .lg-os-table th[colspan] { display: table-cell; }
+}
+@media (min-width: 1280px) and (max-width: 1399px) {
+  body:has(.lab-drawer[data-docked]) .lg-os-table .ocm-trigger { width: 40px; padding: 0; justify-content: center; }
+  body:has(.lab-drawer[data-docked]) .lg-os-table .ocm-trigger > :not(:first-child) { display: none; }
+  body:has(.lab-drawer[data-docked]) .lg-os-table :is(th, td):first-child { padding-left: 12px; }
+}
+.ocm-verb { font-style: normal; }
+:is(.bk-card, [data-kanban-card]) .ocm-verb { display: none; }
+:is(.bk-card, [data-kanban-card]) .ocm-arrow { max-width: 49%; }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useOrderMenu } from "./order-context-menu";
+import { awaitingDoctor, OrderActionsButton, StageArrows, useOrderMenu } from "./order-context-menu";
 import { DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { KANBAN_AUTO_SCROLL, KanbanViewport } from "./kanban-viewport";
 import { ChevronDown, ChevronRight, Clock, Gauge, GripVertical, Search } from "lucide-react";
@@ -33,7 +33,8 @@ function Card({ order, href, role, pending, onMove, now }: { order: OrderRow; hr
   const forecast = orderForecast(order, now);
   const riskTone = RISK_TONE[forecast.risk];
   const targets = allowedTargets(order.status, role).filter((status) => QUEUE_STATUSES.includes(status));
-  const quick = useOrderMenu({ id: order.id, number: visibleOrderNumber(order), status: order.status, clientName: order.client_name, detailsHref: href }, role);
+  const menuOrder = { id: order.id, number: visibleOrderNumber(order), status: order.status, clientName: order.client_name, detailsHref: href, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, updatedAt: order.updated_at };
+  const quick = useOrderMenu(menuOrder, role);
   return (
     <article
       ref={setNodeRef}
@@ -77,19 +78,18 @@ function Card({ order, href, role, pending, onMove, now }: { order: OrderRow; hr
         ) : null}
       </div>
       <StepTrack done={order.steps_done ?? 0}/>
-      {targets.length > 0 ? <label className="flex items-center gap-2 text-xs text-[var(--muted)]">Mover para
-        <select aria-label={`Mover OS ${visibleOrderNumber(order)} para`} value="" disabled={pending} onChange={(event) => { if (event.target.value) onMove(order, event.target.value as OrderStatus); }} className="min-h-11 min-w-0 flex-1 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 text-[var(--ink)] disabled:opacity-50">
-          <option value="">Escolher etapa</option>{targets.map((status) => <option key={status} value={status}>{STATUS_LABEL[status]}</option>)}
-        </select>
-      </label> : null}
+      <StageArrows waitingDoctor={awaitingDoctor({ status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at })} status={order.status} role={role} orderId={order.id} number={visibleOrderNumber(order)} disabled={pending} onMove={(to) => onMove(order, to as OrderStatus)} />
       <div className="flex items-center justify-between border-t border-[var(--line)] pt-2 text-xs">
         <span className="flex items-center gap-[5px]" style={deadlineStyle(order)}>
           <Clock size={13} />
           {order.status === "pronto" ? "Disponível para retirada" : dueDeltaLabel(order.due_at, now, order.status)}
         </span>
-        <Link href={href} className="inline-flex min-h-11 items-center px-1 font-semibold text-[var(--link)] hover:underline md:min-h-0" onPointerDown={(event) => event.stopPropagation()}>
-          Abrir
-        </Link>
+<span className="flex items-center gap-1">
+          <OrderActionsButton role={role} order={menuOrder} />
+          <Link href={href} className="inline-flex min-h-11 items-center px-1 font-semibold text-[var(--link)] hover:underline md:min-h-0" onPointerDown={(event) => event.stopPropagation()}>
+            Abrir
+          </Link>
+        </span>
       </div>
       {quick.element}
     </article>
@@ -233,7 +233,7 @@ export function OrderKanban({
         <span className="ml-auto text-xs text-[var(--muted)]" role="status">{visible.length} de {loaded.length} OS carregadas{pending ? " · Salvando…" : ""}</span>
         {query || sellerId || focus !== "all" ? <button type="button" onClick={() => { setQuery(""); setSellerId(""); setFocus("all"); }} className="min-h-11 px-2 text-xs font-semibold text-[var(--link)]">Limpar filtros</button> : null}
       </div>
-      <p className="text-xs text-[var(--muted)]">Use a alça para arrastar ou escolha “Mover para” no cartão. Filtros e ordenação se aplicam às OS carregadas; a capacidade considera todo o quadro carregado.</p>
+      <p className="text-xs text-[var(--muted)]">Use a alça para arrastar, ou os botões Voltar / Avançar e Ações no cartão. Filtros e ordenação se aplicam às OS carregadas; a capacidade considera todo o quadro carregado.</p>
       <Feedback error={error} />
       <DndContext id={boardId} sensors={sensors} autoScroll={KANBAN_AUTO_SCROLL} onDragStart={event=>setDraggingId(String(event.active.id))} onDragCancel={()=>setDraggingId(null)} onDragEnd={onDragEnd}>
         <KanbanViewport label="Kanban de produção" dragging={Boolean(draggingId)} lanes={QUEUE_STATUSES.map(status=>({id:status,label:STATUS_LABEL[status],count:visible.filter(order=>order.status===status).length}))}>

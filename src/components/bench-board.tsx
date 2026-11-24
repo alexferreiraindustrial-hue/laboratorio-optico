@@ -12,13 +12,13 @@ import { QuickOrderPhoto } from "./quick-order-photo";
 import { can } from "@/lib/domain/permissions";
 import {
   ArrowDownUp, Check, ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock3, Columns3, EyeOff,
-  ExternalLink, GripVertical, Rows3, Search, Kanban, LayoutList, MoreHorizontal, Play, ScanLine, SlidersHorizontal, Wrench, X,
+  ExternalLink, GripVertical, Rows3, Search, Kanban, LayoutList, MoreHorizontal, Play, ScanLine, SlidersHorizontal, Wrench, X, Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, useTransition, type CSSProperties, type ReactNode } from "react";
 import { useOperationMode } from "./operation-mode";
-import { awaitingDoctor, DoctorReturnButton, useOrderMenu } from "./order-context-menu";
+import { awaitingDoctor, DoctorReturnButton, OrderActionsButton, StageArrows, useOrderMenu } from "./order-context-menu";
 import { RiskChip } from "@/components/forecast-ui";
 import { Feedback } from "@/components/ui";
 import {
@@ -339,7 +339,7 @@ export function BenchBoard({ sellers = [], orders, role, error, nowIso, userId =
         <p className="bk-card-deadline">{benchDeadlineSignal(draggingOrder, now).label}</p>
       </div> : null}</DragOverlay>
     </DndContext>
-    <p className="text-xs text-[var(--muted)]">Arraste o cartão para outra coluna (no celular, segure e arraste, ou use o menu ⋯ › Mover para). As preferências de colunas ficam salvas neste aparelho.</p>
+    <p className="text-xs text-[var(--muted)]">Arraste o cartão para outra coluna, ou use os botões Voltar / Avançar e o botão Ações em cada cartão. As preferências de colunas ficam salvas neste aparelho.</p>
     </>}
   </div>;
 }
@@ -498,10 +498,12 @@ function BenchCard({ order, expanded, onToggle, role, now, boardPending, onMove,
         <span>Etapas {stepsDone}/5</span>
       </div>
 
+      <span {...stop}><StageArrows waitingDoctor={awaitingDoctor({ status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at })} status={order.status} role={role} orderId={order.id} number={number} disabled={pending || boardPending} onMove={(to) => onMove(order, to)} /></span>
       <div className="bk-card-foot">
         <span className="bk-due" title={order.dueAt ? `Prazo ${formatDateTime(order.dueAt)}` : undefined}>{deadline.label}{order.dueAt ? ` · ${dueDeltaLabel(order.dueAt, now, order.status)}` : ""}</span>
         <span className="flex-1" />
         {running ? <span className="bk-avatar" title={`${STEP_LABEL[running.key]} com ${running.assignee ?? "responsável"} desde ${timeOf(running.startedAt)}`}>{initials(running.assignee)}</span> : null}
+        <span {...stop}><OrderActionsButton role={role} order={{ id: order.id, number, status: order.status, clientName: order.clientName, detailsHref: `/montagem?os=${order.id}`, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, updatedAt: order.updated_at }} /></span>
         <button type="button" onClick={onToggle} aria-label={expanded ? "Recolher cartão" : "Expandir cartão"} className="bk-icon-btn is-small" {...stop}>{expanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}</button>
       </div>
 
@@ -657,7 +659,8 @@ function BenchRow({ order, role, now, boardPending, onProgress }: { order: Bench
         <Link href={`/montagem?os=${order.id}`} scroll={false} className="bc-details">Detalhes</Link>
         {awaitingDoctor({ status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at }) && can(role, "orders.write") ? <DoctorReturnButton className="bc-action inline-flex items-center gap-2" order={{ id: order.id, number, status: order.status, clientName: order.clientName, detailsHref: `/montagem?os=${order.id}`, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, updatedAt: order.updated_at }} />
           : action.kind !== "none" ? <button type="button" onClick={run} disabled={pending || boardPending} className="bc-action">{pending ? "Registrando..." : action.label}</button> : <span className="bc-idle">{action.label}</span>}
-        <button type="button" aria-label={`Mais ações da OS ${number}`} title="Mais ações (ou clique com o botão direito)" onClick={(event) => { const rect = event.currentTarget.getBoundingClientRect(); quick.open(rect.right - 260, rect.bottom + 4); }} className="bk-icon-btn"><MoreHorizontal size={18} /></button>
+        <StageArrows waitingDoctor={awaitingDoctor({ status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at })} status={order.status} role={role} orderId={order.id} number={number} disabled={pending || boardPending} />
+        <button type="button" aria-haspopup="menu" aria-label={`Ações da OS ${number}`} title="Ações rápidas (ou clique com o botão direito)" onClick={(event) => { const rect = event.currentTarget.getBoundingClientRect(); quick.open(rect.right - 260, rect.bottom + 6); }} className="ocm-trigger"><Zap size={15} /><span>Ações</span><ChevronDown size={14} /></button>
       </div>
       {quick.element}
     </li>

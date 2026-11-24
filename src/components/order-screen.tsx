@@ -1,4 +1,4 @@
-import { OrderContextMenu, OrderMenuRow } from "./order-context-menu";
+import { OrderActionsButton, OrderContextMenu, OrderMenuRow } from "./order-context-menu";
 import { Fragment } from "react";
 import { ArrowUpRight, ChevronDown, ListFilter, PackageCheck, Plus, Search, Zap } from "lucide-react";
 import Link from "next/link";
@@ -252,7 +252,8 @@ export function OrderScreen({
                     const late = order.urgency === "vermelho" || (order.due_at && new Date(order.due_at).getTime() < Date.now());
                     const soon = order.urgency === "amarelo";
                     return (
-                      <OrderContextMenu key={order.id} role={role} order={{ id: order.id, number: visibleOrderNumber(order), status: order.status, clientName: order.client_name, detailsHref: orderHref(order.id) }}>
+                      <OrderContextMenu key={order.id} role={role} order={{ id: order.id, number: visibleOrderNumber(order), status: order.status, clientName: order.client_name, detailsHref: orderHref(order.id), medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, updatedAt: order.updated_at }}>
+                      <div className="lg-os-row-wrap">
                       <Link
                         href={orderHref(order.id)} scroll={false}
                         className="lg-os-row"
@@ -269,6 +270,8 @@ export function OrderScreen({
                           </span>
                         </span>
                       </Link>
+                      <OrderActionsButton compact role={role} order={{ id: order.id, number: visibleOrderNumber(order), status: order.status, clientName: order.client_name, detailsHref: orderHref(order.id), medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, updatedAt: order.updated_at }} />
+                      </div>
                       </OrderContextMenu>
                     );
                   })}
@@ -287,15 +290,15 @@ export function OrderScreen({
         </div>
         <Panel className="hidden overflow-x-auto md:block">
           {/* Tabela compacta: apenas o essencial */}
-          <table className="w-full min-w-[560px] border-collapse text-left text-sm">
+          <table className="lg-os-table w-full min-w-[560px] border-collapse text-left text-sm">
             <thead>
               <tr className="bg-[var(--background)]">
-                {["Ordem de serviço", "Cliente · responsável", "Prazo prometido", "Situação", ""].map((head, index) => (
+                {["Ordem de serviço", "Cliente · responsável", "Prazo prometido", "Situação", "Ações"].map((head, index) => (
                   <th
                     key={head}
                     className={cn(
                       "border-b border-[var(--line)] py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted)]",
-                      index === 0 ? "pl-4 pr-3 w-[110px]" : index === 3 ? "pl-3 pr-4 w-[160px]" : index === 2 ? "px-3 w-[90px]" : "px-3",
+                      index === 0 ? "pl-4 pr-3 w-[110px]" : index === 3 ? "pl-3 pr-4 w-[160px]" : index === 2 ? "px-3 w-[90px]" : index === 4 ? "pr-4 w-[1%] text-right" : "px-3",
                     )}
                   >
                     {head}
@@ -308,7 +311,7 @@ export function OrderScreen({
                 const deltaLabel = dueDeltaLabel(order.due_at, new Date(), order.status);
                 const forecast = forecastOrder({ status: order.status, dueAt: order.due_at, stepsDone: order.steps_done, lensExpectedAt: order.lens_expected_at });
                 return (
-                  <Fragment key={order.id}>{(index===0 || bySeller[index-1].seller_id!==order.seller_id) && <tr><th colSpan={5} scope="rowgroup" className="bg-[var(--accent-soft)] px-4 py-3 text-sm font-semibold text-[var(--link)]">{order.seller_name || "Sem vendedora"} · {bySeller.filter(item=>item.seller_id===order.seller_id).length} OS nesta página</th></tr>}<OrderMenuRow role={role} order={{ id: order.id, number: visibleOrderNumber(order), status: order.status, clientName: order.client_name, detailsHref: orderHref(order.id) }} className="group border-b border-[var(--line)] last:border-b-0 hover:bg-[var(--background)]">
+                  <Fragment key={order.id}>{(index===0 || bySeller[index-1].seller_id!==order.seller_id) && <tr><th colSpan={5} scope="rowgroup" className="bg-[var(--accent-soft)] px-4 py-3 text-sm font-semibold text-[var(--link)]">{order.seller_name || "Sem vendedora"} · {bySeller.filter(item=>item.seller_id===order.seller_id).length} OS nesta página</th></tr>}<OrderMenuRow role={role} order={{ id: order.id, number: visibleOrderNumber(order), status: order.status, clientName: order.client_name, detailsHref: orderHref(order.id), medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, updatedAt: order.updated_at }} className="group border-b border-[var(--line)] last:border-b-0 hover:bg-[var(--background)]">
                     {/* OS + Lab */}
                     <td className="py-2.5 pl-4 pr-3">
                       <Link href={orderHref(order.id)} scroll={false} className="flex flex-col gap-0.5">
@@ -339,9 +342,9 @@ export function OrderScreen({
                     {/* Status */}
                     <td className="py-2.5 pl-3 pr-4">
                       <StatusBadge status={order.status} />
-                      <p className="mt-2 text-xs text-[var(--muted)]">{order.steps_done ?? 0} etapas opcionais registradas</p>
+                      <p className="lg-os-steps mt-2 text-xs text-[var(--muted)]">{order.steps_done ?? 0} etapas opcionais registradas</p>
                     </td>
-                    <td className="pr-4"><Link href={orderHref(order.id)} scroll={false} aria-label={`Abrir OS ${visibleOrderNumber(order)}`} className="grid h-10 w-10 place-items-center rounded-lg border border-[var(--line)] text-[var(--link)] hover:bg-[var(--accent-soft)]"><ArrowUpRight size={17} /></Link></td>
+                    <td className="pr-4 text-right"><OrderActionsButton role={role} order={{ id: order.id, number: visibleOrderNumber(order), status: order.status, clientName: order.client_name, detailsHref: orderHref(order.id), medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, updatedAt: order.updated_at }} /></td>
                   </OrderMenuRow></Fragment>
                 );
               })}

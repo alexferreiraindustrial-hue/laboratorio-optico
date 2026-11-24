@@ -4,11 +4,18 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowUpRight, ClipboardList, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useState, useSyncExternalStore, type ReactNode } from "react";
+
+// Telas largas: a OS fica fixa à direita e a lista continua usável à esquerda (como no WhatsApp).
+const WIDE = "(min-width: 1280px)";
+function subscribeWide(callback: () => void) { const media = window.matchMedia(WIDE); media.addEventListener("change", callback); return () => media.removeEventListener("change", callback); }
+const readWide = () => window.matchMedia(WIDE).matches;
+function initialsOf(name: string) { return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]).join("").toUpperCase() || "OS"; }
 
 /** The URL owns selection, so back, refresh and copied links preserve the queue. */
-export function OrderDrawer({ title, closeHref, detailHref, editor, workspace, description = "Complemente os dados sem perder sua posição na fila." }: {
+export function OrderDrawer({ title, client, closeHref, detailHref, editor, workspace, description = "Complemente os dados sem perder sua posição na fila." }: {
   title: string;
+  client?: string;
   closeHref: string;
   detailHref: string;
   editor?: ReactNode;
@@ -17,15 +24,16 @@ export function OrderDrawer({ title, closeHref, detailHref, editor, workspace, d
 }) {
   const router = useRouter();
   const [tab, setTab] = useState(editor ? "dados" : "historico");
+  const docked = useSyncExternalStore(subscribeWide, readWide, () => false);
   return (
-    <Dialog.Root open onOpenChange={(open) => { if (!open) router.replace(closeHref, { scroll: false }); }}>
+    <Dialog.Root open modal={!docked} onOpenChange={(open) => { if (!open) router.replace(closeHref, { scroll: false }); }}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
-        <Dialog.Content className="lab-drawer fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-[var(--line)] bg-[var(--surface)] shadow-2xl outline-none sm:max-w-[760px]">
-          <header className="flex items-start gap-3 border-b border-[var(--line)] bg-[var(--surface)] px-5 py-4">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[var(--accent-soft)] text-[var(--link)]"><ClipboardList size={20} /></span>
+        {docked ? null : <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40" />}
+        <Dialog.Content data-docked={docked || undefined} onInteractOutside={(event) => { if (docked) event.preventDefault(); }} className="lab-drawer fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-[var(--line)] bg-[var(--surface)] shadow-2xl outline-none sm:max-w-[760px]">
+          <header className="flex items-center gap-3 border-b border-[var(--line)] bg-[var(--surface-secondary,var(--surface))] px-5 py-3">
+            {client ? <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-sm font-bold text-[var(--sidebar-active-text,var(--link))]">{initialsOf(client)}</span> : <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[var(--accent-soft)] text-[var(--link)]"><ClipboardList size={20} /></span>}
             <div className="min-w-0 flex-1">
-              <Dialog.Title className="truncate text-lg font-semibold">{title}</Dialog.Title>
+              <Dialog.Title className="truncate text-lg font-semibold">{client ? <>{client} <span className="font-mono text-sm font-medium text-[var(--muted)]">· {title}</span></> : title}</Dialog.Title>
               <Dialog.Description className="mt-1 text-xs text-[var(--muted)]">{description}</Dialog.Description>
             </div>
             <Dialog.Close aria-label="Fechar ordem de serviço" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg hover:bg-[var(--background)]"><X size={20} /></Dialog.Close>

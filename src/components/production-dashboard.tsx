@@ -250,8 +250,6 @@ export default async function ProductionDashboard({
         <span className="font-mono text-[13px] text-[var(--muted)]">{rangeLabel}</span>
       </PageHeading>
 
-      <ProductionSummary stages={pipeline} total={open.length}/>
-      <ProductionOverview canLaunch={can(role,"orders.write")} orders={open.map(order=>({id:order.id,number:visibleOrderNumber(order),clientName:order.client_name,status:order.status,dueAt:order.due_at,sellerName:order.seller_name,stepsDone:stepsDone.get(order.id)??0}))}/>
 
 
       {period === "periodo" || catalogs.laboratories.length > 1 ? (
@@ -441,6 +439,10 @@ export default async function ProductionDashboard({
           </div>
         </Panel>
       </div>
+
+      {/* Fila por etapa e atalhos (mesmos dados, abaixo dos indicadores principais) */}
+      <ProductionSummary stages={pipeline} total={open.length}/>
+      <ProductionOverview canLaunch={can(role,"orders.write")} orders={open.map(order=>({id:order.id,number:visibleOrderNumber(order),clientName:order.client_name,status:order.status,dueAt:order.due_at,sellerName:order.seller_name,stepsDone:stepsDone.get(order.id)??0}))}/>
     </div>
   );
 }

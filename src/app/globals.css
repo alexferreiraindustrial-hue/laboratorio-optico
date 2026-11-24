@@ -700,3 +700,16 @@ body { background: var(--background); line-height: 1.45; }
 .lg-os-avatar[data-tone="late"] { background: var(--danger-soft); color: var(--danger); }
 .lg-os-avatar[data-tone="soon"] { background: var(--warning-soft); color: var(--warning); }
 .lg-os-row-body { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 3px; padding: 12px 12px 12px 0; border-bottom: 1px solid var(--line); }
+
+/* ===== OS aberta fixa à direita em telas largas (versão limpa) ===== */
+@media (min-width: 1280px) {
+  .lab-drawer[data-docked] { top: 0; max-width: 620px; box-shadow: -1px 0 0 var(--line); z-index: 35; }
+  body:has(.lab-drawer[data-docked]) .lab-workspace { padding-right: 640px; }
+  body:has(.lab-drawer[data-docked]) .lg-mobile-dock { display: none; }
+  body:has(.lab-drawer[data-docked]) .lg-topbar { padding-right: 640px; }
+  body:has(.lab-drawer[data-docked]) .lg-topbar > form { display: none; }
+  body:has(.lab-drawer[data-docked]) .bc-wrap { grid-template-columns: 210px minmax(0, 1fr); }
+  body:has(.lab-drawer[data-docked]) .bc-lane-hint { display: none; }
+  body:has(.lab-drawer[data-docked]) .bc-row-body { flex-wrap: wrap; gap: 8px; }
+  body:has(.lab-drawer[data-docked]) .bc-row-body > div { flex-basis: 100%; }
+}

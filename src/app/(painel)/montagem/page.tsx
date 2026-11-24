@@ -117,6 +117,6 @@ export default async function MontagemPage({ searchParams }: { searchParams: Pro
   const detail = filters.os && /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(filters.os) ? await loadOrderDetail(filters.os) : null;
   return <>
     <BenchBoard sellers={catalogs.sellers} orders={bench} role={role} userId={user.id} error={boardError} nowIso={new Date().toISOString()} />
-    {detail ? <OrderDrawer key={detail.order.id} title={`OS ${visibleOrderNumber(detail.order)}`} closeHref="/montagem" description="Acompanhe etapas, fotos e ocorrências sem sair da bancada." detailHref={`/montagem/${detail.order.id}`} workspace={<OrderWorkspace {...detail} mode="montagem" />} /> : null}
+    {detail ? <OrderDrawer key={detail.order.id} client={detail.order.client_name} title={`OS ${visibleOrderNumber(detail.order)}`} closeHref="/montagem" description="Acompanhe etapas, fotos e ocorrências sem sair da bancada." detailHref={`/montagem/${detail.order.id}`} workspace={<OrderWorkspace {...detail} mode="montagem" />} /> : null}
   </>;
 }

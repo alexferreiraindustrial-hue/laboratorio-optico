@@ -166,7 +166,6 @@ export function OrderWorkspace({
           <p className="mt-2 text-xs text-[var(--muted)]">Estes dados não dão baixa no estoque. O consumo é uma operação separada.</p>
         </Panel>
 
-        {can(role,"quality.write")&&!["entregue","cancelado"].includes(order.status)&&<StageNoteEditor key={`${order.id}-${order.status}`} id={order.id} status={order.status}/>}
         <Panel className="p-4">
 <details><summary className="min-h-11 cursor-pointer text-sm font-semibold">Etapas técnicas · acompanhamento opcional</summary>          <h2 className="font-medium">Etapas técnicas · consulta e registro opcional</h2>
           <p className="mt-2 text-xs text-[var(--muted)]">Não é preciso finalizar uma a uma para liberar a montagem. Use os registros para descrever o que aconteceu e anexar fotos.</p>
@@ -212,6 +211,7 @@ export function OrderWorkspace({
         <Panel className="overflow-hidden p-0">
           <h2 className="border-b border-[var(--line)] px-4 py-3 font-medium">Histórico da OS</h2>
           <HistoryChat history={history} photos={attachments.filter((item) => item.entity_type === "order")} />
+          {can(role,"quality.write")&&!["entregue","cancelado"].includes(order.status)?<div className="lg-chat-compose border-t border-[var(--line)] bg-[var(--surface-secondary)] p-3"><StageNoteEditor key={`${order.id}-${order.status}`} id={order.id} status={order.status}/></div>:null}
         </Panel>
         <ConsumeBox orderId={order.id} role={role} movements={movements} />
       </div>

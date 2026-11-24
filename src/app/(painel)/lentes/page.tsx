@@ -59,7 +59,7 @@ export default async function LentesPage({ searchParams }: { searchParams: Promi
       </MetricStrip>
       <LensBoard sellers={catalogs.sellers} rows={rows} canEdit={role !== "consulta" && role !== "estoquista"} canRelease={can(role, "orders.status") && role !== "montador"} nowIso={now.toISOString()} />
     </div>
-    {detail ? <OrderDrawer key={detail.order.id} title={`OS ${visibleOrderNumber(detail.order)}`} closeHref="/lentes" detailHref={`/laboratorio/${detail.order.id}`}
+    {detail ? <OrderDrawer key={detail.order.id} client={detail.order.client_name} title={`OS ${visibleOrderNumber(detail.order)}`} closeHref="/lentes" detailHref={`/laboratorio/${detail.order.id}`}
       editor={catalogs ? <><OrderForm laboratories={catalogs.laboratories} sellers={catalogs.sellers} stores={catalogs.stores} sellerLinks={catalogs.sellerLinks} order={detail.order}/><LensForecastEditor orderId={detail.order.id} expectedAt={detail.order.lens_expected_at} supplierRef={detail.order.lens_supplier_ref}/></> : undefined}
       workspace={<OrderWorkspace {...detail} mode="laboratorio"/>}/> : null}
     </>

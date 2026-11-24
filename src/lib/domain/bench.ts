@@ -19,6 +19,8 @@ export type BenchOrder = OrderOperations & {
   status: Extract<OrderStatus, "aguardando_montagem" | "em_montagem" | "em_correcao" | "em_conferencia" | "pronto">;
   urgent: boolean;
   openOccurrences: number | null;
+  /** Quando a OS entrou na coluna atual (lido de order_status_history). */
+  stageSince?: string | null;
   steps: { key: StepKey; status: StepStatus; startedAt: string | null; assignee: string | null; assigneeId: string | null }[];
 };
 

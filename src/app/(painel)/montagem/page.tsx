@@ -65,6 +65,22 @@ export default async function MontagemPage({ searchParams }: { searchParams: Pro
     if (occurrenceError) { occurrencesLoaded = false; boardError = "Não foi possível conferir as ocorrências. Consulte os detalhes antes de liberar uma OS."; }
     for (const occurrence of occurrences ?? []) occurrenceCount.set(occurrence.order_id, (occurrenceCount.get(occurrence.order_id) ?? 0) + 1);
   }
+  // Tempo na etapa: só lê o histórico de status que o sistema já grava a cada movimentação.
+  const stageSince = new Map<string, string>();
+  const currentStatus = new Map((orders ?? []).map((order) => [order.id as string, order.status as string]));
+  // Lotes pequenos para não esbarrar no limite de 1000 linhas por consulta.
+  for (let index = 0; index < ids.length; index += 40) {
+    const { data: history } = await supabase
+      .from("order_status_history")
+      .select("order_id, to_status, created_at")
+      .in("order_id", ids.slice(index, index + 40))
+      .in("to_status", [...assemblyStatuses])
+      .order("created_at", { ascending: false });
+    for (const row of history ?? []) {
+      const id = row.order_id as string;
+      if (!stageSince.has(id) && row.to_status === currentStatus.get(id)) stageSince.set(id, row.created_at as string);
+    }
+  }
   const assigneeIds = [...new Set(steps.map((step) => step.assignee_id).filter(Boolean))] as string[];
   const { data: people } = assigneeIds.length
     ? await supabase.from("profiles").select("id, full_name").in("id", assigneeIds)
@@ -85,6 +101,7 @@ export default async function MontagemPage({ searchParams }: { searchParams: Pro
     enteredAt: order.entered_at as string,
     status: order.status as BenchOrder["status"],
     urgent: order.priority === "critica",
+    stageSince: stageSince.get(order.id as string) ?? null,
     openOccurrences: occurrencesLoaded ? occurrenceCount.get(order.id) ?? 0 : null,
     steps: steps
       .filter((step) => step.order_id === order.id)

@@ -32,6 +32,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<Map<String, dynamic>> orders = [];
   String? error;
   int? lowStock;
+  int? feedbackCount;
   DateTime? updated;
   bool busy = false;
   Timer? timer;
@@ -60,6 +61,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (busy) return;
     setState(() => busy = true);
     unawaited(loadStock());
+    if (canManage(widget.session.profile?.role ?? ''))
+      unawaited(loadFeedback());
     try {
       final request = api.overviewOrders();
       final catalog = widget.scope.refreshSellers();
@@ -75,6 +78,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (mounted) setState(() => error = friendlyError(e));
     } finally {
       if (mounted) setState(() => busy = false);
+    }
+  }
+
+  Future<void> loadFeedback() async {
+    try {
+      final count = await api.clientFeedbackCount();
+      if (mounted) setState(() => feedbackCount = count);
+    } catch (_) {
+      if (mounted) setState(() => feedbackCount = null);
     }
   }
 
@@ -187,6 +199,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
+          if (canManage(widget.session.profile?.role ?? ''))
+            TextButton.icon(
+              onPressed: () => context.push('/pos-venda'),
+              icon: const Icon(Icons.chat_bubble_outline, size: 18),
+              label: Text(
+                feedbackCount != null && feedbackCount! > 0
+                    ? '$feedbackCount cliente(s) com acompanhamento pendente'
+                    : 'Entrega ao cliente e pós-venda',
+              ),
+            ),
           const SizedBox(height: 18),
           if (error != null)
             Padding(

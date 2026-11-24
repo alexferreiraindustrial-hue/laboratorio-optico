@@ -271,6 +271,11 @@ class _LaunchScreenState extends State<LaunchScreen> {
                   ],
                 ),
               ),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/registrar-pronto'),
+                icon: const Icon(Icons.done_all),
+                label: const Text('Já está pronto · registrar passagem'),
+              ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Precisa passar pelo médico'),

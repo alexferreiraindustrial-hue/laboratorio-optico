@@ -64,7 +64,10 @@ class MoreScreen extends StatelessWidget {
         LaButton(
           label: 'Rotina do dia',
           variant: LaButtonVariant.principal,
-          leading: Icon(Icons.checklist, color: LaColors.adapt(context, LaColors.grafite)),
+          leading: Icon(
+            Icons.checklist,
+            color: LaColors.adapt(context, LaColors.grafite),
+          ),
           onPressed: () => context.push('/rotina'),
         ),
         SizedBox(height: LaSpace.secao),
@@ -120,7 +123,19 @@ class MoreScreen extends StatelessWidget {
           ),
         ]),
         _grupo(context, '4 Saída', [
-          _item(context, 'Entrega', 'OS prontas para o vendedor.', '/entrega'),
+          _item(
+            context,
+            'Saída do laboratório',
+            'OS prontas para o vendedor ou loja.',
+            '/entrega',
+          ),
+          if (full)
+            _item(
+              context,
+              'Entrega ao cliente e pós-venda',
+              'Baixa real e acompanhamento após cinco dias.',
+              '/pos-venda',
+            ),
         ]),
         if (full || assembler)
           _grupo(context, 'Equipe', [
@@ -177,7 +192,10 @@ class MoreScreen extends StatelessWidget {
         LaButton(
           label: 'Sair',
           variant: LaButtonVariant.perigo,
-          leading: Icon(Icons.logout, color: LaColors.adapt(context, LaColors.perigo)),
+          leading: Icon(
+            Icons.logout,
+            color: LaColors.adapt(context, LaColors.perigo),
+          ),
           onPressed: session.signOut,
         ),
       ],
@@ -231,7 +249,10 @@ class MoreScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(Icons.chevron_right, color: LaColors.adapt(context, LaColors.regua)),
+                  Icon(
+                    Icons.chevron_right,
+                    color: LaColors.adapt(context, LaColors.regua),
+                  ),
                 ],
               ),
             ),

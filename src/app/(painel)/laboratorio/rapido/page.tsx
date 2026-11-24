@@ -1,3 +1,5 @@
+import {ReadyEntry} from "@/components/ready-entry";
+import {can} from "@/lib/domain/permissions";
 import Link from "next/link";
 import { QuickLaunch } from "@/components/quick-launch";
 import { PageHeading } from "@/components/shell";
@@ -19,6 +21,7 @@ export default async function LancamentoRapidoPage({ searchParams }: { searchPar
           <Link href="/laboratorio/nova">Cadastro completo</Link>
         </Button>
       </PageHeading>
+      {can(role,"orders.write")&&<ReadyEntry sellers={catalogs.sellers}/>}
       <QuickLaunch
         role={role}
         laboratories={catalogs.laboratories}

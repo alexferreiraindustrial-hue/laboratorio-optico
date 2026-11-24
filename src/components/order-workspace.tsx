@@ -1,4 +1,7 @@
 "use client";
+import {StageNoteEditor} from "./stage-note-editor";
+import {ClientDeliveryForm} from "./client-delivery";
+import type {ClientDelivery} from "@/lib/domain/client-followup";
 import {MedicalReview} from "./medical-review";
 import {OrderOperationsEditor,ExpressCountdown} from "./order-operations";
 
@@ -54,7 +57,9 @@ export function OrderWorkspace({
   mode,
   seller = null,
   messages = [],
+  clientDelivery=null,
 }: {
+  clientDelivery?:ClientDelivery|null;
   nowIso:string;
   seller?: { id: string; name: string; phone: string | null; whatsapp: string | null } | null;
   messages?: OrderMessage[];
@@ -107,6 +112,7 @@ export function OrderWorkspace({
           </dl>
           {order.assistance_kind&&<p className="mt-3 text-sm font-semibold text-[var(--link)]">Assistência · {order.assistance_kind}{order.assistance_origin_order_id&&<> · <a className="underline" href={`/laboratorio/${order.assistance_origin_order_id}`}>Ver OS original</a></>}</p>}
           <MedicalReview key={`medical-${order.updated_at}`} id={order.id} order={order} status={order.status} editable={can(role,"orders.write")}/>
+          {can(role,"orders.deliver")&&<ClientDeliveryForm key={order.id} id={order.id} status={order.status} delivery={clientDelivery}/>}
           <ExpressCountdown operations={order} nowIso={nowIso}/>
           {can(role,"orders.write")&&!["pronto","entregue","cancelado"].includes(order.status)&&<div className="mt-3"><OrderOperationsEditor key={order.updated_at} id={order.id} operations={order} status={order.status}/></div>}
           {order.status === "aguardando_lentes" ? (
@@ -126,7 +132,7 @@ export function OrderWorkspace({
             </Link></Button>
           </div>
           <div className="mt-4">
-            <OrderActions orderId={order.id} status={order.status} role={role} />
+            <OrderActions key={order.status} orderId={order.id} status={order.status} role={role} />
             {order.status === "em_conferencia" && blockers.length > 0 ? (
               <ul className="mt-2 list-disc pl-5 text-sm text-[var(--warning)]">
                 {blockers.map((item) => <li key={item}>{item}</li>)}
@@ -159,8 +165,10 @@ export function OrderWorkspace({
           <p className="mt-2 text-xs text-[var(--muted)]">Estes dados não dão baixa no estoque. O consumo é uma operação separada.</p>
         </Panel>
 
+        {can(role,"quality.write")&&!["entregue","cancelado"].includes(order.status)&&<StageNoteEditor key={`${order.id}-${order.status}`} id={order.id} status={order.status}/>}
         <Panel className="p-4">
-          <h2 className="font-medium">Etapas de montagem</h2>
+<details><summary className="min-h-11 cursor-pointer text-sm font-semibold">Etapas técnicas · acompanhamento opcional</summary>          <h2 className="font-medium">Etapas técnicas · consulta e registro opcional</h2>
+          <p className="mt-2 text-xs text-[var(--muted)]">Não é preciso finalizar uma a uma para liberar a montagem. Use os registros para descrever o que aconteceu e anexar fotos.</p>
           {order.status === "aguardando_montagem" ? (
             <p className="mt-2 rounded-md bg-[var(--accent-soft)] px-3 py-2 text-sm text-[var(--link)]">
               Para liberar as etapas, mova a OS para <strong>Em montagem</strong> no botão “Movimentar” acima.
@@ -184,10 +192,10 @@ export function OrderWorkspace({
               />
             ))}
           </div>
-        </Panel>
+</details>        </Panel>
 
         <Panel className="p-4">
-          <h2 className="font-medium">Ocorrências de qualidade</h2>
+          <h2 className="font-medium">BOs impeditivos · exigem resolução antes da liberação</h2>
           <div className="mt-3 grid gap-3">
             {occurrences.length === 0 ? <p className="text-sm text-[var(--muted)]">Nenhuma ocorrência nesta OS.</p> : null}
             {occurrences.map((item) => (

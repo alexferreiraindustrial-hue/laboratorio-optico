@@ -43,6 +43,132 @@ class LabApi {
   Future<List<Map<String, dynamic>>> overviewOrders() =>
       _readOrderPages(queueStatuses);
 
+  Future<void> stageNote(
+    String id,
+    String? step,
+    String text,
+    bool correction,
+  ) async {
+    await supabase.rpc(
+      'register_order_stage_note',
+      params: {
+        'p_order_id': id,
+        'p_step_key': step,
+        'p_description': text,
+        'p_correction': correction,
+      },
+    );
+  }
+
+  Future<Map<String, dynamic>> createReady({
+    required String sellerId,
+    String? storeId,
+    required String laboratoryId,
+    required String clientName,
+    required String orderRef,
+    required DateTime completed,
+  }) async {
+    final row = await supabase.rpc(
+      'create_ready_service_order',
+      params: {
+        'p_order': {
+          'p_client_name': clientName.trim().isEmpty
+              ? 'OS ${orderRef.trim()}'
+              : clientName.trim(),
+          'p_seller_id': sellerId,
+          'p_store_id': storeId,
+          'p_laboratory_id': laboratoryId,
+          'p_entered_at': DateTime.now().toUtc().toIso8601String(),
+          'p_service_description': 'Registro de passagem · serviço já pronto',
+          'p_external_order_id': orderRef.trim().isEmpty
+              ? null
+              : orderRef.trim(),
+          'p_priority': 'normal',
+          'p_notes': 'Serviço já pronto antes do cadastro; etapas não marcadas como executadas.',
+        },
+        'p_completed_at': completed.toUtc().toIso8601String(),
+      },
+    );
+    return Map<String, dynamic>.from(row as Map);
+  }
+
+  Future<Map<String, dynamic>?> clientDelivery(String id) async {
+    return await supabase
+        .from('client_delivery_followups')
+        .select()
+        .eq('order_id', id)
+        .maybeSingle();
+  }
+
+  Future<void> confirmClientDelivery(
+    String id,
+    String phone,
+    DateTime date,
+  ) async {
+    await supabase.rpc(
+      'confirm_client_delivery',
+      params: {
+        'p_order_id': id,
+        'p_phone': phone,
+        'p_delivered_at': date.toUtc().toIso8601String(),
+      },
+    );
+  }
+
+  Future<void> updateClientFeedback(
+    Map<String, dynamic> row,
+    String? outcome,
+    String note,
+    String phone,
+  ) async {
+    await supabase.rpc(
+      'update_client_followup',
+      params: {
+        'p_id': row['id'],
+        'p_outcome': outcome,
+        'p_note': note,
+        'p_phone': phone,
+        'p_expected_updated_at': row['updated_at'],
+      },
+    );
+  }
+
+  Future<int> clientFeedbackCount() async {
+    return await supabase
+        .from('client_delivery_followups')
+        .count(CountOption.exact)
+        .isFilter('contacted_at', null)
+        .lte('followup_due_at', DateTime.now().toUtc().toIso8601String());
+  }
+
+  Future<List<Map<String, dynamic>>> clientFollowups() async {
+    final list = <Map<String, dynamic>>[];
+    for (var offset = 0; ; offset += 500) {
+      final rows = await supabase
+          .from('client_delivery_followups')
+          .select()
+          .order('id')
+          .range(offset, offset + 499);
+      list.addAll(List<Map<String, dynamic>>.from(rows));
+      if (rows.length < 500) break;
+    }
+    for (var offset = 0; offset < list.length; offset += 150) {
+      final part = list.skip(offset).take(150).toList();
+      final orders = await supabase
+          .from('orders_enriched')
+          .select('id,number,client_name,seller_name,seller_id')
+          .inFilter('id', part.map((r) => r['order_id'] as String).toList());
+      final names = {for (final o in orders) o['id']: o};
+      for (final row in part) {
+        row['order'] = names[row['order_id']];
+      }
+    }
+    list.sort(
+      (a, b) => '${a['followup_due_at']}'.compareTo('${b['followup_due_at']}'),
+    );
+    return list;
+  }
+
   Future<void> mergeOperations(List<Map<String, dynamic>> rows) async {
     for (var offset = 0; offset < rows.length; offset += 150) {
       final part = rows.skip(offset).take(150).toList();
@@ -243,6 +369,13 @@ class LabApi {
   }
 
   Future<void> changeStatus(String id, String to, String note) async {
+    if (to == 'em_correcao') {
+      await supabase.rpc(
+        'send_order_to_correction',
+        params: {'p_order_id': id, 'p_problem': note},
+      );
+      return;
+    }
     await supabase.rpc(
       'change_order_status',
       params: {'p_order_id': id, 'p_to': to, 'p_note': note},
@@ -499,7 +632,7 @@ class LabApi {
     final stepsRaw = await _rowsOrEmpty(
       supabase
           .from('assembly_steps')
-          .select('step_key, status, started_at, finished_at, notes')
+          .select('id,step_key, status, started_at, completed_at, notes')
           .eq('order_id', id),
     );
     final steps = [
@@ -555,7 +688,11 @@ class LabApi {
         seller = null;
       }
     }
-    final photos = await _orderPhotos(id);
+    final photos = await _orderPhotos(
+      id,
+      stepIds: stepsRaw.map((r) => r['id']).whereType<String>().toList(),
+    );
+    final delivery = await clientDelivery(id);
     return {
       'order': Map<String, dynamic>.from(order),
       'steps': steps,
@@ -564,18 +701,22 @@ class LabApi {
       'messages': messages,
       'seller': seller,
       'photos': photos,
+      'client_delivery': delivery,
     };
   }
 
-  Future<List<Map<String, dynamic>>> _orderPhotos(String orderId) async {
+  Future<List<Map<String, dynamic>>> _orderPhotos(
+    String orderId, {
+    List<String> stepIds = const [],
+  }) async {
     final rows = await _rowsOrEmpty(
       supabase
           .from('attachments')
           .select(
             'id, entity_type, entity_id, storage_path, file_name, mime_type, size_bytes, created_at',
           )
-          .eq('entity_type', 'order')
-          .eq('entity_id', orderId)
+          .inFilter('entity_type', ['order', 'step'])
+          .inFilter('entity_id', [orderId, ...stepIds])
           .isFilter('deleted_at', null)
           .order('created_at', ascending: false),
     );
@@ -603,6 +744,7 @@ class LabApi {
     required Uint8List bytes,
     required String mime,
     required String fileName,
+    String? stepKey,
   }) async {
     const allowed = {'image/jpeg', 'image/png', 'image/webp'};
     final type = allowed.contains(mime) ? mime : _mimeFromName(fileName);
@@ -618,7 +760,21 @@ class LabApi {
         : type == 'image/webp'
         ? 'webp'
         : 'jpg';
-    final path = 'order/$orderId/$id.$ext';
+    var entity = 'order';
+    var entityId = orderId;
+    if (stepKey != null) {
+      final step = await supabase
+          .from('assembly_steps')
+          .select('id')
+          .eq('order_id', orderId)
+          .eq('step_key', stepKey)
+          .maybeSingle();
+      if (step == null)
+        throw StateError('Etapa não encontrada. Atualize a OS.');
+      entity = 'step';
+      entityId = step['id'] as String;
+    }
+    final path = '$entity/$entityId/$id.$ext';
     await supabase.storage
         .from('lab-files')
         .uploadBinary(
@@ -628,8 +784,8 @@ class LabApi {
         );
     await supabase.from('attachments').insert({
       'id': id,
-      'entity_type': 'order',
-      'entity_id': orderId,
+      'entity_type': entity,
+      'entity_id': entityId,
       'storage_path': path,
       'file_name': fileName.length > 120
           ? fileName.substring(0, 120)

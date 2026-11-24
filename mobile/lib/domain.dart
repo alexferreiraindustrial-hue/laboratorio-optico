@@ -62,6 +62,7 @@ groupByStatusThenStoreThenSeller(List<Map<String, dynamic>> rows) {
 }
 
 const benchStatuses = [
+  'pronto',
   'aguardando_montagem',
   'em_montagem',
   'em_correcao',
@@ -228,7 +229,12 @@ String saoPauloDay([DateTime? now]) {
 
 const statusTransitions = {
   'aguardando_lentes': ['aguardando_montagem', 'cancelado'],
-  'aguardando_montagem': ['em_montagem', 'aguardando_lentes', 'cancelado'],
+  'aguardando_montagem': [
+    'pronto',
+    'em_montagem',
+    'aguardando_lentes',
+    'cancelado',
+  ],
   'em_montagem': [
     'pronto',
     'em_correcao',
@@ -238,7 +244,7 @@ const statusTransitions = {
   ],
   'em_correcao': ['em_montagem', 'cancelado'],
   'em_conferencia': ['pronto', 'em_correcao', 'cancelado'],
-  'pronto': ['entregue', 'em_correcao'],
+  'pronto': ['entregue', 'em_conferencia', 'em_correcao'],
   'entregue': <String>[],
   'cancelado': <String>[],
 };
@@ -766,62 +772,6 @@ nextBenchAction({
       note: 'Início pela bancada',
     );
   }
-  if (!canAssembly(role)) {
-    return (
-      kind: 'none',
-      to: null,
-      action: null,
-      step: null,
-      label: 'Somente consulta',
-      note: '',
-    );
-  }
-  for (final key in stepKeys) {
-    Map<String, dynamic>? step;
-    for (final item in steps) {
-      if (item['key'] == key || item['step_key'] == key) {
-        step = item;
-        break;
-      }
-    }
-    final st = step?['status'] as String? ?? 'pendente';
-    if (st == 'concluida') continue;
-    if (st == 'em_andamento') {
-      return (
-        kind: 'step',
-        to: null,
-        action: 'concluir',
-        step: key,
-        label: 'Concluir ${stepLabel[key]!.toLowerCase()}',
-        note: '',
-      );
-    }
-    final index = stepKeys.indexOf(key);
-    if (index == 0 ||
-        steps.any(
-          (item) =>
-              (item['key'] == stepKeys[index - 1] ||
-                  item['step_key'] == stepKeys[index - 1]) &&
-              item['status'] == 'concluida',
-        )) {
-      return (
-        kind: 'step',
-        to: null,
-        action: 'iniciar',
-        step: key,
-        label: 'Iniciar ${stepLabel[key]!.toLowerCase()}',
-        note: '',
-      );
-    }
-    return (
-      kind: 'none',
-      to: null,
-      action: null,
-      step: null,
-      label: '${stepLabel[key]} bloqueada',
-      note: '',
-    );
-  }
   if (status == 'em_conferencia' && medicalRequired)
     return (
       kind: 'none',
@@ -850,7 +800,7 @@ nextBenchAction({
       label: medicalRequired
           ? 'Enviar para conferência médica'
           : 'Marcar como pronta',
-      note: 'Etapas concluídas',
+      note: 'Montagem finalizada pelo operador',
     );
   }
   return (

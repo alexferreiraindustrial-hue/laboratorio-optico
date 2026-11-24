@@ -35,6 +35,15 @@ void main() {
     expect(pref.dark, false);
     pref.dispose();
   });
+  test('títulos do cabeçalho preservam contraste AA em ambos os temas', () {
+    for (final dark in [false, true]) {
+      final bar = labTheme(dark: dark).appBarTheme;
+      expect(
+        contrast(bar.titleTextStyle!.color!, bar.backgroundColor!),
+        greaterThanOrEqualTo(4.5),
+      );
+    }
+  });
   test('ouro mantém contraste AA nos botões', () {
     final scheme = labTheme(dark: true).colorScheme;
     expect(

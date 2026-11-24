@@ -8,7 +8,7 @@ import { OrderScreen } from "@/components/order-screen";
 import { loadCatalogs, loadOrders, type OrderFilters } from "@/server/queries";
 import { requireProfile } from "@/server/session";
 
-const assemblyStatuses = ["aguardando_montagem", "em_montagem", "em_correcao", "em_conferencia"] as const;
+const assemblyStatuses = ["aguardando_montagem", "em_montagem", "em_correcao", "em_conferencia", "pronto"] as const;
 
 export default async function MontagemPage({ searchParams }: { searchParams: Promise<OrderFilters & { view?: string }> }) {
   const filters = await searchParams;

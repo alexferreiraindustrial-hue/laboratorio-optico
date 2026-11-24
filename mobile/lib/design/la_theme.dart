@@ -106,7 +106,7 @@ ThemeData laTheme({Brightness brightness = Brightness.light}) {
       foregroundColor: tone(LaColors.grafite),
       elevation: 0,
       scrolledUnderElevation: 0,
-      titleTextStyle: LaType.corpoForte,
+      titleTextStyle: LaType.corpoForte.copyWith(color: tone(LaColors.grafite)),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,

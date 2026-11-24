@@ -3,7 +3,7 @@ import { can } from "./permissions";
 
 const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   aguardando_lentes: ["aguardando_montagem", "cancelado"],
-  aguardando_montagem: ["em_montagem", "aguardando_lentes", "cancelado"],
+  aguardando_montagem: ["em_montagem", "pronto", "aguardando_lentes", "cancelado"],
   em_montagem: [
     "pronto",
     "em_correcao",
@@ -13,7 +13,7 @@ const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   ],
   em_correcao: ["em_montagem", "cancelado"],
   em_conferencia: ["pronto", "em_correcao", "cancelado"],
-  pronto: ["entregue", "em_correcao"],
+  pronto: ["entregue", "em_conferencia", "em_correcao"],
   entregue: [],
   cancelado: [],
 };

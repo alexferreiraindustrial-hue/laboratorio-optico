@@ -1,3 +1,4 @@
+import {ClientFollowupNotice} from "./client-followup-notice";
 import Link from "next/link";
 import {hasProductionOverview} from "@/lib/domain/simple-nav";
 import {ProductionOverview,ProductionSummary,ProductionGoal} from "@/components/production-overview";
@@ -217,6 +218,7 @@ export default async function ProductionDashboard({
 
   return (
     <div className="lg-dashboard flex flex-col gap-5">
+      <ClientFollowupNotice/>
       <PageHeading title="Visão geral" description="Sua produção, seus prazos e a próxima ação — tudo no mesmo lugar.">
         {can(role, "orders.write") ? (
           <Button variant="secondary" asChild>

@@ -1,7 +1,7 @@
 "use client";
 // Menu de ações rápidas da OS: botão direito do mouse (ou toque longo no celular).
 // Usa só as ações que já existem no servidor: changeOrderStatus e confirmClientDelivery.
-import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronLeft, ChevronRight, ClipboardCopy, ExternalLink, ListPlus, ListX, PackageCheck, Printer, Stethoscope, X, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronLeft, ChevronRight, ClipboardCopy, ExternalLink, ListPlus, ListX, MoveHorizontal, PackageCheck, Printer, Stethoscope, X, Zap } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
@@ -18,6 +18,8 @@ import { approveMedicalReview } from "@/server/followup-actions";
 import { stageStyle } from "./production-visuals";
 import { createClient } from "@/lib/supabase/client";
 import { labelQueue, useLabelQueue } from "./label-queue";
+import { canReposition, REPOSITION_LABEL, REPOSITION_TARGETS, type RepositionTarget } from "@/lib/domain/reposition";
+import { repositionOrder } from "@/server/reposition-actions";
 
 export type MenuOrder = {
   id: string; number: string; status: string; clientName: string; detailsHref: string;
@@ -58,6 +60,7 @@ export function useOrderMenu(order: MenuOrder, role: AppRole, initialAt?: { x: n
   const [at, setAt] = useState<{ x: number; y: number } | null>(() => initialAt ? clampMenu(initialAt.x, initialAt.y) : null);
   const [deliver, setDeliver] = useState(false);
   const [doctor, setDoctor] = useState(false);
+  const [reposition, setReposition] = useState(false);
   const press = useRef<number | null>(null);
   function openAt(x: number, y: number) {
     setAt(clampMenu(x, y));
@@ -66,6 +69,7 @@ export function useOrderMenu(order: MenuOrder, role: AppRole, initialAt?: { x: n
   const close = useCallback(() => setAt(null), []);
   const closeDeliver = useCallback(() => setDeliver(false), []);
   const closeDoctor = useCallback(() => setDoctor(false), []);
+  const closeReposition = useCallback(() => setReposition(false), []);
   const handlers = {
     onContextMenu: (event: React.MouseEvent) => {
       // O menu normal do navegador continua em campos de texto.
@@ -81,7 +85,8 @@ export function useOrderMenu(order: MenuOrder, role: AppRole, initialAt?: { x: n
     onTouchEnd: stop,
   };
   const element = <>
-    {at ? createPortal(<ActionsMenu order={order} role={role} at={at} onClose={close} onDeliver={() => { setAt(null); setDeliver(true); }} onDoctor={() => { setAt(null); setDoctor(true); }} />, document.body) : null}
+    {at ? createPortal(<ActionsMenu order={order} role={role} at={at} onClose={close} onDeliver={() => { setAt(null); setDeliver(true); }} onDoctor={() => { setAt(null); setDoctor(true); }} onReposition={() => { setAt(null); setReposition(true); }} />, document.body) : null}
+    {reposition ? createPortal(<RepositionDialog order={order} onClose={closeReposition} />, document.body) : null}
     {doctor ? createPortal(<DoctorReturnDialog order={order} onClose={closeDoctor} />, document.body) : null}
     {deliver ? createPortal(<DeliverDialog order={order} onClose={closeDeliver} />, document.body) : null}
   </>;
@@ -93,7 +98,7 @@ export function OrderContextMenu({ order, role, children, className }: { order: 
   return <div className={className} {...menu.handlers}>{children}{menu.element}</div>;
 }
 
-function ActionsMenu({ order, role, at, onClose, onDeliver, onDoctor }: { order: MenuOrder; role: AppRole; at: { x: number; y: number }; onClose: () => void; onDeliver: () => void; onDoctor: () => void }) {
+function ActionsMenu({ order, role, at, onClose, onDeliver, onDoctor, onReposition }: { order: MenuOrder; role: AppRole; at: { x: number; y: number }; onClose: () => void; onDeliver: () => void; onDoctor: () => void; onReposition: () => void }) {
   const router = useRouter();
   const box = useRef<HTMLDivElement>(null);
   const [pending, start] = useTransition();
@@ -150,7 +155,8 @@ function ActionsMenu({ order, role, at, onClose, onDeliver, onDoctor }: { order:
         <p className="ocm-title"><ArrowLeft size={13} />Voltar para</p>
         {back.map((status) => <button key={status} type="button" role="menuitem" disabled={pending} onClick={() => move(status as OrderStatus)} className="ocm-item"><span className="ocm-dot" style={stageStyle(status as OrderStatus)} />{STATUS_LABEL[status as OrderStatus]}</button>)}
       </> : null}
-      {!doctor && !ready && !forward.length && !back.length && !canConfirmClient(role, order.status) ? <p className="ocm-note">Nenhuma mudança de etapa disponível para o seu perfil agora.</p> : null}
+      {canReposition(role, order.status) ? <button type="button" role="menuitem" disabled={pending} onClick={onReposition} className="ocm-item"><MoveHorizontal size={16} />{order.status === "pronto" ? "Desfazer pronto · mudar posição…" : "Mudar posição (inclui VTA)…"}</button> : null}
+      {!doctor && !ready && !forward.length && !back.length && !canConfirmClient(role, order.status) && !canReposition(role, order.status) ? <p className="ocm-note">Nenhuma mudança de etapa disponível para o seu perfil agora.</p> : null}
       <hr className="ocm-sep" />
       <Link role="menuitem" href={`/laboratorio/etiquetas?ids=${order.id}`} onClick={onClose} className="ocm-item"><Printer size={16} />Imprimir etiqueta</Link>
       {queued ? <button type="button" role="menuitem" onClick={() => { labelQueue.remove([order.id]); toast.success("Tirada da lista de etiquetas."); onClose(); }} className="ocm-item"><ListX size={16} />Tirar da lista de etiquetas</button>
@@ -275,6 +281,69 @@ export function DoctorReturnDialog({ order, onClose }: { order: MenuOrder; onClo
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className="ocm-btn">Cancelar</button>
           <button type="submit" disabled={pending} className="ocm-btn is-primary">{pending ? "Confirmando…" : "Confirmar · pronto para entregar"}</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+/** Gestor: desfazer um pronto dado por engano ou colocar a OS no lugar certo (inclui VTA). */
+export function RepositionDialog({ order, onClose }: { order: MenuOrder; onClose: () => void }) {
+  const router = useRouter();
+  const [to, setTo] = useState<RepositionTarget>(order.status === "aguardando_montagem" ? "vta" : "aguardando_montagem");
+  const [note, setNote] = useState(order.status === "pronto" ? "Pronto dado por engano" : "");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  useEffect(() => {
+    const esc = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [onClose]);
+  return (
+    <div className="ocm-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`pos-${order.id}`}
+        className="ocm-dialog"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (pending) return;
+          if (note.trim().length < 3) { setError("Escreva o motivo da mudança."); return; }
+          start(async () => {
+            setError(null);
+            try {
+              const result = await repositionOrder(order.id, to, note.trim());
+              if (!result.ok) { setError(result.message); return; }
+              toast.success(`OS ${order.number}: ${REPOSITION_LABEL[to]}`);
+              onClose();
+              router.refresh();
+            } catch { setError("Não foi possível confirmar. Confira a conexão."); }
+          });
+        }}
+      >
+        <div className="flex items-start gap-3">
+          <span className="ocm-dialog-icon"><MoveHorizontal size={20} /></span>
+          <div className="min-w-0 flex-1">
+            <h2 id={`pos-${order.id}`} className="text-lg font-semibold">{order.status === "pronto" ? "Desfazer pronto" : "Mudar posição"}</h2>
+            <p className="text-sm text-[var(--muted)]"><span className="font-mono">{order.number}</span> · {order.clientName} · hoje em {STATUS_LABEL[order.status as OrderStatus] ?? order.status}</p>
+          </div>
+          <button type="button" aria-label="Fechar" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full text-[var(--muted)] hover:bg-[var(--surface-secondary)]"><X size={18} /></button>
+        </div>
+        <fieldset className="grid gap-2">
+          <legend className="mb-1 text-sm font-medium">Para onde a OS vai?</legend>
+          {REPOSITION_TARGETS.map((key) => (
+            <label key={key} className="ocm-choice"><input type="radio" name="to" value={key} checked={to === key} onChange={() => setTo(key)} /><span>{REPOSITION_LABEL[key]}{key === "aguardando_lentes" ? <small>A chegada da lente é apagada; a data antiga fica no histórico.</small> : key === "vta" ? <small>Lente chegou e o cliente ainda vai trazer a armação.</small> : null}</span></label>
+          ))}
+        </fieldset>
+        <label className="grid gap-1 text-sm font-medium">Motivo
+          <input required minLength={3} maxLength={500} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Ex.: pronto dado por engano" className="ocm-input" />
+        </label>
+        <p className="text-xs text-[var(--muted)]">Nada é apagado: a mudança fica no histórico da OS com o seu nome.</p>
+        {error ? <p role="alert" className="rounded-lg bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">{error}</p> : null}
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="ocm-btn">Cancelar</button>
+          <button type="submit" disabled={pending} className="ocm-btn is-primary">{pending ? "Salvando…" : "Confirmar"}</button>
         </div>
       </form>
     </div>

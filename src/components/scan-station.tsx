@@ -2,7 +2,7 @@
 // PDV da produção: escolhe a ação (teclas F1–F5) e bipa as OS uma atrás da outra.
 // Cada bipe usa uma ação que o sistema já tinha (mesmas regras e histórico de sempre).
 // Ao lado, o cupom do turno; embaixo, o radar das OS atrasadas ou perto de atrasar.
-import { BellRing, Camera, CameraOff, Check, Expand, PackageCheck, PackageOpen, ScanLine, Shrink, Stethoscope, Undo2, X } from "lucide-react";
+import { BellRing, Camera, CameraOff, Check, Expand, Glasses, MoveHorizontal, PackageCheck, PackageOpen, ScanLine, Shrink, Stethoscope, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
@@ -16,12 +16,16 @@ import { changeOrderStatus } from "@/server/actions";
 import { confirmClientDelivery } from "@/server/fast-operations-actions";
 import { approveMedicalReview } from "@/server/followup-actions";
 import { quickMoveOrders } from "@/server/quick-actions";
+import { receiveOrderFrame } from "@/server/operations-actions";
+import { repositionOrder } from "@/server/reposition-actions";
+import { REPOSITION_LABEL, REPOSITION_TARGETS, type RepositionTarget } from "@/lib/domain/reposition";
 
-const ICONS: Record<ScanAction, typeof Check> = { lente: PackageOpen, pronto: Check, medico: Stethoscope, voltou: Undo2, entregue: PackageCheck };
-const ORDER: ScanAction[] = ["lente", "pronto", "medico", "voltou", "entregue"];
-const KEYS: Record<ScanAction, string> = { lente: "F1", pronto: "F2", medico: "F3", voltou: "F4", entregue: "F5" };
+const ICONS: Record<ScanAction, typeof Check> = { lente: PackageOpen, pronto: Check, medico: Stethoscope, voltou: Undo2, entregue: PackageCheck, armacao: Glasses, corrigir: MoveHorizontal };
+const ORDER: ScanAction[] = ["lente", "pronto", "medico", "voltou", "entregue", "armacao", "corrigir"];
+const KEYS: Record<ScanAction, string> = { lente: "F1", pronto: "F2", medico: "F3", voltou: "F4", entregue: "F5", armacao: "F6", corrigir: "F7" };
 
-type Found = { id: string; number: string; external_order_id: string | null; client_name: string; status: string; medical_review_required: boolean | null; medical_review_approved_at: string | null; updated_at: string };
+type Found = { id: string; number: string; external_order_id: string | null; client_name: string; status: string; medical_review_required: boolean | null; medical_review_approved_at: string | null; updated_at: string; frame_state: string | null; lens_arrived_at: string | null };
+type Fix = { to: RepositionTarget; note: string };
 type LogItem = { key: number; at: string; code: string; ok: boolean; repeat?: boolean; title: string; client?: string; detail: string; action: ScanAction; id?: string };
 type Display = { tone: "idle" | "ok" | "err" | "busy" | "rep"; number: string; client: string; line: string };
 
@@ -29,6 +33,7 @@ export function allowedScanActions(role: AppRole): ScanAction[] {
   return ORDER.filter((action) => {
     if (action === "entregue") return ["admin", "gestor"].includes(role) && can(role, "orders.deliver");
     if (action === "voltou") return can(role, "orders.write");
+    if (action === "corrigir") return ["admin", "gestor"].includes(role);
     return can(role, "orders.status");
   });
 }
@@ -52,15 +57,15 @@ async function findOrder(raw: string): Promise<{ order?: Found; error?: string }
   const target = parseScanCode(raw);
   if (!target) return { error: "Código não reconhecido." };
   const supabase = createClient();
-  const fields = "id, number, external_order_id, client_name, status, medical_review_required, medical_review_approved_at, updated_at";
+  const fields = "id, number, external_order_id, client_name, status, medical_review_required, medical_review_approved_at, updated_at, frame_state, lens_arrived_at";
   if (target.id) {
-    const { data, error } = await supabase.from("orders_enriched").select(fields).eq("id", target.id).maybeSingle();
+    const { data, error } = await supabase.from("service_orders").select(fields).eq("id", target.id).maybeSingle();
     if (error) return { error: error.message };
     return data ? { order: data as Found } : { error: "OS não encontrada." };
   }
   const ref = target.ref!;
   if (!SAFE_REF.test(ref)) return { error: "Código com caracteres estranhos. Confira o leitor." };
-  const { data, error } = await supabase.from("orders_enriched").select(fields).or(`number.eq."${ref}",external_order_id.eq."${ref}"`).not("status", "eq", "cancelado").limit(3);
+  const { data, error } = await supabase.from("service_orders").select(fields).or(`number.eq."${ref}",external_order_id.eq."${ref}"`).not("status", "eq", "cancelado").limit(3);
   if (error) return { error: error.message };
   const rows = (data ?? []) as Found[];
   if (rows.length === 0) return { error: `Nenhuma OS com o número ${ref}.` };
@@ -68,13 +73,15 @@ async function findOrder(raw: string): Promise<{ order?: Found; error?: string }
   return { order: rows[0] };
 }
 
-async function run(action: ScanAction, order: Found) {
+async function run(action: ScanAction, order: Found, fix: Fix) {
   switch (action) {
     case "lente": {
       const result = await quickMoveOrders([order.id], "aguardando_montagem", "Bipe: lente chegou");
       const item = result.results[0];
-      return { ok: Boolean(item?.ok), message: item?.ok ? (item.waitingFrame ? "Lente recebida. VTA: aguardando armação." : "Lente recebida. Foi para a bancada.") : item?.message ?? result.message };
+      return { ok: Boolean(item?.ok), message: item?.ok ? (item.waitingFrame ? "Lente recebida. VTA: aguardando armação." : item.started ? "Lente recebida. Foi para montagem." : "Lente recebida. Foi para a bancada.") : item?.message ?? result.message };
     }
+    case "armacao": return receiveOrderFrame(order.id, null);
+    case "corrigir": return repositionOrder(order.id, fix.to, `Bipe: ${fix.note}`);
     case "pronto": return changeOrderStatus(order.id, "pronto", "Bipe: ficou pronto");
     case "medico": return changeOrderStatus(order.id, "em_conferencia", "Bipe: foi para o médico");
     case "voltou": return approveMedicalReview(order.id, "Bipe: voltou do médico, conferido e liberado", order.updated_at);
@@ -82,7 +89,7 @@ async function run(action: ScanAction, order: Found) {
   }
 }
 
-const DONE: Record<ScanAction, string> = { lente: "Lente registrada", pronto: "Marcada como pronta", medico: "Enviada ao médico", voltou: "Liberada pelo médico", entregue: "Entregue ao cliente" };
+const DONE: Record<ScanAction, string> = { lente: "Lente registrada", pronto: "Marcada como pronta", medico: "Enviada ao médico", voltou: "Liberada pelo médico", entregue: "Entregue ao cliente", armacao: "Armação registrada", corrigir: "Posição corrigida" };
 
 export function ScanStation({ role, embedded = false }: { role: AppRole; embedded?: boolean }) {
   const router = useRouter();
@@ -97,6 +104,7 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
   const [radar, setRadar] = useState<RadarOrder[] | null>(null);
   const [now, setNow] = useState(() => new Date());
   const [unread, setUnread] = useState(0);
+  const [fix, setFix] = useState<Fix>({ to: "aguardando_montagem", note: "Pronto dado por engano" });
   const root = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const seq = useRef(0);
@@ -126,7 +134,7 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
 
   useEffect(() => { input.current?.focus(); }, [action]);
 
-  // Teclas F1–F5 trocam a ação, como num caixa.
+  // Teclas F1–F7 trocam a ação, como num caixa.
   useEffect(() => {
     const keys = (event: KeyboardEvent) => {
       const hit = actions.find((key) => KEYS[key] === event.key);
@@ -165,13 +173,13 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
         if (!found.order) { push({ ok: false, code: text, action: chosen, title: text, detail: found.error ?? "Não encontrada." }); return; }
         const order = found.order;
         const number = visible(order);
-        const state = { status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at };
+        const state = { status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, frameState: order.frame_state, lensArrived: order.lens_arrived_at };
         if (scanAlreadyDone(chosen, state)) { settle(true); push({ ok: true, repeat: true, code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: "Já estava registrada. Nada mudou." }); return; }
-        const block = scanBlockReason(chosen, { status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at }, (status) => STATUS_LABEL[status as OrderStatus] ?? status);
+        const block = chosen === "corrigir" && fix.note.trim().length < 3 ? "Escreva o motivo da correção." : scanBlockReason(chosen, state, (status) => STATUS_LABEL[status as OrderStatus] ?? status);
         if (block) { push({ ok: false, code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: `Não registrado. ${block}` }); return; }
-        const result = await run(chosen, order);
+        const result = await run(chosen, order, fix);
         settle(Boolean(result?.ok));
-        push({ ok: Boolean(result?.ok), code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: result?.ok ? (chosen === "lente" ? result.message ?? DONE[chosen] : DONE[chosen]) : result?.message ?? "Não foi possível registrar." });
+        push({ ok: Boolean(result?.ok), code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: result?.ok ? (chosen === "lente" || chosen === "armacao" || chosen === "corrigir" ? result.message ?? DONE[chosen] : DONE[chosen]) : result?.message ?? "Não foi possível registrar." });
         if (result?.ok) void loadRadar();
       } catch {
         push({ ok: false, code: text, action: chosen, title: text, detail: "Falha na conexão. Bipe de novo." });
@@ -203,7 +211,7 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
         <header className="pdv-head">
           <div>
             <h1>{embedded ? "Bipar" : "Caixa da produção"}</h1>
-            <p>Escolha a ação (F1 a F5) e passe o leitor. Um bipe, uma OS registrada.</p>
+            <p>Escolha a ação (F1 a F{actions.length}) e passe o leitor. Um bipe, uma OS registrada.</p>
           </div>
           <button type="button" className="pdv-tool" onClick={() => setCamera((value) => !value)} aria-pressed={camera}>{camera ? <CameraOff size={16} /> : <Camera size={16} />}Câmera</button>
           {embedded ? null : <button type="button" className="pdv-tool" onClick={toggleFull}>{full ? <Shrink size={16} /> : <Expand size={16} />}{full ? "Sair da tela cheia" : "Tela cheia"}</button>}
@@ -222,6 +230,12 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
               <p className="pdv-lcd-line">{display.tone === "ok" || display.tone === "rep" ? <Check size={18} aria-hidden /> : display.tone === "err" ? <X size={18} aria-hidden /> : null}{display.line}</p>
             </>
           )}
+          {action === "corrigir" ? (
+            <div className="pdv-fix">
+              <label>Mandar para<select value={fix.to} onChange={(event) => setFix((current) => ({ ...current, to: event.target.value as RepositionTarget }))}>{REPOSITION_TARGETS.map((key) => <option key={key} value={key}>{REPOSITION_LABEL[key]}</option>)}</select></label>
+              <label>Motivo<input value={fix.note} maxLength={200} onChange={(event) => setFix((current) => ({ ...current, note: event.target.value }))} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); input.current?.focus(); } }} /></label>
+            </div>
+          ) : null}
           <form className="pdv-slot" onSubmit={(event) => { event.preventDefault(); submit(code); }}>
             <ScanLine size={22} aria-hidden />
             <input ref={input} value={code} onChange={(event) => setCode(event.target.value)} autoComplete="off" autoCapitalize="characters" spellCheck={false} aria-label="Código da OS" placeholder="Bipe a etiqueta ou digite o nº da OS" />

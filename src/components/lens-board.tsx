@@ -15,17 +15,24 @@ import { dueDeltaLabel } from "@/lib/domain/urgency";
 import { formatDateTime } from "@/lib/format";
 import { updateLensForecast } from "@/server/flow-actions";
 import { quickMoveOrders } from "@/server/quick-actions";
+import { receiveOrderFrame } from "@/server/operations-actions";
 import type { LensQueueRow } from "@/server/flow";
 import { LensArrival } from "./lens-arrival";
 import { OrderLaboratory } from "./order-laboratory";
 import { Button, Feedback, Field, Input } from "./ui";
 const ymd = new Intl.DateTimeFormat("en-CA", {timeZone:"America/Sao_Paulo"});
 
+/** VTA: o cliente trouxe a armação. Com a lente já recebida, a OS vai direto para montagem. */
+function FrameArrived({orderId}:{orderId:string}){
+ const router=useRouter();const[pending,start]=useTransition();
+ return <Button size="sm" type="button" className="min-h-11 whitespace-nowrap px-2 text-xs" disabled={pending} title="O cliente trouxe a armação: mandar para montagem" onClick={()=>{if(pending)return;start(async()=>{try{const result=await receiveOrderFrame(orderId,null);if(result.ok)toast.success(result.message);else toast.error(result.message);router.refresh();}catch{toast.error("Não foi possível registrar. Confira a conexão.");}});}}>{pending?"Salvando…":"Armação chegou"}</Button>;
+}
+
 function LensLine({row,now,index,selected,onToggle,canEdit,canRelease,disabled}:{row:LensQueueRow;now:Date;index:number;selected:boolean;onToggle:()=>void;canEdit:boolean;canRelease:boolean;disabled:boolean}) {
  const router=useRouter(); const priority=lensPriority(row,now);
  const risk=lensRisk({dueAt:row.due_at,lensExpectedAt:row.lens_expected_at,now});
  const vta=waitingForFrame(row);
- const tone=vta?{label:"VTA · aguardando armação",fg:"var(--warning)",bg:"var(--warning-soft)"}:LENS_RISK[risk.risk];
+ const tone=vta?{label:"Lente chegou · aguardando armação",fg:"var(--warning)",bg:"var(--warning-soft)"}:LENS_RISK[risk.risk];
  const [expanded,setExpanded]=useState(false);
  const [pending,start]=useTransition();const[error,setError]=useState<string|null>(null);const[message,setMessage]=useState<string|null>(null);
  const panelId=`lens-edit-${row.id}`;
@@ -36,7 +43,7 @@ function LensLine({row,now,index,selected,onToggle,canEdit,canRelease,disabled}:
    <div className="lens-list-supplier min-w-0 text-xs"><p className="truncate font-medium" title={row.seller_name||"Sem vendedora"}>{row.seller_name||"Sem vendedora"}</p><p className="mt-1 truncate text-[var(--muted)]" title={row.laboratory_name||"Laboratório não informado"}>{row.laboratory_name||"Laboratório não informado"}</p></div>
    <div className="lens-list-deadline min-w-0 text-xs"><p className="font-semibold">{row.due_at?formatDateTime(row.due_at):"Sem prazo"}</p><span className="lens-priority-badge mt-1 inline-block max-w-full truncate rounded px-1.5 py-0.5 text-[11px] font-semibold" title={row.due_at?dueDeltaLabel(row.due_at,now,"aguardando_lentes"):priority.label}>{priority.label}</span></div>
    <div className="lens-list-forecast min-w-0 text-xs"><p className="text-[var(--muted)]">{vta?"Lente recebida":row.lens_expected_at?formatDateTime(row.lens_expected_at):"Sem previsão"}</p><span className="mt-1 inline-block max-w-full truncate rounded px-1.5 py-0.5 text-[11px] font-medium" style={{color:tone.fg,background:tone.bg}} title={tone.label}>{tone.label}</span></div>
-   <div className="lens-list-actions flex items-center justify-end gap-1">{canRelease&&!vta&&<LensArrival orderId={row.id} showLaboratory={false} compact dense/>}<button type="button" aria-expanded={expanded} aria-controls={panelId} onClick={()=>setExpanded(value=>!value)} className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-xs font-semibold text-[var(--link)] hover:bg-[var(--accent-soft)]"><span>{expanded?"Fechar":vta?"Receber armação":canEdit?"Editar":"Mais"}</span><ChevronDown size={15} className={expanded?"rotate-180":""}/></button></div>
+   <div className="lens-list-actions flex items-center justify-end gap-1">{canRelease&&!vta&&<LensArrival orderId={row.id} showLaboratory={false} compact dense/>}{canRelease&&vta&&<FrameArrived orderId={row.id}/>}<button type="button" aria-expanded={expanded} aria-controls={panelId} onClick={()=>setExpanded(value=>!value)} className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-xs font-semibold text-[var(--link)] hover:bg-[var(--accent-soft)]"><span>{expanded?"Fechar":vta?"Mais":canEdit?"Editar":"Mais"}</span><ChevronDown size={15} className={expanded?"rotate-180":""}/></button></div>
   </div>
   <div id={panelId} hidden={!expanded} className="lens-list-expanded border-t border-[var(--line)] bg-[var(--background)] px-4 py-3">
    <div className="mb-2 flex flex-wrap gap-x-6 gap-y-1 text-xs text-[var(--muted)]"><span>Cliente: <strong className="text-[var(--ink)]">{row.client_name}</strong></span><span>Vendedora: {row.seller_name||"Não informada"}{row.store_name?` · ${row.store_name}`:""}</span><span>Laboratório: {row.laboratory_name||"Não informado"}</span>{row.due_at&&<span className="lens-priority-text font-semibold">{dueDeltaLabel(row.due_at,now,"aguardando_lentes")}</span>}</div>
@@ -67,7 +74,7 @@ export function LensBoard({sellers = [],rows,canEdit,canRelease,nowIso}:{sellers
  function release(){if(pending||!selectedIds.length)return;start(async()=>{try{const result=await quickMoveOrders(selectedIds,"aguardando_montagem","Lentes recebidas e encaminhadas à bancada");setSelected(new Set(result.results.filter(item=>!item.ok).map(item=>item.id)));if(result.ok)toast.success(result.message);if(result.results.some(item=>!item.ok)||!result.ok)toast.error(result.results.find(item=>!item.ok)?.message||result.message);router.refresh();}catch{toast.error("Falha na conexão. Confira o resultado antes de tentar novamente.");}});}
  const chips:(LensRisk|"todas")[]=["todas","lente_atrasada","vai_atrasar","apertado","sem_previsao","ok","sem_prazo"];
  return <section className="lab-operational-filters grid gap-2" aria-label="Lista de lentes por prioridade">
-  <div className="flex flex-wrap gap-2">{(["lenses","vta"] as const).map(key=><button type="button" key={key} aria-pressed={lane===key} onClick={()=>{setLane(key);setFilter("todas");setSelected(new Set());}} className={`min-h-11 rounded-lg border px-3 text-sm font-semibold ${lane===key?"border-[var(--accent)] bg-[var(--accent)] text-white":"border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]"}`}>{key==="vta"?"VTA · lente recebida":"Lentes a chegar"} <span className="font-mono">{rows.filter(row=>waitingForFrame(row)===(key==="vta")).length}</span></button>)}<Link href="/avisos" className="ml-auto flex min-h-11 items-center px-2 text-sm font-semibold text-[var(--link)]">Gerar avisos por vendedora →</Link></div>
+  <div className="flex flex-wrap gap-2">{(["lenses","vta"] as const).map(key=><button type="button" key={key} aria-pressed={lane===key} onClick={()=>{setLane(key);setFilter("todas");setSelected(new Set());}} className={`min-h-11 rounded-lg border px-3 text-sm font-semibold ${lane===key?"border-[var(--accent)] bg-[var(--accent)] text-white":"border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]"}`}>{key==="vta"?"Lente chegou · aguardando armação (VTA)":"Lentes a chegar"} <span className="font-mono">{rows.filter(row=>waitingForFrame(row)===(key==="vta")).length}</span></button>)}<Link href="/avisos" className="ml-auto flex min-h-11 items-center px-2 text-sm font-semibold text-[var(--link)]">Gerar avisos por vendedora →</Link></div>
   {lane==="lenses"&&<LensArrivalWeek rows={queueRows} now={now}/>}
   <p className="text-xs text-[var(--muted)]">Ordenado por urgência · atrasadas e prazos mais próximos primeiro.</p>
   <div className="flex flex-wrap items-end gap-3"><label className="text-xs font-semibold">Vendedora<select value={seller} onChange={event=>{setSeller(event.target.value);setSelected(new Set());}} className="mt-1 block min-h-11 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3"><option value="">Todas as vendedoras</option>{sellerFilterNames(sellers,rows.map(row=>row.seller_name)).map(name=><option key={name}>{name}</option>)}</select></label>

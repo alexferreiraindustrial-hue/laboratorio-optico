@@ -104,3 +104,21 @@ describe("bipe repetido", () => {
     expect(scanAlreadyDone("entregue", { status: "entregue" })).toBe(false);
   });
 });
+
+describe("VTA e correção de posição no bipe", () => {
+  it("armação chegou só vale para OS marcada como VTA", () => {
+    expect(scanBlockReason("armacao", { status: "aguardando_lentes", frameState: "vta", lensArrived: "x" }, label)).toBeNull();
+    expect(scanBlockReason("armacao", { status: "aguardando_lentes", frameState: "unknown" }, label)).toContain("VTA");
+    expect(scanBlockReason("armacao", { status: "pronto", frameState: "vta" }, label)).toContain("pronto");
+  });
+  it("lente chegou repetida em VTA ou já em montagem não vira erro", () => {
+    expect(scanAlreadyDone("lente", { status: "aguardando_lentes", frameState: "vta", lensArrived: "x" })).toBe(true);
+    expect(scanAlreadyDone("lente", { status: "em_montagem" })).toBe(true);
+    expect(scanAlreadyDone("lente", { status: "aguardando_lentes", frameState: "vta" })).toBe(false);
+  });
+  it("corrigir posição aceita pronto e as etapas de antes, recusa entregue", () => {
+    expect(scanBlockReason("corrigir", { status: "pronto" }, label)).toBeNull();
+    expect(scanBlockReason("corrigir", { status: "aguardando_montagem" }, label)).toBeNull();
+    expect(scanBlockReason("corrigir", { status: "entregue" }, label)).toContain("entregue");
+  });
+});

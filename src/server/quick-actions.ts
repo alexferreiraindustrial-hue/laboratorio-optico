@@ -153,7 +153,7 @@ export async function quickMoveOrders(
   ids: string[],
   to: "aguardando_montagem" | "entregue",
   note: string,
-): Promise<{ ok: boolean; message: string; results: { id: string; ok: boolean; message: string; waitingFrame?:boolean }[] }> {
+): Promise<{ ok: boolean; message: string; results: { id: string; ok: boolean; message: string; waitingFrame?:boolean; started?:boolean }[] }> {
   const { supabase, role } = await requireProfile();
   if (to === "entregue" && !can(role, "orders.deliver")) {
     return { ok: false, message: "Apenas gestor ou administrador registra a saída.", results: [] };
@@ -161,10 +161,16 @@ export async function quickMoveOrders(
   if (to === "aguardando_montagem" && !can(role, "orders.status")) {
     return { ok: false, message: "Seu perfil não movimenta OS.", results: [] };
   }
-  const results: { id: string; ok: boolean; message: string; waitingFrame?:boolean }[] = [];
+  const results: { id: string; ok: boolean; message: string; waitingFrame?:boolean; started?:boolean }[] = [];
   for (const id of ids.slice(0, 100)) {
     const { data,error } = to==="aguardando_montagem"?await supabase.rpc("receive_order_lenses",{p_order_id:id}):await supabase.rpc("change_order_status", { p_order_id: id, p_to: to, p_note: note });
-    results.push({ id, ok: !error,waitingFrame:data?.frame_state==="vta", message: error ? actionError(error, "Falhou.") ?? "Falhou." : "Feito" });
+    // Lente chegou: a OS vai direto para "Em montagem" (a VTA continua esperando a armação).
+    let started = false;
+    if (!error && to === "aguardando_montagem" && data?.status === "aguardando_montagem") {
+      const begin = await supabase.rpc("change_order_status", { p_order_id: id, p_to: "em_montagem", p_note: "Lentes recebidas: montagem iniciada" });
+      started = !begin.error;
+    }
+    results.push({ id, ok: !error,waitingFrame:data?.frame_state==="vta", started, message: error ? actionError(error, "Falhou.") ?? "Falhou." : "Feito" });
   }
   revalidatePath("/laboratorio");
   revalidatePath("/montagem");

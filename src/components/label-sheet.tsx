@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui";
+import { Barcode } from "./barcode";
 
 export type LabelCard = {
   id: string;
@@ -48,6 +49,7 @@ export function LabelSheet({ cards, empty }: { cards: LabelCard[]; empty: string
               {card.lines.map((line) => (
                 <p key={line} className="text-xs text-[var(--muted)]">{line}</p>
               ))}
+              <Barcode value={card.code} height={30} module={1.2} className="mt-2 h-auto max-w-full" />
             </div>
             {images[card.id] ? (
               // eslint-disable-next-line @next/next/no-img-element

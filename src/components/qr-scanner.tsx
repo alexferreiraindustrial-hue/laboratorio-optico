@@ -53,7 +53,8 @@ export function QrScanner() {
         <Feedback error={error} />
       </Panel>
       <Panel className="p-4">
-        <h2 className="font-medium">Pesquisa manual</h2>
+        <h2 className="font-medium">Leitor de código de barras ou pesquisa manual</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">Com o cursor no campo, passe o leitor na etiqueta (código de barras) ou digite o código.</p>
         <form
           className="mt-3 flex gap-2"
           onSubmit={(event) => {
@@ -66,7 +67,7 @@ export function QrScanner() {
             router.push(`/estoque/codigo/${result.code}`);
           }}
         >
-          <Input value={manual} onChange={(event) => setManual(event.target.value)} placeholder="LN-XXXXXXXXXX" />
+          <Input autoFocus aria-label="Código do item de estoque" value={manual} onChange={(event) => setManual(event.target.value)} placeholder="LN-XXXXXXXXXX" />
           <Button type="submit">Consultar</Button>
         </form>
       </Panel>

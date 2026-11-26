@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { Barcode } from "@/components/barcode";
 import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
@@ -51,7 +52,7 @@ function Labels() {
           <article key={item.id} className="rounded border border-[var(--line)] bg-[var(--surface)] p-3 text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={item.src} alt="" className="mx-auto h-28 w-28" />
-            <p className="mt-2 font-mono text-sm">{item.public_code}</p>
+            <Barcode value={item.public_code} height={34} module={1.25} className="mx-auto mt-2 h-auto max-w-full" />
             <p className="text-sm">{formatDiopter(item.sphere_cents)} / {formatDiopter(item.cylinder_cents)}</p>
             <p className="text-xs text-[var(--muted)]">{item.location || "Sem localização"}</p>
           </article>

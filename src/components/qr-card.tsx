@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Panel } from "@/components/ui";
+import { Barcode } from "./barcode";
 
 export function QrCard({ code }: { code: string }) {
   const [src, setSrc] = useState<string | null>(null);
@@ -33,6 +34,8 @@ export function QrCard({ code }: { code: string }) {
       ) : (
         <p className="mt-3 text-sm">Gerando QR Code...</p>
       )}
+      <p className="mt-3 text-xs font-semibold text-[var(--muted)]">Código de barras (leitor)</p>
+      <Barcode value={code} height={40} module={2} className="mt-1" />
     </Panel>
   );
 }

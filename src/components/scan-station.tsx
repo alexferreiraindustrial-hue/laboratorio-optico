@@ -3,6 +3,8 @@
 // Cada bipe usa uma ação que o sistema já tinha (mesmas regras e histórico de sempre).
 import { Camera, CameraOff, Check, PackageCheck, PackageOpen, ScanLine, Stethoscope, Undo2, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { isPublicCode } from "@/lib/domain/qr";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { STATUS_LABEL, type AppRole, type OrderStatus } from "@/lib/domain/constants";
 import { can } from "@/lib/domain/permissions";
@@ -76,6 +78,7 @@ async function run(action: ScanAction, order: Found) {
 }
 
 export function ScanStation({ role }: { role: AppRole }) {
+  const router = useRouter();
   const actions = allowedScanActions(role);
   const [action, setAction] = useState<ScanAction | null>(actions[0] ?? null);
   const [code, setCode] = useState("");
@@ -100,6 +103,9 @@ export function ScanStation({ role }: { role: AppRole }) {
     // Leitores às vezes repetem o mesmo código; ignora o repetido em menos de 2 segundos.
     if (last.current && last.current.code === text && Date.now() - last.current.at < 2000) return;
     last.current = { code: text, at: Date.now() };
+    // Etiqueta de estoque (LN-...) bipada aqui: abre o item de estoque.
+    const stock = text.toUpperCase().match(/LN-[A-Z2-9]{10}/)?.[0];
+    if (stock && isPublicCode(stock)) { router.push(`/estoque/codigo/${stock}`); return; }
     start(async () => {
       try {
         const found = await findOrder(text);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { code128Encodable, code128Widths } from "./code128";
 import { compareForecast } from "./label-dates";
-import { parseScanCode, scanBlockReason } from "./scan";
+import { parseScanCode, scanAlreadyDone, scanBlockReason } from "./scan";
 
 const label = (status: string) => status;
 
@@ -87,5 +87,38 @@ describe("avisos do PDV", () => {
     ], now, { unreadMessages: 2 });
     expect(alerts.map((item) => item.key)).toEqual(["atrasadas", "lentes", "recados"]);
     expect(alerts[2].text).toBe("recados novos das vendedoras");
+  });
+});
+
+describe("bipe repetido", () => {
+  it("reconhece a OS que já está no resultado da ação", () => {
+    expect(scanAlreadyDone("pronto", { status: "pronto" })).toBe(true);
+    expect(scanAlreadyDone("lente", { status: "aguardando_montagem" })).toBe(true);
+    expect(scanAlreadyDone("medico", { status: "em_conferencia" })).toBe(true);
+    expect(scanAlreadyDone("voltou", { status: "pronto", medicalApproved: "2026-11-26T10:00:00Z" })).toBe(true);
+  });
+  it("não confunde com uma OS que ainda precisa da ação", () => {
+    expect(scanAlreadyDone("pronto", { status: "em_montagem" })).toBe(false);
+    expect(scanAlreadyDone("voltou", { status: "pronto" })).toBe(false);
+    expect(scanAlreadyDone("lente", { status: "aguardando_lentes" })).toBe(false);
+    expect(scanAlreadyDone("entregue", { status: "entregue" })).toBe(false);
+  });
+});
+
+describe("VTA e correção de posição no bipe", () => {
+  it("armação chegou só vale para OS marcada como VTA", () => {
+    expect(scanBlockReason("armacao", { status: "aguardando_lentes", frameState: "vta", lensArrived: "x" }, label)).toBeNull();
+    expect(scanBlockReason("armacao", { status: "aguardando_lentes", frameState: "unknown" }, label)).toContain("VTA");
+    expect(scanBlockReason("armacao", { status: "pronto", frameState: "vta" }, label)).toContain("pronto");
+  });
+  it("lente chegou repetida em VTA ou já em montagem não vira erro", () => {
+    expect(scanAlreadyDone("lente", { status: "aguardando_lentes", frameState: "vta", lensArrived: "x" })).toBe(true);
+    expect(scanAlreadyDone("lente", { status: "em_montagem" })).toBe(true);
+    expect(scanAlreadyDone("lente", { status: "aguardando_lentes", frameState: "vta" })).toBe(false);
+  });
+  it("corrigir posição aceita pronto e as etapas de antes, recusa entregue", () => {
+    expect(scanBlockReason("corrigir", { status: "pronto" }, label)).toBeNull();
+    expect(scanBlockReason("corrigir", { status: "aguardando_montagem" }, label)).toBeNull();
+    expect(scanBlockReason("corrigir", { status: "entregue" }, label)).toContain("entregue");
   });
 });

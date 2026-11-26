@@ -4,8 +4,8 @@
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarCheck2, ClipboardCopy, HeartHandshake, MessageCircle, PackageCheck, Search, Send, Smile, ThumbsUp, X } from "lucide-react";
-import { feedbackMessage, feedbackPending, matchesFollowup, type ClientFollowupRow } from "@/lib/domain/client-followup";
+import { CalendarCheck2, ClipboardCopy, HeartHandshake, MessageCircle, PackageCheck, RotateCcw, Search, Send, Smile, ThumbsUp, X } from "lucide-react";
+import { CORRECTION_MARK, feedbackMessage, feedbackPending, followupBySeller, followupMetrics, isCorrection, matchesFollowup, percent, STORE_NAME, stripCorrection, type ClientFollowupRow } from "@/lib/domain/client-followup";
 import { formatDateTime } from "@/lib/format";
 import { updateClientFollowup } from "@/server/fast-operations-actions";
 import { findOrdersForQuick, type FoundOrder } from "@/server/quick-actions";
@@ -15,8 +15,9 @@ import { cn } from "@/lib/utils";
 
 const DAY = 86400000;
 const OUTCOMES = [
-  { value: "adaptacao_ok", label: "Adaptou bem", hint: "Cliente respondeu que está tudo bem", icon: Smile, tone: "ok" },
-  { value: "precisa_ajuda", label: "Precisa de ajuda", hint: "Relatou dificuldade · precisa de atenção", icon: HeartHandshake, tone: "late" },
+  { value: "adaptacao_ok", label: "Deu tudo certo", hint: "Adaptou bem, óculos ok", icon: Smile, tone: "ok" },
+  { value: "precisa_ajuda", label: "Precisa de ajuste", hint: "Relatou incômodo · chamar para ajustar", icon: HeartHandshake, tone: "late" },
+  { value: "correcao", label: "Gerou correção", hint: "Voltou para refazer ou corrigir", icon: RotateCcw, tone: "late" },
   { value: "contato_realizado", label: "Mensagem enviada", hint: "Aguardando a resposta do cliente", icon: Send, tone: "info" },
   { value: "sem_resposta", label: "Sem resposta", hint: "Contato feito, ainda sem retorno", icon: MessageCircle, tone: "warn" },
 ] as const;
@@ -24,8 +25,10 @@ const OUTCOME_LABEL: Record<string, string> = Object.fromEntries(OUTCOMES.map((i
 const TABS = [
   { mode: "pending", label: "Contatar agora" },
   { mode: "await", label: "Aguardando 5 dias" },
-  { mode: "help", label: "Precisa de atenção" },
+  { mode: "help", label: "Precisa de ajuste" },
+  { mode: "correction", label: "Geraram correção" },
   { mode: "contacted", label: "Já contatados" },
+  { mode: "phone", label: "Com WhatsApp" },
   { mode: "all", label: "Todos" },
 ] as const;
 
@@ -37,6 +40,10 @@ function waLink(phone: string | null, text: string) {
   if (digits.length < 10) return null;
   const full = digits.length <= 11 ? `55${digits}` : digits;
   return `https://wa.me/${full}?text=${encodeURIComponent(text)}`;
+}
+function outcomeLabel(row: ClientFollowupRow) {
+  if (isCorrection(row)) return "Gerou correção";
+  return row.outcome ? OUTCOME_LABEL[row.outcome] ?? row.outcome : null;
 }
 function rowTone(row: ClientFollowupRow, now: Date) {
   if (row.outcome === "precisa_ajuda") return "late";
@@ -66,9 +73,10 @@ export function ClientFollowupPanel({ rows, nowIso }: { rows: ClientFollowupRow[
 
   return (
     <div className="pv grid gap-4">
+      <FollowupMetricsBoard rows={seller ? rows.filter((row) => row.seller_id === seller) : rows} now={now} sellerName={seller ? sellers.find(([id]) => id === seller)?.[1] ?? null : null} />
       <div className="pv-kpis" role="tablist" aria-label="Situação do pós-venda">
         {TABS.map((tab) => (
-          <button key={tab.mode} type="button" role="tab" aria-selected={mode === tab.mode} onClick={() => { setMode(tab.mode); setSelectedId(null); }} className="pv-kpi" data-tone={tab.mode === "pending" ? "warn" : tab.mode === "help" ? "late" : undefined}>
+          <button key={tab.mode} type="button" role="tab" aria-selected={mode === tab.mode} onClick={() => { setMode(tab.mode); setSelectedId(null); }} className="pv-kpi" data-tone={tab.mode === "pending" ? "warn" : tab.mode === "help" || tab.mode === "correction" ? "late" : undefined}>
             <span>{tab.label}</span><strong>{counts[tab.mode] ?? 0}</strong>
           </button>
         ))}
@@ -88,14 +96,15 @@ export function ClientFollowupPanel({ rows, nowIso }: { rows: ClientFollowupRow[
             const info = dayInfo(row, now);
             const tone = rowTone(row, now);
             return (
-              <li key={row.id}>
+              <li key={row.id} className="pv-li">
                 <button type="button" aria-pressed={selected?.id === row.id} onClick={() => setSelectedId(row.id)} className="pv-row">
                   <span className="pv-avatar" data-tone={tone} aria-hidden>{initials(row.client_name)}</span>
                   <span className="pv-row-body">
                     <span className="flex items-baseline gap-2"><span className="min-w-0 flex-1 truncate text-[15px] font-semibold">{row.client_name}</span><span className="pv-when" data-tone={tone}>{info.label}</span></span>
-                    <span className="flex items-center gap-2 text-[13px] text-[var(--muted)]"><span className="min-w-0 flex-1 truncate"><span className="font-mono text-xs">{row.number}</span> · {row.seller_name || "Sem vendedora"}</span>{row.outcome ? <span className="pv-chip" data-tone={tone}>{OUTCOME_LABEL[row.outcome] ?? row.outcome}</span> : null}</span>
+                    <span className="flex items-center gap-2 text-[13px] text-[var(--muted)]"><span className="min-w-0 flex-1 truncate"><span className="font-mono text-xs">{row.number}</span> · {row.seller_name || "Sem vendedora"}</span>{outcomeLabel(row) ? <span className="pv-chip" data-tone={tone}>{outcomeLabel(row)}</span> : null}</span>
                   </span>
                 </button>
+                {waLink(row.client_phone, feedbackMessage(row.client_name, row.number)) ? <a href={waLink(row.client_phone, feedbackMessage(row.client_name, row.number))!} target="_blank" rel="noreferrer" className="pv-wa" aria-label={`Abrir WhatsApp de ${row.client_name}`} title="Abrir no WhatsApp com a mensagem pronta"><MessageCircle size={18} aria-hidden /></a> : null}
               </li>
             );
           }) : <li className="pv-empty">{mode === "pending" ? "Nenhum cliente para contatar agora. Bom trabalho!" : "Nenhum cliente neste filtro."}</li>}
@@ -110,16 +119,80 @@ export function ClientFollowupPanel({ rows, nowIso }: { rows: ClientFollowupRow[
   );
 }
 
+const PERIODS = [
+  { days: 30, label: "30 dias" },
+  { days: 90, label: "90 dias" },
+  { days: 365, label: "12 meses" },
+  { days: 0, label: "Tudo" },
+] as const;
+
+/** Indicadores do pós-venda: quantos deram certo, precisaram de ajuste ou geraram correção. */
+function FollowupMetricsBoard({ rows, now, sellerName }: { rows: ClientFollowupRow[]; now: Date; sellerName: string | null }) {
+  const [days, setDays] = useState<number>(30);
+  const from = days ? new Date(now.getTime() - days * DAY) : null;
+  const m = followupMetrics(rows, now, from);
+  const bySeller = sellerName ? [] : followupBySeller(rows, now, from);
+  const parts = [
+    { key: "ok", label: "Deu certo", value: m.ok },
+    { key: "adjust", label: "Precisa de ajuste", value: m.adjust },
+    { key: "fix", label: "Gerou correção", value: m.correction },
+    { key: "silent", label: "Sem resposta", value: m.noAnswer },
+    { key: "wait", label: "Aguardando resposta", value: m.waitingReply },
+  ];
+  const barTotal = parts.reduce((sum, part) => sum + part.value, 0);
+  return (
+    <section className="pv-metrics" aria-label="Resultado do pós-venda">
+      <header className="pv-metrics-head">
+        <div>
+          <h2>Resultado do pós-venda</h2>
+          <p>Entregas {days ? `dos últimos ${PERIODS.find((p) => p.days === days)?.label}` : "de todo o período"}{sellerName ? ` · ${sellerName}` : ""}. A porcentagem é sobre quem respondeu.</p>
+        </div>
+        <div className="pv-period" role="radiogroup" aria-label="Período">
+          {PERIODS.map((period) => <button key={period.days} type="button" role="radio" aria-checked={days === period.days} onClick={() => setDays(period.days)}>{period.label}</button>)}
+        </div>
+      </header>
+      <div className="pv-metric-grid">
+        <div className="pv-metric is-ok"><span>Deu certo</span><strong>{percent(m.ok, m.answered)}</strong><small>{m.ok} de {m.answered} que responderam</small></div>
+        <div className="pv-metric is-adjust"><span>Precisa de ajuste</span><strong>{percent(m.adjust, m.answered)}</strong><small>{m.adjust} {m.adjust === 1 ? "cliente" : "clientes"}</small></div>
+        <div className="pv-metric is-fix"><span>Gerou correção</span><strong>{percent(m.correction, m.answered)}</strong><small>{m.correction} {m.correction === 1 ? "óculos voltou" : "óculos voltaram"}</small></div>
+        <div className="pv-metric"><span>Contatados</span><strong>{percent(m.contacted, m.delivered)}</strong><small>{m.contacted} de {m.delivered} entregas · {m.toContact} para contatar</small></div>
+      </div>
+      {barTotal ? (
+        <div className="pv-bar" role="img" aria-label={parts.filter((p) => p.value).map((p) => `${p.label}: ${p.value}`).join(", ")}>
+          {parts.filter((part) => part.value).map((part) => <span key={part.key} className={`is-${part.key}`} style={{ flexGrow: part.value }} title={`${part.label}: ${part.value}`} />)}
+        </div>
+      ) : <p className="pv-metrics-empty">Ainda não há contatos registrados neste período.</p>}
+      {barTotal ? <ul className="pv-legend">{parts.filter((part) => part.value).map((part) => <li key={part.key}><i className={`is-${part.key}`} aria-hidden />{part.label} <b>{part.value}</b></li>)}</ul> : null}
+      {bySeller.length > 1 ? (
+        <details className="pv-sellers">
+          <summary>Por vendedora</summary>
+          <div className="pv-table-wrap">
+            <table>
+              <thead><tr><th scope="col">Vendedora</th><th scope="col">Entregas</th><th scope="col">Contatados</th><th scope="col">Deu certo</th><th scope="col">Ajuste</th><th scope="col">Correção</th><th scope="col">% certo</th></tr></thead>
+              <tbody>
+                {bySeller.map(({ id, name, metrics }) => (
+                  <tr key={id}><th scope="row">{name}</th><td>{metrics.delivered}</td><td>{metrics.contacted}</td><td>{metrics.ok}</td><td>{metrics.adjust}</td><td>{metrics.correction}</td><td><b>{percent(metrics.ok, metrics.answered)}</b></td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      ) : null}
+    </section>
+  );
+}
+
 function FollowupDetail({ row, now }: { row: ClientFollowupRow; now: Date }) {
   const router = useRouter();
   const [phone, setPhone] = useState(row.client_phone ?? "");
   const [outcome, setOutcome] = useState<string>("");
-  const [note, setNote] = useState(row.feedback_note ?? "");
+  const [note, setNote] = useState(stripCorrection(row.feedback_note));
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const info = dayInfo(row, now);
-  const text = feedbackMessage(row.client_name);
+  const text = feedbackMessage(row.client_name, row.number);
+  const correction = outcome === "correcao" || (!outcome && isCorrection(row));
   const whatsapp = waLink(phone, text);
 
   function save() {
@@ -127,7 +200,9 @@ function FollowupDetail({ row, now }: { row: ClientFollowupRow; now: Date }) {
     start(async () => {
       setError(null);
       try {
-        const result = await updateClientFollowup(row.id, outcome || null, note, phone, row.updated_at);
+        const sent = outcome === "correcao" ? "precisa_ajuda" : outcome || null;
+        const body = correction ? `${CORRECTION_MARK} ${note.trim()}`.trim() : note;
+        const result = await updateClientFollowup(row.id, sent, body, phone, row.updated_at);
         if (!result.ok) { setError(result.message); return; }
         setMessage(result.message);
         router.refresh();
@@ -143,7 +218,7 @@ function FollowupDetail({ row, now }: { row: ClientFollowupRow; now: Date }) {
           <h2 className="truncate text-[17px] font-semibold">{row.client_name}</h2>
           <p className="truncate text-[12.5px] text-[var(--muted)]"><Link href={`/laboratorio?os=${row.order_id}`} className="font-mono text-[var(--link)]">{row.number}</Link> · {row.seller_name || "Sem vendedora"}</p>
         </div>
-        {row.outcome ? <span className="pv-chip" data-tone={rowTone(row, now)}>{OUTCOME_LABEL[row.outcome] ?? row.outcome}</span> : null}
+        {outcomeLabel(row) ? <span className="pv-chip" data-tone={rowTone(row, now)}>{outcomeLabel(row)}</span> : null}
       </header>
 
       <div className="pv-body">
@@ -154,9 +229,9 @@ function FollowupDetail({ row, now }: { row: ClientFollowupRow; now: Date }) {
         </div>
 
         <div className="lg-chat rounded-xl">
-          <span className="lg-chat-event">Mensagem sugerida para o cliente</span>
+          <span className="lg-chat-event">Mensagem da {STORE_NAME} para o cliente</span>
           <p className="lg-bubble" data-out="true">{text}</p>
-          {row.feedback_note ? <><span className="lg-chat-event">Retorno registrado</span><p className="lg-bubble">{row.feedback_note}</p></> : null}
+          {row.feedback_note ? <><span className="lg-chat-event">Retorno registrado</span><p className="lg-bubble">{stripCorrection(row.feedback_note) || "Gerou correção."}</p></> : null}
         </div>
 
         <label className="grid gap-1 text-sm font-medium">WhatsApp do cliente
@@ -180,6 +255,7 @@ function FollowupDetail({ row, now }: { row: ClientFollowupRow; now: Date }) {
             })}
           </div>
         </fieldset>
+        {correction ? <p className="pv-correction"><RotateCcw size={16} aria-hidden /><span>Depois de salvar, abra a correção para a OS <b>{row.number}</b>. A OS original continua guardada.</span><Link href={`/assistencia?original=${encodeURIComponent(row.number)}`} className="pv-btn">Abrir correção</Link></p> : null}
         <label className="grid gap-1 text-sm font-medium">O que o cliente disse?
           <textarea value={note} onChange={(event) => setNote(event.target.value)} maxLength={2000} rows={3} placeholder="Ex.: está enxergando bem de longe, sentiu um pouco de tontura no primeiro dia…" className="pv-input py-2" />
         </label>

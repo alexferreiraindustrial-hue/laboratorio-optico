@@ -15,7 +15,9 @@ export async function receiveOrderFrame(id:string,minutes:number|null):Promise<A
  const {supabase,role}=await requireProfile();if(!can(role,"orders.status"))return {ok:false,message:"Sem permissão."};
  const invalid=operationsError("present",minutes);if(invalid)return {ok:false,message:invalid};
  const {data,error}=await supabase.rpc("receive_order_frame",{p_order_id:id,p_express_minutes:minutes});
- if(error)return {ok:false,message:actionError(error,"Não foi possível registrar a armação.")??""};refresh(id);return {ok:true,message:data?.status==="aguardando_montagem"?"Armação recebida. Serviço disponível na bancada.":"Armação recebida. Continua aguardando a lente."};
+ if(error)return {ok:false,message:actionError(error,"Não foi possível registrar a armação.")??""};
+ let started=false;if(data?.status==="aguardando_montagem"){const begin=await supabase.rpc("change_order_status",{p_order_id:id,p_to:"em_montagem",p_note:"Lentes e armação disponíveis: montagem iniciada"});started=!begin.error;}
+ refresh(id);return {ok:true,message:data?.status==="aguardando_montagem"?(started?"Armação recebida. Foi para montagem.":"Armação recebida. Serviço disponível na bancada."):"Armação recebida. Continua aguardando a lente."};
 }
 export async function markOrderNotice(id:string,kind:string,eventAt:string,recipient:"seller"|"client"):Promise<ActionResult>{
  const {supabase,role}=await requireProfile();if(!can(role,"orders.write"))return {ok:false,message:"Sem permissão."};

@@ -13,7 +13,8 @@ import { can } from "@/lib/domain/permissions";
 import { loadBo } from "@/server/flow";
 import { requireProfile } from "@/server/session";
 
-export default async function AssistenciaPage() {
+export default async function AssistenciaPage({ searchParams }: { searchParams: Promise<{ original?: string }> }) {
+  const original = String((await searchParams).original ?? "").slice(0, 80);
   const { supabase, role } = await requireProfile();
   const assistance=await supabase.from("service_orders").select("id,number,client_name,assistance_kind,assistance_origin_order_id,status,due_at").not("assistance_kind","is",null).not("status","in","(entregue,cancelado)").order("due_at",{ascending:true,nullsFirst:false}).limit(200);
   const nowMs = new Date().getTime();
@@ -41,7 +42,7 @@ export default async function AssistenciaPage() {
           </Link>
         </Button>
       </PageHeading>
-      {can(role,"orders.write")&&<AssistanceEntry/>}
+      {can(role,"orders.write")&&<AssistanceEntry original={original}/>}
       <section className="overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)]"><h2 className="px-4 py-3 text-sm font-semibold">Assistências em andamento · {assistance.data?.length??0}</h2>{assistance.error?<p role="alert" className="px-4 pb-4 text-sm text-[var(--danger)]">Não foi possível carregar as assistências. Atualize a tela.</p>:!assistance.data?.length?<p className="px-4 pb-4 text-sm text-[var(--muted)]">Nenhuma assistência em andamento.</p>:<ul className="divide-y divide-[var(--line)]">{assistance.data.map(item=><li key={item.id}><Link href={`/laboratorio/${item.id}`} className="grid min-h-14 gap-1 px-4 py-3 text-sm hover:bg-[var(--background)] sm:grid-cols-[1fr_1fr_auto]"><span><strong>{item.client_name}</strong><span className="ml-2 font-mono text-xs text-[var(--muted)]">{item.number}</span></span><span className="text-[var(--muted)]">{item.assistance_kind} · {STATUS_LABEL[item.status as OrderStatus]}</span><time className="text-xs">{formatDateTime(item.due_at)}</time></Link></li>)}</ul>}</section>
       <h2 className="text-base font-semibold">Ocorrências da montagem · BO</h2>
       {error ? <p className="rounded-lg border border-[var(--edge-f3c9c4)] bg-[var(--danger-soft)] px-3 py-2 text-sm text-[var(--danger)]">{error}</p> : null}

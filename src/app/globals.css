@@ -1064,3 +1064,43 @@ h1, .display { letter-spacing: -0.02em; font-weight: 700; }
 .pdv-slot input { width: 100%; }
 @media (max-width: 520px) { .pdv-slot button { padding: 0 12px; } .pdv-lcd { padding: 14px; } }
 .pdv-slot input { border: 0 !important; background: transparent !important; box-shadow: none !important; outline: 0 !important; }
+
+/* PDV da produção: tela própria, sem o menu do sistema */
+.pdv-app { --pdv-bar: #0e2724; min-height: 100vh; display: flex; flex-direction: column; background: var(--background); color: var(--ink); }
+.pdv-bar { position: sticky; top: 0; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 10px 22px; background: var(--pdv-bar); color: #e6f4ee; }
+.pdv-brand { display: flex; align-items: center; gap: 10px; color: #a6f4cf; text-decoration: none; }
+.pdv-brand span { display: grid; line-height: 1.15; }
+.pdv-brand b { font-size: 16px; color: #fff; }
+.pdv-brand small { font-size: 12px; color: #8fb8a8; }
+.pdv-areas { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: rgb(255 255 255 / .07); }
+.pdv-areas button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 0; border-radius: 9px; background: transparent; color: #cfe6dc; font-size: 14px; font-weight: 600; cursor: pointer; }
+.pdv-areas button kbd { padding: 0 5px; border-radius: 5px; background: rgb(255 255 255 / .1); font: 600 11px/1.5 ui-monospace, monospace; color: #8fb8a8; }
+.pdv-areas button[aria-pressed="true"] { background: #a6f4cf; color: var(--pdv-bar); }
+.pdv-areas button[aria-pressed="true"] kbd { background: rgb(14 39 36 / .15); color: var(--pdv-bar); }
+.pdv-bar-end { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.pdv-clock { font: 700 20px/1 ui-monospace, monospace; color: #a6f4cf; font-variant-numeric: tabular-nums; }
+.pdv-user { display: grid; line-height: 1.15; text-align: right; }
+.pdv-user b { font-size: 13px; color: #fff; }
+.pdv-user small { font-size: 11px; color: #8fb8a8; }
+.pdv-bar-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 12px; border: 1px solid rgb(255 255 255 / .16); border-radius: 10px; background: transparent; color: #e6f4ee; font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer; }
+.pdv-bar-btn:hover, .pdv-areas button:hover:not([aria-pressed="true"]) { background: rgb(255 255 255 / .08); }
+.pdv-bar :focus-visible { outline: 2px solid #a6f4cf; outline-offset: 2px; }
+.pdv-body { flex: 1; width: 100%; max-width: 1680px; margin: 0 auto; padding: 18px 22px 40px; }
+.pdv-launch { display: grid; gap: 14px; max-width: 980px; }
+.pdv-launch-head h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -.015em; }
+.pdv-launch-head p { margin: 2px 0 0; font-size: 14px; color: var(--muted); max-width: 70ch; }
+.pdv-app .pdv-receipt { top: 74px; }
+@media (max-width: 900px) {
+  .pdv-bar { padding: 10px 14px; }
+  .pdv-bar-btn span, .pdv-user { display: none; }
+  .pdv-body { padding: 14px 12px 30px; }
+}
+/* Botão de entrada no PDV, no topo do sistema */
+.lab-pdv-btn { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 14px; border-radius: 12px; background: #0e2724; color: #a6f4cf; font-size: 14px; font-weight: 700; text-decoration: none; flex-shrink: 0; }
+.lab-pdv-btn:hover { background: #143a35; }
+@media (min-width: 768px) { .lab-pdv-btn { min-height: 36px; } }
+@media (max-width: 639px) { .lab-pdv-btn span { display: none; } .lab-pdv-btn { padding: 0 12px; } }
+.lg-topbar a.lab-pdv-btn, .lg-topbar a.lab-pdv-btn:hover { background: #0e2724 !important; color: #a6f4cf !important; border: 0 !important; }
+.pdv-bar { padding-right: 76px; }
+.pdv-launch { margin: 0 auto; width: 100%; }
+@media (max-width: 900px) { .pdv-bar { padding-right: 64px; } }

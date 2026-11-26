@@ -41,7 +41,7 @@ export function OrderCodeCard({ id, number, dueAt, labAt }: { id: string; number
         {queued
           ? <button type="button" className="ocm-trigger" onClick={() => { labelQueue.remove([id]); toast.success("Tirada da lista de etiquetas."); }}><ListX size={15} />Tirar da lista</button>
           : <button type="button" className="ocm-trigger" onClick={() => { labelQueue.add([id]); toast.success("Na lista de etiquetas para imprimir depois."); }}><ListPlus size={15} />Pôr na lista de etiquetas</button>}
-        <Link href="/bipe" className="ocm-trigger"><ScanLine size={15} />Modo bipe</Link>
+        <Link href="/pdv" className="ocm-trigger"><ScanLine size={15} />Abrir o PDV</Link>
       </div>
     </section>
   );

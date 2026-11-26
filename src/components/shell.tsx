@@ -23,7 +23,7 @@ import {
   PackageCheck,
   PackageSearch,
   QrCode,
-  ScanLine,
+  ScanBarcode,
   Tags,
   RefreshCcw,
   Search,
@@ -67,7 +67,7 @@ const groups: { title: string; step?: string; adminOnly?: boolean; items: NavIte
     items: [
       { href: "/laboratorio/rapido", label: "Lançar serviço", icon: Zap },
       { href: "/laboratorio", label: "Fila de produção", icon: ClipboardList },
-      { href: "/bipe", label: "Modo bipe", icon: ScanLine },
+      { href: "/pdv", label: "PDV da produção", icon: ScanBarcode },
       { href: "/laboratorio/etiquetas", label: "Etiquetas", icon: Tags },
       { href: "/avisos", label: "Avisos por vendedora", icon: ClipboardList },
     ],
@@ -127,7 +127,7 @@ const ACCESS: Record<AppRole, string[] | null> = {
   montador: [
     "/rotina",
     "/laboratorio/rapido",
-    "/bipe",
+    "/pdv",
     "/laboratorio/etiquetas",
     "/avisos",
     "/lentes",
@@ -180,7 +180,7 @@ const SIMPLE_ICON: Record<string, typeof LayoutDashboard> = {
   "/lentes": PackageSearch,
   "/montagem": Wrench,
   "/entrega": PackageCheck,
-  "/bipe": ScanLine,
+  "/pdv": ScanBarcode,
 };
 
 function simpleItems(role: AppRole) {
@@ -496,6 +496,7 @@ export function Shell({
             <span className="hidden sm:inline">QR Code</span>
           </Link>
           {allItems.some(item=>item.href==="/recados") && <Link href="/recados" aria-label={unread ? `${unread} recados não lidos` : "Recados do laboratório"} className="relative hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] xl:flex"><Bell size={18}/>{unread>0&&<span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[var(--accent)]"/>}</Link>}
+          <Link href="/pdv" className="lab-pdv-btn" aria-label="Abrir o PDV da produção"><ScanBarcode size={18} /><span>PDV</span></Link>
           {canLaunch && <Link href="/laboratorio/rapido" className="lg-gold hidden min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-semibold lg:inline-flex"><Plus size={17}/>Lançar serviço</Link>}
           <div id="theme-control" className="lab-theme-slot" />
           <div className="hidden h-6 w-px bg-[var(--line)] sm:block lg:hidden" />

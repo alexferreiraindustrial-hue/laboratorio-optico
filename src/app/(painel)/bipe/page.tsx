@@ -1,9 +1,6 @@
-import { ScanStation } from "@/components/scan-station";
-import { requireProfile } from "@/server/session";
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "Caixa da produção · Lab Gold" };
-
-export default async function BipePage() {
-  const { role } = await requireProfile();
-  return <ScanStation role={role} />;
+/** O modo bipe agora fica dentro do PDV da produção. */
+export default function BipePage() {
+  redirect("/pdv");
 }

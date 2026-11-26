@@ -84,7 +84,7 @@ async function run(action: ScanAction, order: Found) {
 
 const DONE: Record<ScanAction, string> = { lente: "Lente registrada", pronto: "Marcada como pronta", medico: "Enviada ao médico", voltou: "Liberada pelo médico", entregue: "Entregue ao cliente" };
 
-export function ScanStation({ role }: { role: AppRole }) {
+export function ScanStation({ role, embedded = false }: { role: AppRole; embedded?: boolean }) {
   const router = useRouter();
   const actions = allowedScanActions(role);
   const [action, setAction] = useState<ScanAction | null>(actions[0] ?? null);
@@ -185,11 +185,11 @@ export function ScanStation({ role }: { role: AppRole }) {
       <div className="pdv-main">
         <header className="pdv-head">
           <div>
-            <h1>Caixa da produção</h1>
-            <p>Escolha a ação e passe o leitor. Um bipe, uma OS registrada.</p>
+            <h1>{embedded ? "Bipar" : "Caixa da produção"}</h1>
+            <p>Escolha a ação (F1 a F5) e passe o leitor. Um bipe, uma OS registrada.</p>
           </div>
           <button type="button" className="pdv-tool" onClick={() => setCamera((value) => !value)} aria-pressed={camera}>{camera ? <CameraOff size={16} /> : <Camera size={16} />}Câmera</button>
-          <button type="button" className="pdv-tool" onClick={toggleFull}>{full ? <Shrink size={16} /> : <Expand size={16} />}{full ? "Sair da tela cheia" : "Tela cheia"}</button>
+          {embedded ? null : <button type="button" className="pdv-tool" onClick={toggleFull}>{full ? <Shrink size={16} /> : <Expand size={16} />}{full ? "Sair da tela cheia" : "Tela cheia"}</button>}
         </header>
 
         <section className={`pdv-lcd is-${display.tone} is-${action}`} aria-live="polite">

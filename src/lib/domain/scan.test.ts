@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { code128Encodable, code128Widths } from "./code128";
 import { compareForecast } from "./label-dates";
-import { parseScanCode, scanBlockReason } from "./scan";
+import { parseScanCode, scanAlreadyDone, scanBlockReason } from "./scan";
 
 const label = (status: string) => status;
 
@@ -87,5 +87,20 @@ describe("avisos do PDV", () => {
     ], now, { unreadMessages: 2 });
     expect(alerts.map((item) => item.key)).toEqual(["atrasadas", "lentes", "recados"]);
     expect(alerts[2].text).toBe("recados novos das vendedoras");
+  });
+});
+
+describe("bipe repetido", () => {
+  it("reconhece a OS que já está no resultado da ação", () => {
+    expect(scanAlreadyDone("pronto", { status: "pronto" })).toBe(true);
+    expect(scanAlreadyDone("lente", { status: "aguardando_montagem" })).toBe(true);
+    expect(scanAlreadyDone("medico", { status: "em_conferencia" })).toBe(true);
+    expect(scanAlreadyDone("voltou", { status: "pronto", medicalApproved: "2026-11-26T10:00:00Z" })).toBe(true);
+  });
+  it("não confunde com uma OS que ainda precisa da ação", () => {
+    expect(scanAlreadyDone("pronto", { status: "em_montagem" })).toBe(false);
+    expect(scanAlreadyDone("voltou", { status: "pronto" })).toBe(false);
+    expect(scanAlreadyDone("lente", { status: "aguardando_lentes" })).toBe(false);
+    expect(scanAlreadyDone("entregue", { status: "entregue" })).toBe(false);
   });
 });

@@ -960,6 +960,7 @@ h1, .display { letter-spacing: -0.02em; font-weight: 700; }
   background-image: repeating-linear-gradient(0deg, rgb(255 255 255 / .025) 0 1px, transparent 1px 3px); transition: background-color .25s ease; }
 .pdv-lcd.is-err { --lcd: #3a1412; --lcd-ink: #ffc2b8; --lcd-dim: #c0786d; }
 .pdv-lcd.is-ok { animation: pdv-ok .5s ease-out; }
+.pdv-lcd.is-rep { --lcd: #2e2a10; --lcd-ink: #ffe9a8; --lcd-dim: #b9a75e; }
 @keyframes pdv-ok { 0% { box-shadow: 0 0 0 4px var(--lcd-ink); } 100% { box-shadow: 0 0 0 0 transparent; } }
 .pdv-lcd-mode { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--lcd-dim); }
 .pdv-lcd-mode kbd { margin-left: auto; padding: 2px 7px; border: 1px solid var(--lcd-dim); border-radius: 6px; font: 600 12px/1.2 ui-monospace, monospace; }
@@ -1031,8 +1032,10 @@ h1, .display { letter-spacing: -0.02em; font-weight: 700; }
 .pdv-line-top b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pdv-line-top em { font-style: normal; font-weight: 700; color: #1d7a4f; }
 .pdv-paper li.is-err .pdv-line-top em { color: #b3261e; }
+.pdv-paper li.is-rep .pdv-line-top em { color: #8a6d00; }
 .pdv-line-sub { color: #4a5551; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pdv-line-why { color: #b3261e; }
+.pdv-paper li.is-rep .pdv-line-why { color: #8a6d00; }
 .pdv-line-open { justify-self: start; font-size: 12px; color: #146c4e; }
 .pdv-total { display: flex; justify-content: space-between; margin: 0; font-weight: 700; font-size: 15px; }
 .pdv-total.is-muted { font-weight: 500; font-size: 13px; color: #6b7671; }

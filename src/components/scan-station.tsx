@@ -10,7 +10,7 @@ import { STATUS_LABEL, type AppRole, type OrderStatus } from "@/lib/domain/const
 import { deadlineText, pdvAlerts, RADAR_STATUSES, radarGroups, type RadarLane, type RadarOrder } from "@/lib/domain/pdv";
 import { can } from "@/lib/domain/permissions";
 import { isPublicCode } from "@/lib/domain/qr";
-import { parseScanCode, SCAN_ACTIONS, scanBlockReason, type ScanAction } from "@/lib/domain/scan";
+import { parseScanCode, SCAN_ACTIONS, scanAlreadyDone, scanBlockReason, type ScanAction } from "@/lib/domain/scan";
 import { createClient } from "@/lib/supabase/client";
 import { changeOrderStatus } from "@/server/actions";
 import { confirmClientDelivery } from "@/server/fast-operations-actions";
@@ -22,8 +22,8 @@ const ORDER: ScanAction[] = ["lente", "pronto", "medico", "voltou", "entregue"];
 const KEYS: Record<ScanAction, string> = { lente: "F1", pronto: "F2", medico: "F3", voltou: "F4", entregue: "F5" };
 
 type Found = { id: string; number: string; external_order_id: string | null; client_name: string; status: string; medical_review_required: boolean | null; medical_review_approved_at: string | null; updated_at: string };
-type LogItem = { key: number; at: string; code: string; ok: boolean; title: string; client?: string; detail: string; action: ScanAction; id?: string };
-type Display = { tone: "idle" | "ok" | "err" | "busy"; number: string; client: string; line: string };
+type LogItem = { key: number; at: string; code: string; ok: boolean; repeat?: boolean; title: string; client?: string; detail: string; action: ScanAction; id?: string };
+type Display = { tone: "idle" | "ok" | "err" | "busy" | "rep"; number: string; client: string; line: string };
 
 export function allowedScanActions(role: AppRole): ScanAction[] {
   return ORDER.filter((action) => {
@@ -100,7 +100,9 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
   const root = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const seq = useRef(0);
-  const last = useRef<{ code: string; at: number } | null>(null);
+  // Mesmo código lido de novo: ignorado por 2 s; depois de um registro certo, por 15 s.
+  const last = useRef<{ code: string; until: number } | null>(null);
+  const inflight = useRef(new Set<string>());
 
   const loadRadar = useCallback(async () => {
     const supabase = createClient();
@@ -141,33 +143,40 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
   function push(item: Omit<LogItem, "key" | "at">) {
     beep(item.ok);
     setLog((current) => [{ ...item, key: ++seq.current, at: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) }, ...current].slice(0, 80));
-    setDisplay({ tone: item.ok ? "ok" : "err", number: item.title, client: item.client ?? "", line: item.detail });
+    setDisplay({ tone: item.repeat ? "rep" : item.ok ? "ok" : "err", number: item.title, client: item.client ?? "", line: item.detail });
   }
 
   function submit(raw: string) {
     const text = raw.trim();
     setCode("");
     if (!text || !action) return;
-    if (last.current && last.current.code === text && Date.now() - last.current.at < 2000) return;
-    last.current = { code: text, at: Date.now() };
+    if (inflight.current.has(text)) return;
+    if (last.current && last.current.code === text && Date.now() < last.current.until) return;
+    last.current = { code: text, until: Date.now() + 2000 };
     const stock = text.toUpperCase().match(/LN-[A-Z2-9]{10}/)?.[0];
     if (stock && isPublicCode(stock)) { router.push(`/estoque/codigo/${stock}`); return; }
     const chosen = action;
     setDisplay({ tone: "busy", number: text, client: "", line: "Consultando…" });
+    inflight.current.add(text);
+    const settle = (ok: boolean) => { if (ok) last.current = { code: text, until: Date.now() + 15_000 }; };
     start(async () => {
       try {
         const found = await findOrder(text);
         if (!found.order) { push({ ok: false, code: text, action: chosen, title: text, detail: found.error ?? "Não encontrada." }); return; }
         const order = found.order;
         const number = visible(order);
+        const state = { status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at };
+        if (scanAlreadyDone(chosen, state)) { settle(true); push({ ok: true, repeat: true, code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: "Já estava registrada. Nada mudou." }); return; }
         const block = scanBlockReason(chosen, { status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at }, (status) => STATUS_LABEL[status as OrderStatus] ?? status);
         if (block) { push({ ok: false, code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: `Não registrado. ${block}` }); return; }
         const result = await run(chosen, order);
+        settle(Boolean(result?.ok));
         push({ ok: Boolean(result?.ok), code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: result?.ok ? (chosen === "lente" ? result.message ?? DONE[chosen] : DONE[chosen]) : result?.message ?? "Não foi possível registrar." });
         if (result?.ok) void loadRadar();
       } catch {
         push({ ok: false, code: text, action: chosen, title: text, detail: "Falha na conexão. Bipe de novo." });
       } finally {
+        inflight.current.delete(text);
         input.current?.focus();
       }
     });
@@ -182,7 +191,8 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
   }
 
   if (!action) return <p className="text-sm">Seu perfil não movimenta OS pelo bipe.</p>;
-  const okCount = log.filter((item) => item.ok).length;
+  const okCount = log.filter((item) => item.ok && !item.repeat).length;
+  const repeatCount = log.filter((item) => item.repeat).length;
   const groups = radar ? radarGroups(radar, now) : null;
   const alerts = radar ? pdvAlerts(radar, now, { unreadMessages: unread }) : [];
   const Icon = ICONS[action];
@@ -209,7 +219,7 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
             <>
               <p className="pdv-lcd-big">{display.number}</p>
               {display.client ? <p className="pdv-lcd-client">{display.client}</p> : null}
-              <p className="pdv-lcd-line">{display.tone === "ok" ? <Check size={18} aria-hidden /> : display.tone === "err" ? <X size={18} aria-hidden /> : null}{display.line}</p>
+              <p className="pdv-lcd-line">{display.tone === "ok" || display.tone === "rep" ? <Check size={18} aria-hidden /> : display.tone === "err" ? <X size={18} aria-hidden /> : null}{display.line}</p>
             </>
           )}
           <form className="pdv-slot" onSubmit={(event) => { event.preventDefault(); submit(code); }}>
@@ -264,17 +274,18 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
           {log.length === 0 ? <p className="pdv-paper-empty">Nenhum bipe ainda. Cada OS registrada aparece aqui.</p> : null}
           <ol>
             {log.map((item) => (
-              <li key={item.key} className={item.ok ? "is-ok" : "is-err"} data-os-id={item.id}>
-                <span className="pdv-line-top"><time>{item.at}</time><b>{item.title}</b><em>{item.ok ? "OK" : "RECUSADO"}</em></span>
+              <li key={item.key} className={item.repeat ? "is-rep" : item.ok ? "is-ok" : "is-err"} data-os-id={item.id}>
+                <span className="pdv-line-top"><time>{item.at}</time><b>{item.title}</b><em>{item.repeat ? "JÁ FEITO" : item.ok ? "OK" : "RECUSADO"}</em></span>
                 <span className="pdv-line-sub">{SCAN_ACTIONS[item.action].label}{item.client ? ` · ${item.client}` : ""}</span>
-                {!item.ok ? <span className="pdv-line-why">{item.detail}</span> : null}
+                {!item.ok || item.repeat ? <span className="pdv-line-why">{item.detail}</span> : null}
                 {item.id ? <Link href={`/laboratorio/${item.id}`} className="pdv-line-open">Abrir</Link> : null}
               </li>
             ))}
           </ol>
           <hr />
           <p className="pdv-total"><span>Registradas</span><b>{okCount}</b></p>
-          <p className="pdv-total is-muted"><span>Recusadas</span><b>{log.length - okCount}</b></p>
+          {repeatCount ? <p className="pdv-total is-muted"><span>Já estavam feitas</span><b>{repeatCount}</b></p> : null}
+          <p className="pdv-total is-muted"><span>Recusadas</span><b>{log.length - okCount - repeatCount}</b></p>
           {log.length ? <button type="button" className="pdv-tear" onClick={() => { setLog([]); setDisplay({ tone: "idle", number: "", client: "", line: "" }); input.current?.focus(); }}>Novo cupom</button> : null}
         </div>
       </aside>

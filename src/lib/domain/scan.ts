@@ -33,3 +33,14 @@ export function scanBlockReason(action: ScanAction, order: { status: string; med
   if (!(SCAN_ACTIONS[action].from as readonly string[]).includes(order.status)) return `Está em "${statusLabel(order.status)}".`;
   return null;
 }
+
+/** A OS já está onde essa ação a deixaria (bipe repetido da mesma etiqueta). */
+export function scanAlreadyDone(action: ScanAction, order: { status: string; medicalRequired?: boolean | null; medicalApproved?: string | null }) {
+  switch (action) {
+    case "lente": return order.status === "aguardando_montagem";
+    case "pronto": return order.status === "pronto";
+    case "medico": return order.status === "em_conferencia";
+    case "voltou": return order.status === "pronto" && Boolean(order.medicalApproved);
+    case "entregue": return false;
+  }
+}

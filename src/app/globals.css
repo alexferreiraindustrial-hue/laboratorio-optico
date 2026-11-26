@@ -778,6 +778,40 @@ h1, .display { letter-spacing: -0.02em; font-weight: 700; }
 .pv-register { padding: 16px 18px; border-radius: 12px; background: var(--surface); }
 .pv-wrap { display: grid; grid-template-columns: 440px minmax(0, 1fr); min-height: 600px; overflow: hidden; border-radius: 12px; background: var(--surface); }
 .pv-list { margin: 0; padding: 0; overflow-y: auto; list-style: none; border-right: 1px solid var(--line); max-height: 76vh; }
+.pv-metrics { display: grid; gap: 14px; padding: 18px; border-radius: 12px; background: var(--surface); }
+.pv-metrics-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.pv-metrics-head h2 { margin: 0; font-size: 17px; font-weight: 650; }
+.pv-metrics-head p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.pv-period { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--surface-secondary); }
+.pv-period button { min-height: 32px; padding: 0 12px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pv-period button[aria-checked="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.pv-metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.pv-metric { display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--line); border-left-width: 4px; border-radius: 10px; }
+.pv-metric span { font-size: 13px; font-weight: 600; color: var(--muted); }
+.pv-metric strong { font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.pv-metric small { font-size: 12px; color: var(--muted); }
+.pv-metric.is-ok { border-left-color: #1f9d63; }
+.pv-metric.is-adjust { border-left-color: #d99a1a; }
+.pv-metric.is-fix { border-left-color: #d9473c; }
+.pv-bar { display: flex; height: 14px; gap: 2px; overflow: hidden; border-radius: 999px; }
+.pv-bar span, .pv-legend i { background: var(--muted); }
+.pv-bar .is-ok, .pv-legend .is-ok { background: #1f9d63; }
+.pv-bar .is-adjust, .pv-legend .is-adjust { background: #d99a1a; }
+.pv-bar .is-fix, .pv-legend .is-fix { background: #d9473c; }
+.pv-bar .is-silent, .pv-legend .is-silent { background: #7d8a8f; }
+.pv-bar .is-wait, .pv-legend .is-wait { background: #4b7fbf; }
+.pv-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); }
+.pv-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.pv-legend b { color: var(--ink); }
+.pv-legend i { width: 10px; height: 10px; border-radius: 3px; }
+.pv-metrics-empty { margin: 0; font-size: 13px; color: var(--muted); }
+.pv-sellers summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--link); }
+.pv-table-wrap { margin-top: 8px; overflow-x: auto; }
+.pv-sellers table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.pv-sellers th, .pv-sellers td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.pv-sellers th:first-child { text-align: left; }
+.pv-sellers thead th { font-weight: 600; color: var(--muted); }
+@media (max-width: 760px) { .pv-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pv-metric strong { font-size: 24px; } }
 .pv-li { position: relative; }
 .pv-li .pv-when { min-width: 0; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pv-li .pv-row { padding-right: 52px; }

@@ -8,6 +8,7 @@ import {
   ClipboardList,
   FileText,
   Glasses,
+  HeartHandshake,
   Truck,
   Home,
   LayoutList,
@@ -91,7 +92,7 @@ const groups: { title: string; step?: string; adminOnly?: boolean; items: NavIte
   {
     title: "Saída",
     step: "4",
-    items: [{ href: "/entrega", label: "Saída do laboratório", icon: PackageCheck }, { href: "/pos-venda", label: "Entrega ao cliente · pós-venda", icon: MessageSquare }],
+    items: [{ href: "/entrega", label: "Saída do laboratório", icon: PackageCheck }, { href: "/pos-venda", label: "Pós-venda · SAC", icon: HeartHandshake }],
   },
   {
     title: "Equipe",
@@ -181,6 +182,7 @@ const SIMPLE_ICON: Record<string, typeof LayoutDashboard> = {
   "/montagem": Wrench,
   "/entrega": PackageCheck,
   "/pdv": ScanBarcode,
+  "/pos-venda": HeartHandshake,
 };
 
 function simpleItems(role: AppRole) {

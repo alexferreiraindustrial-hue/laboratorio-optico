@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarCheck2, ClipboardCopy, HeartHandshake, MessageCircle, PackageCheck, RotateCcw, Search, Send, Smile, ThumbsUp, X } from "lucide-react";
-import { CORRECTION_MARK, feedbackMessage, feedbackPending, isCorrection, matchesFollowup, STORE_NAME, stripCorrection, type ClientFollowupRow } from "@/lib/domain/client-followup";
+import { CORRECTION_MARK, feedbackMessage, feedbackPending, followupBySeller, followupMetrics, isCorrection, matchesFollowup, percent, STORE_NAME, stripCorrection, type ClientFollowupRow } from "@/lib/domain/client-followup";
 import { formatDateTime } from "@/lib/format";
 import { updateClientFollowup } from "@/server/fast-operations-actions";
 import { findOrdersForQuick, type FoundOrder } from "@/server/quick-actions";
@@ -73,6 +73,7 @@ export function ClientFollowupPanel({ rows, nowIso }: { rows: ClientFollowupRow[
 
   return (
     <div className="pv grid gap-4">
+      <FollowupMetricsBoard rows={seller ? rows.filter((row) => row.seller_id === seller) : rows} now={now} sellerName={seller ? sellers.find(([id]) => id === seller)?.[1] ?? null : null} />
       <div className="pv-kpis" role="tablist" aria-label="Situação do pós-venda">
         {TABS.map((tab) => (
           <button key={tab.mode} type="button" role="tab" aria-selected={mode === tab.mode} onClick={() => { setMode(tab.mode); setSelectedId(null); }} className="pv-kpi" data-tone={tab.mode === "pending" ? "warn" : tab.mode === "help" || tab.mode === "correction" ? "late" : undefined}>
@@ -115,6 +116,69 @@ export function ClientFollowupPanel({ rows, nowIso }: { rows: ClientFollowupRow[
         </section>
       </div>
     </div>
+  );
+}
+
+const PERIODS = [
+  { days: 30, label: "30 dias" },
+  { days: 90, label: "90 dias" },
+  { days: 365, label: "12 meses" },
+  { days: 0, label: "Tudo" },
+] as const;
+
+/** Indicadores do pós-venda: quantos deram certo, precisaram de ajuste ou geraram correção. */
+function FollowupMetricsBoard({ rows, now, sellerName }: { rows: ClientFollowupRow[]; now: Date; sellerName: string | null }) {
+  const [days, setDays] = useState<number>(30);
+  const from = days ? new Date(now.getTime() - days * DAY) : null;
+  const m = followupMetrics(rows, now, from);
+  const bySeller = sellerName ? [] : followupBySeller(rows, now, from);
+  const parts = [
+    { key: "ok", label: "Deu certo", value: m.ok },
+    { key: "adjust", label: "Precisa de ajuste", value: m.adjust },
+    { key: "fix", label: "Gerou correção", value: m.correction },
+    { key: "silent", label: "Sem resposta", value: m.noAnswer },
+    { key: "wait", label: "Aguardando resposta", value: m.waitingReply },
+  ];
+  const barTotal = parts.reduce((sum, part) => sum + part.value, 0);
+  return (
+    <section className="pv-metrics" aria-label="Resultado do pós-venda">
+      <header className="pv-metrics-head">
+        <div>
+          <h2>Resultado do pós-venda</h2>
+          <p>Entregas {days ? `dos últimos ${PERIODS.find((p) => p.days === days)?.label}` : "de todo o período"}{sellerName ? ` · ${sellerName}` : ""}. A porcentagem é sobre quem respondeu.</p>
+        </div>
+        <div className="pv-period" role="radiogroup" aria-label="Período">
+          {PERIODS.map((period) => <button key={period.days} type="button" role="radio" aria-checked={days === period.days} onClick={() => setDays(period.days)}>{period.label}</button>)}
+        </div>
+      </header>
+      <div className="pv-metric-grid">
+        <div className="pv-metric is-ok"><span>Deu certo</span><strong>{percent(m.ok, m.answered)}</strong><small>{m.ok} de {m.answered} que responderam</small></div>
+        <div className="pv-metric is-adjust"><span>Precisa de ajuste</span><strong>{percent(m.adjust, m.answered)}</strong><small>{m.adjust} {m.adjust === 1 ? "cliente" : "clientes"}</small></div>
+        <div className="pv-metric is-fix"><span>Gerou correção</span><strong>{percent(m.correction, m.answered)}</strong><small>{m.correction} {m.correction === 1 ? "óculos voltou" : "óculos voltaram"}</small></div>
+        <div className="pv-metric"><span>Contatados</span><strong>{percent(m.contacted, m.delivered)}</strong><small>{m.contacted} de {m.delivered} entregas · {m.toContact} para contatar</small></div>
+      </div>
+      {barTotal ? (
+        <div className="pv-bar" role="img" aria-label={parts.filter((p) => p.value).map((p) => `${p.label}: ${p.value}`).join(", ")}>
+          {parts.filter((part) => part.value).map((part) => <span key={part.key} className={`is-${part.key}`} style={{ flexGrow: part.value }} title={`${part.label}: ${part.value}`} />)}
+        </div>
+      ) : <p className="pv-metrics-empty">Ainda não há contatos registrados neste período.</p>}
+      {barTotal ? <ul className="pv-legend">{parts.filter((part) => part.value).map((part) => <li key={part.key}><i className={`is-${part.key}`} aria-hidden />{part.label} <b>{part.value}</b></li>)}</ul> : null}
+      {bySeller.length > 1 ? (
+        <details className="pv-sellers">
+          <summary>Por vendedora</summary>
+          <div className="pv-table-wrap">
+            <table>
+              <thead><tr><th scope="col">Vendedora</th><th scope="col">Entregas</th><th scope="col">Contatados</th><th scope="col">Deu certo</th><th scope="col">Ajuste</th><th scope="col">Correção</th><th scope="col">% certo</th></tr></thead>
+              <tbody>
+                {bySeller.map(({ id, name, metrics }) => (
+                  <tr key={id}><th scope="row">{name}</th><td>{metrics.delivered}</td><td>{metrics.contacted}</td><td>{metrics.ok}</td><td>{metrics.adjust}</td><td>{metrics.correction}</td><td><b>{percent(metrics.ok, metrics.answered)}</b></td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      ) : null}
+    </section>
   );
 }
 

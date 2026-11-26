@@ -3,6 +3,9 @@ import {
   CORRECTION_MARK,
   feedbackMessage,
   feedbackPending,
+  followupBySeller,
+  followupMetrics,
+  percent,
   hasPhone,
   isCorrection,
   stripCorrection,
@@ -77,5 +80,31 @@ describe("pós-venda Gold Finger", () => {
     expect(matchesFollowup({ ...base, client_phone: "12999998888", outcome: null, feedback_note: null }, "", "phone", new Date())).toBe(true);
     expect(matchesFollowup({ ...base, client_phone: null, outcome: null, feedback_note: null }, "", "phone", new Date())).toBe(false);
     expect(hasPhone("(12) 3333")).toBe(false);
+  });
+});
+
+describe("métricas do pós-venda", () => {
+  const now = new Date("2026-11-26T12:00:00Z");
+  const mk = (id: string, seller: string, daysAgo: number, outcome: string | null, note: string | null = null, contacted = true): ClientFollowupRow => ({
+    id, order_id: id, number: id, client_name: "C", seller_name: seller, seller_id: seller,
+    client_delivered_at: new Date(now.getTime() - daysAgo * 864e5).toISOString(),
+    followup_due_at: new Date(now.getTime() - (daysAgo - 5) * 864e5).toISOString(),
+    client_phone: null, contacted_at: contacted ? now.toISOString() : null, outcome, feedback_note: note, updated_at: "x",
+  });
+  const rows = [
+    mk("1", "Ju", 10, "adaptacao_ok"), mk("2", "Ju", 12, "adaptacao_ok"), mk("3", "Pa", 8, "precisa_ajuda"),
+    mk("4", "Pa", 9, "precisa_ajuda", `${CORRECTION_MARK} grau`), mk("5", "Ju", 7, null, null, false), mk("6", "Ju", 60, "sem_resposta"),
+  ];
+  it("conta resultados e separa correção de ajuste", () => {
+    const m = followupMetrics(rows, now, null);
+    expect(m).toMatchObject({ delivered: 6, contacted: 5, ok: 2, adjust: 1, correction: 1, noAnswer: 1, toContact: 1, answered: 4 });
+    expect(percent(m.ok, m.answered)).toBe("50%");
+    expect(percent(1, 0)).toBe("—");
+  });
+  it("respeita o período e separa por vendedora", () => {
+    const from = new Date(now.getTime() - 30 * 864e5);
+    expect(followupMetrics(rows, now, from).delivered).toBe(5);
+    const sellers = followupBySeller(rows, now, from);
+    expect(sellers.map((s) => [s.name, s.metrics.delivered, s.metrics.ok])).toEqual([["Ju", 3, 2], ["Pa", 2, 0]]);
   });
 });

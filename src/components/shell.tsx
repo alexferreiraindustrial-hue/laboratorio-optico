@@ -23,6 +23,8 @@ import {
   PackageCheck,
   PackageSearch,
   QrCode,
+  ScanLine,
+  Tags,
   RefreshCcw,
   Search,
   Settings,
@@ -44,6 +46,8 @@ import { LensMark } from "@/components/lens";
 import { can } from "@/lib/domain/permissions";
 import { ROLE_LABEL, type AppRole } from "@/lib/domain/constants";
 import { cn } from "@/lib/utils";
+import { GlobalOrderMenu } from "./order-context-menu";
+import { LabelQueueChip } from "./label-queue-chip";
 
 type NavItem = { href: string; label: string; icon: typeof LayoutDashboard };
 
@@ -63,6 +67,8 @@ const groups: { title: string; step?: string; adminOnly?: boolean; items: NavIte
     items: [
       { href: "/laboratorio/rapido", label: "Lançar serviço", icon: Zap },
       { href: "/laboratorio", label: "Fila de produção", icon: ClipboardList },
+      { href: "/bipe", label: "Modo bipe", icon: ScanLine },
+      { href: "/laboratorio/etiquetas", label: "Etiquetas", icon: Tags },
       { href: "/avisos", label: "Avisos por vendedora", icon: ClipboardList },
     ],
   },
@@ -121,6 +127,8 @@ const ACCESS: Record<AppRole, string[] | null> = {
   montador: [
     "/rotina",
     "/laboratorio/rapido",
+    "/bipe",
+    "/laboratorio/etiquetas",
     "/avisos",
     "/lentes",
     "/montagem",
@@ -131,7 +139,7 @@ const ACCESS: Record<AppRole, string[] | null> = {
     "/melhoria/kaizen",
     "/melhoria/5s",
   ],
-  estoquista: ["/rotina", "/laboratorio", "/lentes", "/estoque", "/ranking", "/recados", "/melhoria", "/melhoria/kaizen", "/melhoria/5s"],
+  estoquista: ["/rotina", "/laboratorio", "/laboratorio/etiquetas", "/lentes", "/estoque", "/ranking", "/recados", "/melhoria", "/melhoria/kaizen", "/melhoria/5s"],
   consulta: [
     "/dashboard",
     "/rotina",
@@ -172,6 +180,7 @@ const SIMPLE_ICON: Record<string, typeof LayoutDashboard> = {
   "/lentes": PackageSearch,
   "/montagem": Wrench,
   "/entrega": PackageCheck,
+  "/bipe": ScanLine,
 };
 
 function simpleItems(role: AppRole) {
@@ -510,6 +519,8 @@ export function Shell({
           </nav> : null}
           {children}
         </main>
+        <GlobalOrderMenu role={role} />
+        <LabelQueueChip />
       </div>
 
       <MobileDock

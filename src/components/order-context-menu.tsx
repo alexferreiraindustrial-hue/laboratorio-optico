@@ -1,9 +1,9 @@
 "use client";
 // Menu de ações rápidas da OS: botão direito do mouse (ou toque longo no celular).
 // Usa só as ações que já existem no servidor: changeOrderStatus e confirmClientDelivery.
-import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronLeft, ChevronRight, ClipboardCopy, ExternalLink, PackageCheck, Stethoscope, X, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronLeft, ChevronRight, ClipboardCopy, ExternalLink, ListPlus, ListX, PackageCheck, Printer, Stethoscope, X, Zap } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -16,6 +16,8 @@ import { changeOrderStatus } from "@/server/actions";
 import { confirmClientDelivery } from "@/server/fast-operations-actions";
 import { approveMedicalReview } from "@/server/followup-actions";
 import { stageStyle } from "./production-visuals";
+import { createClient } from "@/lib/supabase/client";
+import { labelQueue, useLabelQueue } from "./label-queue";
 
 export type MenuOrder = {
   id: string; number: string; status: string; clientName: string; detailsHref: string;
@@ -48,13 +50,17 @@ function canConfirmClient(role: AppRole, status: string) {
 }
 
 /** Liga o menu a qualquer elemento (inclusive linhas de tabela): espalhe "handlers" e renderize "element". */
-export function useOrderMenu(order: MenuOrder, role: AppRole) {
-  const [at, setAt] = useState<{ x: number; y: number } | null>(null);
+function clampMenu(x: number, y: number) {
+  return { x: Math.max(8, Math.min(x, window.innerWidth - 268)), y: Math.max(8, Math.min(y, window.innerHeight - 420)) };
+}
+
+export function useOrderMenu(order: MenuOrder, role: AppRole, initialAt?: { x: number; y: number }) {
+  const [at, setAt] = useState<{ x: number; y: number } | null>(() => initialAt ? clampMenu(initialAt.x, initialAt.y) : null);
   const [deliver, setDeliver] = useState(false);
   const [doctor, setDoctor] = useState(false);
   const press = useRef<number | null>(null);
   function openAt(x: number, y: number) {
-    setAt({ x: Math.max(8, Math.min(x, window.innerWidth - 268)), y: Math.max(8, Math.min(y, window.innerHeight - 368)) });
+    setAt(clampMenu(x, y));
   }
   const stop = () => { if (press.current) window.clearTimeout(press.current); };
   const close = useCallback(() => setAt(null), []);
@@ -96,6 +102,7 @@ function ActionsMenu({ order, role, at, onClose, onDeliver, onDoctor }: { order:
   const ready = moves.forward.includes("pronto") && !awaitingDoctor(order);
   const forward = moves.forward.filter((status) => status !== "pronto");
   const back = moves.back;
+  const queued = useLabelQueue().includes(order.id);
 
   useEffect(() => {
     box.current?.querySelector<HTMLElement>("[role=menuitem]:not(:disabled)")?.focus();
@@ -145,6 +152,9 @@ function ActionsMenu({ order, role, at, onClose, onDeliver, onDoctor }: { order:
       </> : null}
       {!doctor && !ready && !forward.length && !back.length && !canConfirmClient(role, order.status) ? <p className="ocm-note">Nenhuma mudança de etapa disponível para o seu perfil agora.</p> : null}
       <hr className="ocm-sep" />
+      <Link role="menuitem" href={`/laboratorio/etiquetas?ids=${order.id}`} onClick={onClose} className="ocm-item"><Printer size={16} />Imprimir etiqueta</Link>
+      {queued ? <button type="button" role="menuitem" onClick={() => { labelQueue.remove([order.id]); toast.success("Tirada da lista de etiquetas."); onClose(); }} className="ocm-item"><ListX size={16} />Tirar da lista de etiquetas</button>
+        : <button type="button" role="menuitem" onClick={() => { labelQueue.add([order.id]); toast.success(`OS ${order.number} na lista de etiquetas.`); onClose(); }} className="ocm-item"><ListPlus size={16} />Pôr na lista de etiquetas</button>}
       <button type="button" role="menuitem" onClick={async () => { try { await navigator.clipboard.writeText(order.number); toast.success("Número da OS copiado."); } catch { toast.error("Não foi possível copiar."); } onClose(); }} className="ocm-item"><ClipboardCopy size={16} />Copiar nº da OS</button>
       {pending ? <p className="ocm-note">Salvando…</p> : null}
     </div>
@@ -324,4 +334,60 @@ export function StageArrows({ status, role, orderId, number, onMove, disabled, w
       {next ? <button type="button" disabled={busy} onClick={() => go(next)} className="ocm-arrow is-next" title={`Avançar para ${STATUS_LABEL[next as OrderStatus]}`} aria-label={`Avançar OS ${number} para ${STATUS_LABEL[next as OrderStatus]}`}><span><i className="ocm-verb">Avançar · </i>{SHORT[next] ?? STATUS_LABEL[next as OrderStatus]}</span><ChevronRight size={16} /></button> : null}
     </div>
   );
+}
+
+const OS_LINK = /\/(laboratorio|montagem|lentes|entrega|assistencia)(?:\/|\?(?:[^#]*&)?os=)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
+
+/** Acha a OS do ponto clicado: atributo data-os-id ou um link que abre a OS. */
+export function orderIdFromElement(target: Element | null) {
+  const tagged = target?.closest<HTMLElement>("[data-os-id]");
+  if (tagged?.dataset.osId) return tagged.dataset.osId;
+  const link = target?.closest<HTMLAnchorElement>("a[href]");
+  const direct = link?.getAttribute("href")?.match(OS_LINK)?.[2]?.toLowerCase();
+  if (direct) return direct;
+  // Clique em outro ponto da linha/cartão: usa a OS do link que está dentro dela (se for uma só).
+  const row = target?.closest("li, tr, article, [role=row], [data-kanban-card], .lg-os-row-wrap, .bk-card, .bc-row");
+  if (!row) return null;
+  const ids = new Set([...row.querySelectorAll<HTMLAnchorElement>("a[href]")].map((a) => a.getAttribute("href")?.match(OS_LINK)?.[2]?.toLowerCase()).filter(Boolean));
+  return ids.size === 1 ? [...ids][0]! : null;
+}
+
+type Opened = { order: MenuOrder; at: { x: number; y: number }; stamp: number };
+
+/**
+ * Botão direito em qualquer tela: onde houver uma OS (link ou cartão), abre o menu de ações.
+ * Telas que já têm o próprio menu continuam com o delas.
+ */
+export function GlobalOrderMenu({ role }: { role: AppRole }) {
+  const pathname = usePathname();
+  const [opened, setOpened] = useState<Opened | null>(null);
+  const seq = useRef(0);
+  useEffect(() => {
+    async function onContext(event: MouseEvent) {
+      if (event.defaultPrevented || event.shiftKey) return;
+      const target = event.target as Element | null;
+      if (!target || target.closest("input, textarea, select, [contenteditable=true], .ocm, .ocm-dialog")) return;
+      const id = orderIdFromElement(target);
+      if (!id) return;
+      event.preventDefault();
+      const ticket = ++seq.current;
+      const supabase = createClient();
+      const { data } = await supabase.from("orders_enriched")
+        .select("id, number, external_order_id, client_name, status, medical_review_required, medical_review_approved_at, updated_at")
+        .eq("id", id).maybeSingle();
+      if (!data || ticket !== seq.current) { if (!data) toast.error("Não foi possível abrir as ações desta OS."); return; }
+      const external = (data.external_order_id as string | null)?.trim();
+      const number = external && external !== data.number ? external : data.number as string;
+      const base = pathname.startsWith("/montagem") ? `/montagem?os=${id}` : pathname.startsWith("/lentes") ? `/lentes?os=${id}` : pathname === "/laboratorio" ? `/laboratorio?os=${id}` : `/laboratorio/${id}`;
+      setOpened({ stamp: ticket, at: { x: event.clientX, y: event.clientY }, order: { id, number, status: data.status as string, clientName: data.client_name as string, detailsHref: base, medicalRequired: data.medical_review_required as boolean | null, medicalApproved: data.medical_review_approved_at as string | null, updatedAt: data.updated_at as string | null } });
+    }
+    document.addEventListener("contextmenu", onContext);
+    return () => document.removeEventListener("contextmenu", onContext);
+  }, [pathname]);
+  return opened ? <GlobalMenuHost key={opened.stamp} opened={opened} role={role} /> : null;
+}
+
+function GlobalMenuHost({ opened, role }: { opened: Opened; role: AppRole }) {
+  const menu = useOrderMenu(opened.order, role, opened.at);
+  return menu.element;
 }

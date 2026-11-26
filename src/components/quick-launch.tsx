@@ -215,6 +215,7 @@ function MoveMode({ mode }: { mode: "lentes" | "saida" }) {
                 <button
                   key={order.id}
                   type="button"
+                  data-os-id={order.id}
                   onClick={() => add(order)}
                   className="flex items-center justify-between gap-3 rounded-lg border border-[var(--line)] px-3 py-2 text-left hover:border-[var(--focus)] hover:bg-[var(--background)]"
                 >
@@ -246,7 +247,7 @@ function MoveMode({ mode }: { mode: "lentes" | "saida" }) {
               {picked.map((item) => {
                 const ok = item.status === required;
                 return (
-                  <li key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] px-5 py-3 last:border-b-0">
+                  <li key={item.id} data-os-id={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] px-5 py-3 last:border-b-0">
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <span className="font-mono text-[13px] font-medium text-[var(--link)]">
                         {visibleOrderNumber(item)}

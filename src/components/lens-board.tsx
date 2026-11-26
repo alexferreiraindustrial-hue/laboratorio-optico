@@ -29,7 +29,7 @@ function LensLine({row,now,index,selected,onToggle,canEdit,canRelease,disabled}:
  const [expanded,setExpanded]=useState(false);
  const [pending,start]=useTransition();const[error,setError]=useState<string|null>(null);const[message,setMessage]=useState<string|null>(null);
  const panelId=`lens-edit-${row.id}`;
- return <li className="lens-priority-row lens-list-row" data-urgency={priority.level}>
+ return <li className="lens-priority-row lens-list-row" data-os-id={row.id} data-urgency={priority.level}>
   <div className="lens-list-grid">
    <label className="lens-list-select flex min-h-11 items-center justify-center"><input type="checkbox" checked={selected} disabled={disabled} onChange={onToggle} aria-label={`Selecionar OS ${visibleOrderNumber(row)}`} className="h-4 w-4"/></label>
    <Link href={`/lentes?os=${row.id}`} scroll={false} className="lens-list-client min-w-0 py-1" title={`Abrir OS ${visibleOrderNumber(row)} — ${row.client_name}`}><span className="block truncate text-xs font-semibold text-[var(--link)]"><span className="mr-2 font-normal text-[var(--muted)]">{index+1}.</span>OS {visibleOrderNumber(row)}</span><span className="mt-0.5 block truncate text-sm font-semibold text-[var(--ink)]">{row.client_name}</span>{row.frame_state&&row.frame_state!=="unknown"&&<span className="block truncate text-[10px] text-[var(--muted)]">{FRAME_LABEL[row.frame_state]}</span>}</Link>

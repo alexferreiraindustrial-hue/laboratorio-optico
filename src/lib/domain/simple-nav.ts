@@ -8,6 +8,7 @@ export const SIMPLE_NAV = [
   { href: "/lentes", label: "Lentes", hint: "Chegou lente / o que falta" },
   { href: "/montagem", label: "Montagem", hint: "Montar e conferir" },
   { href: "/entrega", label: "Entrega", hint: "Óculos saindo pronto" },
+  { href: "/bipe", label: "Bipe", hint: "Passar o leitor nas OS" },
 ] as const;
 
 export type SimpleHref = (typeof SIMPLE_NAV)[number]["href"];
@@ -25,6 +26,8 @@ export function simpleAllowed(role: AppRole, href: string) {
       return can(role, "assembly.write");
     case "/entrega":
       return can(role, "orders.deliver");
+    case "/bipe":
+      return can(role, "orders.status");
     default:
       return false;
   }

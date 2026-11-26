@@ -54,3 +54,26 @@ describe("previsão do laboratório x prazo do serviço", () => {
     expect(compareForecast("2026-11-22T15:00:00Z", "2026-11-20T15:00:00Z").tone).toBe("ok");
   });
 });
+
+import { deadlineText, radarGroups, type RadarOrder } from "./pdv";
+
+describe("radar do PDV", () => {
+  const now = new Date("2026-11-25T15:00:00Z");
+  const base = { external_order_id: null, client_name: "C", lens_expected_at: null } as const;
+  const orders: RadarOrder[] = [
+    { ...base, id: "a", number: "1", status: "em_montagem", due_at: "2026-11-25T10:00:00Z" },
+    { ...base, id: "b", number: "2", status: "aguardando_montagem", due_at: "2026-11-25T17:00:00Z" },
+    { ...base, id: "c", number: "3", status: "em_montagem", due_at: "2026-12-10T17:00:00Z" },
+    { ...base, id: "d", number: "4", status: "pronto", due_at: "2026-11-20T17:00:00Z" },
+  ];
+  it("separa atrasadas e as que vão atrasar; pronta não entra", () => {
+    const { lanes, counts } = radarGroups(orders, now);
+    expect(lanes.atrasada.map((item) => item.order.id)).toEqual(["a"]);
+    expect([...lanes.risco, ...lanes.atencao].map((item) => item.order.id)).toEqual(["b"]);
+    expect(counts.pronto).toBe(1);
+  });
+  it("texto do prazo", () => {
+    expect(deadlineText("2026-11-25T10:00:00Z", now)).toBe("atrasou há 5 h");
+    expect(deadlineText("2026-11-25T18:00:00Z", now)).toBe("vence em 3 h");
+  });
+});

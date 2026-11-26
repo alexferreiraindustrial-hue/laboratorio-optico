@@ -113,14 +113,26 @@ export function OrderLabelPrint({ ids }: { ids: string[] }) {
   );
 }
 
-const PERIODS = [{ key: "1", label: "Hoje" }, { key: "3", label: "3 dias" }, { key: "7", label: "7 dias" }, { key: "30", label: "30 dias" }] as const;
+const PERIODS = [{ key: "aberto", label: "Todas em aberto" }, { key: "1", label: "Entraram hoje" }, { key: "3", label: "3 dias" }, { key: "7", label: "7 dias" }, { key: "30", label: "30 dias" }] as const;
+
+/** Categorias para imprimir por partes (etapa da OS). */
+const CATEGORIES: { key: string; label: string; statuses: OrderStatus[] | null }[] = [
+  { key: "todas", label: "Todas", statuses: null },
+  { key: "lentes", label: "Aguardando lentes", statuses: ["aguardando_lentes"] },
+  { key: "montagem", label: "Aguardando montagem", statuses: ["aguardando_montagem"] },
+  { key: "bancada", label: "Em montagem", statuses: ["em_montagem", "em_correcao"] },
+  { key: "medico", label: "No médico", statuses: ["em_conferencia"] },
+  { key: "pronto", label: "Pronto", statuses: ["pronto"] },
+  { key: "entregue", label: "Entregue", statuses: ["entregue"] },
+];
 
 /** Escolher as OS para imprimir: lista recente + "lista de etiquetas" guardada. */
 export function OrderLabelPicker() {
   const router = useRouter();
   const queue = useLabelQueue();
   const printedIds = usePrintedLabels();
-  const [period, setPeriod] = useState<(typeof PERIODS)[number]["key"]>("3");
+  const [period, setPeriod] = useState<(typeof PERIODS)[number]["key"]>("aberto");
+  const [category, setCategory] = useState("todas");
   const [query, setQuery] = useState("");
   const [onlyPending, setOnlyPending] = useState(false);
   const [rows, setRows] = useState<LabelOrder[] | null>(null);
@@ -131,10 +143,15 @@ export function OrderLabelPicker() {
 
   useEffect(() => {
     let active = true;
-    const since = new Date(Date.now() - Number(period) * 864e5);
-    if (period === "1") since.setHours(0, 0, 0, 0);
     const supabase = createClient();
-    const recent = supabase.from("orders_enriched").select(FIELDS).gte("entered_at", since.toISOString()).not("status", "in", "(cancelado)").order("entered_at", { ascending: false }).limit(300);
+    let recent;
+    if (period === "aberto") {
+      recent = supabase.from("orders_enriched").select(FIELDS).not("status", "in", "(entregue,cancelado)").order("entered_at", { ascending: false }).limit(600);
+    } else {
+      const since = new Date(Date.now() - Number(period) * 864e5);
+      if (period === "1") since.setHours(0, 0, 0, 0);
+      recent = supabase.from("orders_enriched").select(FIELDS).gte("entered_at", since.toISOString()).not("status", "in", "(cancelado)").order("entered_at", { ascending: false }).limit(400);
+    }
     const queued = queueKey ? supabase.from("orders_enriched").select(FIELDS).in("id", queueKey.split(",")) : Promise.resolve({ data: [], error: null });
     void Promise.all([recent, queued]).then(([a, b]) => {
       if (!active) return;
@@ -146,14 +163,16 @@ export function OrderLabelPicker() {
     return () => { active = false; };
   }, [period, queueKey]);
 
+  const statuses = CATEGORIES.find((item) => item.key === category)?.statuses ?? null;
   const visible = useMemo(() => {
     const text = query.trim().toLowerCase();
     return (rows ?? []).filter((row) => {
+      if (statuses && !statuses.includes(row.status)) return false;
       if (onlyPending && printedIds.includes(row.id)) return false;
       if (!text) return true;
       return [row.number, row.external_order_id, row.client_name, row.seller_name, row.store_name].some((value) => value?.toLowerCase().includes(text));
     }).sort((a, b) => Number(queue.includes(b.id)) - Number(queue.includes(a.id)));
-  }, [rows, query, onlyPending, printedIds, queue]);
+  }, [rows, query, onlyPending, printedIds, queue, statuses]);
 
   function toggle(id: string) {
     const next = new Set(selected);
@@ -176,6 +195,12 @@ export function OrderLabelPicker() {
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Período de entrada">
           {PERIODS.map((item) => <button key={item.key} type="button" aria-pressed={period === item.key} onClick={() => setPeriod(item.key)} className="ol-chip">{item.label}</button>)}
         </div>
+        <div className="ol-cats" role="group" aria-label="Etapa da OS">
+          {CATEGORIES.filter((item) => item.key !== "entregue" || period !== "aberto").map((item) => {
+            const count = (rows ?? []).filter((row) => !item.statuses || item.statuses.includes(row.status)).length;
+            return <button key={item.key} type="button" aria-pressed={category === item.key} onClick={() => setCategory(item.key)} className="ol-cat">{item.label}<b>{rows ? count : "…"}</b></button>;
+          })}
+        </div>
         <label className="ol-search"><Search size={16} aria-hidden /><span className="sr-only">Buscar</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="OS, cliente, vendedora ou loja" /></label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={onlyPending} onChange={(event) => setOnlyPending(event.target.checked)} className="h-4 w-4" />Só as ainda não impressas</label>
       </div>
@@ -183,7 +208,7 @@ export function OrderLabelPicker() {
       {!rows ? <p className="text-sm text-[var(--muted)]">Carregando OS…</p> : (
         <div className="ol-list">
           <button type="button" className="ol-row is-head" onClick={() => { const next = new Set(selected); for (const row of visible) { if (allVisible) next.delete(row.id); else next.add(row.id); } setPicked(next); }}>
-            {allVisible ? <CheckSquare size={18} /> : <Square size={18} />}<span>{allVisible ? "Desmarcar" : "Marcar"} as {visible.length} da lista</span>
+            {allVisible ? <CheckSquare size={18} /> : <Square size={18} />}<span>{allVisible ? "Desmarcar" : "Marcar"} as {visible.length} {category === "todas" ? "da lista" : `de "${CATEGORIES.find((item) => item.key === category)?.label}"`}</span>
           </button>
           {visible.map((row) => {
             const on = selected.has(row.id);

@@ -984,6 +984,53 @@ h1, .display { letter-spacing: -0.02em; font-weight: 700; }
   .ol-label { border: 1px dashed #999; }
 }
 
+/* Folha de auditoria */
+.au-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
+.au-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-right: auto; }
+.au-chips button { min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 13px; font-weight: 600; color: var(--muted); }
+.au-chips button b { margin-left: 4px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.au-chips button[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+.au-sheet { max-width: 1000px; padding: 24px; border-radius: 12px; background: #fff; color: #1d1d1d; }
+.au-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; padding-bottom: 10px; border-bottom: 2px solid #1d1d1d; }
+.au-head h1 { margin: 0; font-size: 22px; font-weight: 700; }
+.au-head p { margin: 2px 0 0; font-size: 12px; color: #555; }
+.au-head dl { display: flex; gap: 14px; margin: 0; align-items: flex-end; }
+.au-head dl div { display: grid; gap: 2px; }
+.au-head dt { font-size: 11px; color: #555; }
+.au-head dd { width: 200px; height: 20px; margin: 0; border-bottom: 1px solid #1d1d1d; }
+.au-head dd.is-short { width: 64px; }
+.au-how { margin: 8px 0 14px; font-size: 12px; color: #333; }
+.au-group { margin-top: 14px; }
+.au-group h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; padding: 6px 8px; border-radius: 6px; background: #ecebe7; font-size: 14px; font-weight: 700; }
+.au-group h2 small { margin-left: auto; font-size: 12px; font-weight: 600; color: #555; }
+.au table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.au th { padding: 4px 6px; border-bottom: 1px solid #999; text-align: left; font-size: 11px; font-weight: 600; color: #555; }
+.au td { padding: 5px 6px; border-bottom: 1px solid #d8d6d0; vertical-align: middle; }
+.au tr { break-inside: avoid; }
+.au-box { display: inline-block; flex: none; width: 16px; height: 16px; border: 1.5px solid #1d1d1d; border-radius: 3px; }
+.au-c-ok { width: 34px; text-align: center !important; }
+.au-c-code { width: 235px; }
+.au-c-date { width: 104px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.au-c-where { width: 170px; }
+.au-code { display: flex; align-items: center; gap: 8px; }
+.au-code img, .au-qr-wait { width: 15mm; height: 15mm; flex: none; }
+.au-code > div { display: grid; gap: 2px; min-width: 0; }
+.au-code b { font-size: 14px; font-weight: 700; }
+.au-bar { width: 150px; height: 24px; }
+.au-nonum { font-size: 11px; color: #777; }
+.au-client { display: block; font-size: 13px; }
+.au-sub { display: block; font-size: 11px; color: #555; }
+.au-line { display: block; height: 18px; border-bottom: 1px solid #1d1d1d; }
+.au-foot { margin-top: 18px; font-size: 12px; }
+@media print {
+  @page { size: A4 portrait; margin: 10mm; }
+  body:has(.au-sheet) .lg-topbar, body:has(.au-sheet) .lab-rail, body:has(.au-sheet) .lq-chip { display: none !important; }
+  body:has(.au-sheet) [class*="lg:pl-[84px]"] { padding-left: 0 !important; }
+  .au-sheet { max-width: none; padding: 0; border-radius: 0; }
+  .au-group h2 { break-after: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .au thead { display: table-header-group; }
+}
+
 /* Caixa da produção (modo bipe) */
 .pdv { --lcd: #0e2724; --lcd-ink: #a6f4cf; --lcd-dim: #5f9c83; --late: #c8372d; --risk: #d4760b; --tight: #b99a12;
   display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 20px; align-items: start; }
@@ -1020,7 +1067,27 @@ h1, .display { letter-spacing: -0.02em; font-weight: 700; }
 
 /* Teclas de ação com profundidade, como teclado de caixa */
 .pdv-keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-.pdv-key.is-corrigir:not([aria-checked="true"]) { border-style: dashed; }
+.pdv-key.is-corrigir:not([aria-checked="true"]), .pdv-key.is-auditoria:not([aria-checked="true"]) { border-style: dashed; }
+.pdv-fix.is-audit { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); align-items: end; }
+.pdv-fix.is-audit p { margin: 0; font-size: 12px; line-height: 1.4; color: rgb(255 255 255 / .7); }
+.pdv-audit { display: grid; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.pdv-audit-head { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; }
+.pdv-audit-head > svg { margin-top: 2px; color: var(--accent); }
+.pdv-audit-head h2 { margin: 0; font-size: 16px; font-weight: 650; }
+.pdv-audit-head p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.pdv-audit-bar { height: 10px; overflow: hidden; border-radius: 999px; background: var(--surface-secondary, var(--line)); }
+.pdv-audit-bar span { display: block; height: 100%; border-radius: 999px; background: var(--accent); transition: width .3s ease; }
+.pdv-audit-count { margin: 0; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pdv-audit-count b { color: var(--ink); }
+.pdv-audit-toggle { justify-self: start; min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--link); }
+.pdv-audit-missing { display: grid; gap: 12px; }
+.pdv-audit-missing h3 { display: flex; gap: 8px; align-items: baseline; margin: 0 0 4px; font-size: 13px; font-weight: 650; }
+.pdv-audit-missing h3 span { font-variant-numeric: tabular-nums; color: var(--muted); }
+.pdv-audit-missing ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 12px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+.pdv-audit-missing li a { display: flex; gap: 8px; min-width: 0; padding: 4px 0; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pdv-audit-missing li b { flex: none; font-weight: 600; color: var(--muted); }
+.pdv-audit-done, .pdv-audit-note { margin: 0; font-size: 13px; color: var(--muted); }
+@media (max-width: 560px) { .pdv-fix.is-audit { grid-template-columns: 1fr; } }
 .ocm-choice { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; font-size: 14px; }
 .ocm-choice:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
 .ocm-choice input { margin-top: 3px; accent-color: var(--accent); }

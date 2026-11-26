@@ -21,6 +21,7 @@ export const SCAN_ACTIONS = {
   voltou: { label: "Voltou do médico", hint: "Liberado e pronto para entregar", from: ["em_conferencia"] },
   entregue: { label: "Entregue ao cliente", hint: "Começa o pós-venda de 5 dias", from: ["pronto", "entregue"] },
   armacao: { label: "Armação chegou (VTA)", hint: "Cliente trouxe a armação · vai para montagem", from: ["aguardando_lentes"] },
+  auditoria: { label: "Auditoria", hint: "Escolha o local e bipe tudo o que está nele · gestor", from: ["aguardando_lentes", "aguardando_montagem", "em_montagem", "em_correcao", "em_conferencia", "pronto"] },
   corrigir: { label: "Corrigir posição", hint: "Desfazer pronto ou pôr em VTA · gestor", from: ["pronto", "aguardando_lentes", "aguardando_montagem", "em_montagem"] },
 } as const;
 
@@ -46,6 +47,7 @@ export function scanAlreadyDone(action: ScanAction, order: ScanOrder) {
     case "lente": return order.status === "aguardando_montagem" || order.status === "em_montagem" || (order.status === "aguardando_lentes" && order.frameState === "vta" && Boolean(order.lensArrived));
     case "armacao": return false;
     case "corrigir": return false;
+    case "auditoria": return false;
     case "pronto": return order.status === "pronto";
     case "medico": return order.status === "em_conferencia";
     case "voltou": return order.status === "pronto" && Boolean(order.medicalApproved);

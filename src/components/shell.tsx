@@ -70,6 +70,7 @@ const groups: { title: string; step?: string; adminOnly?: boolean; items: NavIte
       { href: "/laboratorio", label: "Fila de produção", icon: ClipboardList },
       { href: "/pdv", label: "PDV da produção", icon: ScanBarcode },
       { href: "/laboratorio/etiquetas", label: "Etiquetas", icon: Tags },
+      { href: "/laboratorio/auditoria", label: "Auditoria", icon: ClipboardCheck },
       { href: "/avisos", label: "Avisos por vendedora", icon: ClipboardList },
     ],
   },
@@ -183,6 +184,7 @@ const SIMPLE_ICON: Record<string, typeof LayoutDashboard> = {
   "/entrega": PackageCheck,
   "/pdv": ScanBarcode,
   "/pos-venda": HeartHandshake,
+  "/laboratorio/auditoria": ClipboardCheck,
 };
 
 function simpleItems(role: AppRole) {

@@ -2,7 +2,7 @@
 // PDV da produção: escolhe a ação (teclas F1–F5) e bipa as OS uma atrás da outra.
 // Cada bipe usa uma ação que o sistema já tinha (mesmas regras e histórico de sempre).
 // Ao lado, o cupom do turno; embaixo, o radar das OS atrasadas ou perto de atrasar.
-import { BellRing, Camera, CameraOff, Check, Expand, Glasses, MoveHorizontal, PackageCheck, PackageOpen, ScanLine, Shrink, Stethoscope, Undo2, X } from "lucide-react";
+import { BellRing, Camera, CameraOff, Check, ClipboardCheck, Expand, Glasses, MoveHorizontal, PackageCheck, PackageOpen, ScanLine, Shrink, Stethoscope, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
@@ -19,21 +19,24 @@ import { quickMoveOrders } from "@/server/quick-actions";
 import { receiveOrderFrame } from "@/server/operations-actions";
 import { repositionOrder } from "@/server/reposition-actions";
 import { REPOSITION_LABEL, REPOSITION_TARGETS, type RepositionTarget } from "@/lib/domain/reposition";
+import { AUDIT_OPEN_STATUSES, AUDIT_ORDER, AUDIT_POSITIONS, type AuditPosition } from "@/lib/domain/audit";
+import { auditMoveOrder } from "@/server/audit-actions";
+import { AuditPanel, loadAuditSession, saveAuditSession, type AuditRow, type AuditSession } from "./audit-panel";
 
-const ICONS: Record<ScanAction, typeof Check> = { lente: PackageOpen, pronto: Check, medico: Stethoscope, voltou: Undo2, entregue: PackageCheck, armacao: Glasses, corrigir: MoveHorizontal };
-const ORDER: ScanAction[] = ["lente", "pronto", "medico", "voltou", "entregue", "armacao", "corrigir"];
-const KEYS: Record<ScanAction, string> = { lente: "F1", pronto: "F2", medico: "F3", voltou: "F4", entregue: "F5", armacao: "F6", corrigir: "F7" };
+const ICONS: Record<ScanAction, typeof Check> = { lente: PackageOpen, pronto: Check, medico: Stethoscope, voltou: Undo2, entregue: PackageCheck, armacao: Glasses, corrigir: MoveHorizontal, auditoria: ClipboardCheck };
+const ORDER: ScanAction[] = ["lente", "pronto", "medico", "voltou", "entregue", "armacao", "corrigir", "auditoria"];
+const KEYS: Record<ScanAction, string> = { lente: "F1", pronto: "F2", medico: "F3", voltou: "F4", entregue: "F5", armacao: "F6", corrigir: "F7", auditoria: "F8" };
 
 type Found = { id: string; number: string; external_order_id: string | null; client_name: string; status: string; medical_review_required: boolean | null; medical_review_approved_at: string | null; updated_at: string; frame_state: string | null; lens_arrived_at: string | null };
 type Fix = { to: RepositionTarget; note: string };
-type LogItem = { key: number; at: string; code: string; ok: boolean; repeat?: boolean; title: string; client?: string; detail: string; action: ScanAction; id?: string };
+type LogItem = { key: number; at: string; code: string; ok: boolean; repeat?: boolean; audit?: "confere" | "corrigida"; title: string; client?: string; detail: string; action: ScanAction; id?: string };
 type Display = { tone: "idle" | "ok" | "err" | "busy" | "rep"; number: string; client: string; line: string };
 
 export function allowedScanActions(role: AppRole): ScanAction[] {
   return ORDER.filter((action) => {
     if (action === "entregue") return ["admin", "gestor"].includes(role) && can(role, "orders.deliver");
     if (action === "voltou") return can(role, "orders.write");
-    if (action === "corrigir") return ["admin", "gestor"].includes(role);
+    if (action === "corrigir" || action === "auditoria") return ["admin", "gestor"].includes(role);
     return can(role, "orders.status");
   });
 }
@@ -89,7 +92,7 @@ async function run(action: ScanAction, order: Found, fix: Fix) {
   }
 }
 
-const DONE: Record<ScanAction, string> = { lente: "Lente registrada", pronto: "Marcada como pronta", medico: "Enviada ao médico", voltou: "Liberada pelo médico", entregue: "Entregue ao cliente", armacao: "Armação registrada", corrigir: "Posição corrigida" };
+const DONE: Record<ScanAction, string> = { lente: "Lente registrada", pronto: "Marcada como pronta", medico: "Enviada ao médico", voltou: "Liberada pelo médico", entregue: "Entregue ao cliente", armacao: "Armação registrada", corrigir: "Posição corrigida", auditoria: "Conferida" };
 
 export function ScanStation({ role, embedded = false }: { role: AppRole; embedded?: boolean }) {
   const router = useRouter();
@@ -105,6 +108,9 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
   const [now, setNow] = useState(() => new Date());
   const [unread, setUnread] = useState(0);
   const [fix, setFix] = useState<Fix>({ to: "aguardando_montagem", note: "Pronto dado por engano" });
+  const [auditAt, setAuditAt] = useState<AuditPosition>("pronto");
+  const [auditRows, setAuditRows] = useState<AuditRow[] | null>(null);
+  const [auditSession, setAuditSession] = useState<AuditSession | null>(null);
   const root = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const seq = useRef(0);
@@ -134,7 +140,29 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
 
   useEffect(() => { input.current?.focus(); }, [action]);
 
-  // Teclas F1–F7 trocam a ação, como num caixa.
+  const loadAudit = useCallback(async () => {
+    const { data } = await createClient().from("service_orders")
+      .select("id, number, external_order_id, client_name, status, frame_state, lens_arrived_at")
+      .in("status", AUDIT_OPEN_STATUSES).order("number").limit(3000);
+    if (data) setAuditRows(data as AuditRow[]);
+  }, []);
+  useEffect(() => {
+    if (action !== "auditoria") return;
+    // Lê a sessão guardada neste computador só quando a auditoria é aberta.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAuditSession((current) => current ?? loadAuditSession());
+    void loadAudit();
+  }, [action, loadAudit]);
+  const markAudit = useCallback((id: string, changed: boolean) => {
+    setAuditSession((current) => {
+      const base = current ?? loadAuditSession();
+      const next = { ...base, seen: { ...base.seen, [id]: { at: new Date().toISOString(), changed: changed || Boolean(base.seen[id]?.changed) } } };
+      saveAuditSession(next);
+      return next;
+    });
+  }, []);
+
+  // Teclas F1–F8 trocam a ação, como num caixa.
   useEffect(() => {
     const keys = (event: KeyboardEvent) => {
       const hit = actions.find((key) => KEYS[key] === event.key);
@@ -151,7 +179,7 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
   function push(item: Omit<LogItem, "key" | "at">) {
     beep(item.ok);
     setLog((current) => [{ ...item, key: ++seq.current, at: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) }, ...current].slice(0, 80));
-    setDisplay({ tone: item.repeat ? "rep" : item.ok ? "ok" : "err", number: item.title, client: item.client ?? "", line: item.detail });
+    setDisplay({ tone: item.repeat || item.audit === "corrigida" ? "rep" : item.ok ? "ok" : "err", number: item.title, client: item.client ?? "", line: item.detail });
   }
 
   function submit(raw: string) {
@@ -173,6 +201,15 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
         if (!found.order) { push({ ok: false, code: text, action: chosen, title: text, detail: found.error ?? "Não encontrada." }); return; }
         const order = found.order;
         const number = visible(order);
+        if (chosen === "auditoria") {
+          const where = auditAt;
+          const result = await auditMoveOrder(order.id, where);
+          settle(result.ok);
+          if (result.ok) markAudit(order.id, Boolean(result.changed));
+          push({ ok: result.ok, audit: result.ok ? (result.changed ? "corrigida" : "confere") : undefined, code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: result.ok && result.changed && result.detail ? `${result.message} (${result.detail})` : result.message ?? "" });
+          if (result.ok && result.changed) { void loadRadar(); void loadAudit(); }
+          return;
+        }
         const state = { status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, frameState: order.frame_state, lensArrived: order.lens_arrived_at };
         if (scanAlreadyDone(chosen, state)) { settle(true); push({ ok: true, repeat: true, code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: "Já estava registrada. Nada mudou." }); return; }
         const block = chosen === "corrigir" && fix.note.trim().length < 3 ? "Escreva o motivo da correção." : scanBlockReason(chosen, state, (status) => STATUS_LABEL[status as OrderStatus] ?? status);
@@ -230,6 +267,12 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
               <p className="pdv-lcd-line">{display.tone === "ok" || display.tone === "rep" ? <Check size={18} aria-hidden /> : display.tone === "err" ? <X size={18} aria-hidden /> : null}{display.line}</p>
             </>
           )}
+          {action === "auditoria" ? (
+            <div className="pdv-fix is-audit">
+              <label>Estou conferindo<select value={auditAt} onChange={(event) => { setAuditAt(event.target.value as AuditPosition); input.current?.focus(); }}>{AUDIT_ORDER.map((key) => <option key={key} value={key}>{AUDIT_POSITIONS[key]}</option>)}</select></label>
+              <p>Cada OS bipada aqui fica registrada neste local. Se o sistema mostrava outro lugar, ele corrige e grava no histórico.</p>
+            </div>
+          ) : null}
           {action === "corrigir" ? (
             <div className="pdv-fix">
               <label>Mandar para<select value={fix.to} onChange={(event) => setFix((current) => ({ ...current, to: event.target.value as RepositionTarget }))}>{REPOSITION_TARGETS.map((key) => <option key={key} value={key}>{REPOSITION_LABEL[key]}</option>)}</select></label>
@@ -257,6 +300,8 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
             );
           })}
         </div>
+
+        {action === "auditoria" && auditSession ? <AuditPanel rows={auditRows} session={auditSession} onReset={() => { const fresh = { startedAt: new Date().toISOString(), seen: {} }; saveAuditSession(fresh); setAuditSession(fresh); input.current?.focus(); }} /> : null}
 
         <section className="pdv-radar" aria-label="Prazos que pedem cuidado">
           <div className="pdv-radar-head">
@@ -288,10 +333,10 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
           {log.length === 0 ? <p className="pdv-paper-empty">Nenhum bipe ainda. Cada OS registrada aparece aqui.</p> : null}
           <ol>
             {log.map((item) => (
-              <li key={item.key} className={item.repeat ? "is-rep" : item.ok ? "is-ok" : "is-err"} data-os-id={item.id}>
-                <span className="pdv-line-top"><time>{item.at}</time><b>{item.title}</b><em>{item.repeat ? "JÁ FEITO" : item.ok ? "OK" : "RECUSADO"}</em></span>
+              <li key={item.key} className={item.repeat || item.audit === "corrigida" ? "is-rep" : item.ok ? "is-ok" : "is-err"} data-os-id={item.id}>
+                <span className="pdv-line-top"><time>{item.at}</time><b>{item.title}</b><em>{item.audit === "confere" ? "CONFERE" : item.audit === "corrigida" ? "CORRIGIDA" : item.repeat ? "JÁ FEITO" : item.ok ? "OK" : "RECUSADO"}</em></span>
                 <span className="pdv-line-sub">{SCAN_ACTIONS[item.action].label}{item.client ? ` · ${item.client}` : ""}</span>
-                {!item.ok || item.repeat ? <span className="pdv-line-why">{item.detail}</span> : null}
+                {!item.ok || item.repeat || item.audit === "corrigida" ? <span className="pdv-line-why">{item.detail}</span> : null}
                 {item.id ? <Link href={`/laboratorio/${item.id}`} className="pdv-line-open">Abrir</Link> : null}
               </li>
             ))}

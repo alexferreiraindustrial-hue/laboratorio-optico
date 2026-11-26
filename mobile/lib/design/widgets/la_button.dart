@@ -51,7 +51,7 @@ class LaButton extends StatelessWidget {
       LaButtonVariant.escuro => (
         Theme.of(context).brightness == Brightness.dark
             ? Theme.of(context).colorScheme.primary
-            : const Color(0xFF222222),
+            : LaColors.grafite,
         Theme.of(context).brightness == Brightness.dark
             ? Theme.of(context).colorScheme.onPrimary
             : LaColors.branco,

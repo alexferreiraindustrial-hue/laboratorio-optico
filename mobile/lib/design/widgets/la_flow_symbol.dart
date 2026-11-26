@@ -40,7 +40,7 @@ class LaFlowSymbol extends StatelessWidget {
 class _FlowPainter extends CustomPainter {
   _FlowPainter(this.kind, this.vazio, this.brightness);
   final Brightness brightness;
-  Color tone(Color color) => brightness == Brightness.dark && color == LaColors.branco ? const Color(0xFF23211E) : LaColors.forBrightness(brightness, color);
+  Color tone(Color color) => brightness == Brightness.dark && color == LaColors.branco ? const Color(0xFF202C33) : LaColors.forBrightness(brightness, color);
 
   final LaFlowKind kind;
   final bool vazio;

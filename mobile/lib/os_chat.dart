@@ -314,7 +314,8 @@ class _BubbleView extends StatelessWidget {
         constraints: BoxConstraints(maxWidth: 320),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: mine ? Color(0xFF222222) : LaColors.surface(context),
+            // Balão "meu" igual ao do site (verde claro / verde escuro).
+            color: mine ? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF005C4B) : const Color(0xFFD9FDD3)) : LaColors.surface(context),
             borderRadius: LaRadius.rCartao,
           ),
           child: Padding(
@@ -325,14 +326,14 @@ class _BubbleView extends StatelessWidget {
                 Text(
                   item.label,
                   style: LaType.rotulo.copyWith(
-                    color: mine ? LaColors.adapt(context, LaColors.faixa) : LaColors.adapt(context, LaColors.regua),
+                    color: mine ? LaColors.adapt(context, LaColors.regua) : LaColors.adapt(context, LaColors.regua),
                   ),
                 ),
                 if (item.body.isNotEmpty)
                   Text(
                     item.body,
                     style: LaType.corpo.copyWith(
-                      color: mine ? LaColors.branco : LaColors.adapt(context, LaColors.grafite),
+                      color: LaColors.adapt(context, LaColors.grafite),
                     ),
                   ),
                 if (onPlay != null)
@@ -341,7 +342,7 @@ class _BubbleView extends StatelessWidget {
                     child: Text(
                       playing ? 'Parar' : 'Ouvir áudio',
                       style: LaType.rotulo.copyWith(
-                        color: mine ? LaColors.branco : LaColors.adapt(context, LaColors.grafite),
+                        color: LaColors.adapt(context, LaColors.grafite),
                       ),
                     ),
                   ),

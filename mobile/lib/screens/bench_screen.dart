@@ -308,7 +308,7 @@ class _Station extends StatelessWidget {
         : (alert
               ? LaColors.adapt(context, LaColors.alerta)
               : LaColors.adapt(context, LaColors.grafite));
-    final number = selected ? LaColors.branco : fg;
+    final number = fg;
     return Semantics(
       button: true,
       selected: selected,

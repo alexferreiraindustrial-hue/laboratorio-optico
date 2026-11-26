@@ -354,8 +354,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             SizedBox(height: 12),
                             FilledButton(
                               style: FilledButton.styleFrom(
-                                backgroundColor: Color(0xFF222222),
-                                foregroundColor: LaColors.branco,
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                               ),
                               onPressed: pending || nextStatus == null
                                   ? null
@@ -419,8 +419,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               }
                               return FilledButton(
                                 style: FilledButton.styleFrom(
-                                  backgroundColor: Color(0xFF222222),
-                                  foregroundColor: LaColors.branco,
+                                  backgroundColor: Theme.of(context).colorScheme.primary,
+                                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                                 ),
                                 onPressed: pending ? null : runBench,
                                 child: Text(

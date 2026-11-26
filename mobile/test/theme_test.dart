@@ -44,13 +44,13 @@ void main() {
       );
     }
   });
-  test('ouro mantém contraste AA nos botões', () {
+  test('verde do site mantém contraste AA nos botões', () {
     final scheme = labTheme(dark: true).colorScheme;
     expect(
       contrast(scheme.primary, scheme.onPrimary),
       greaterThanOrEqualTo(4.5),
     );
-    expect(scheme.primary, const Color(0xFFF5B53D));
+    expect(scheme.primary, const Color(0xFF00A884));
   });
   test('etiquetas selecionadas preservam contraste AA nos dois temas', () {
     for (final dark in [false, true]) {

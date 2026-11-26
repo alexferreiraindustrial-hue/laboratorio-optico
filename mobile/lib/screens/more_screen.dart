@@ -35,10 +35,10 @@ class MoreScreen extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 22,
-                  backgroundColor: Color(0xFF222222),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   child: Text(
                     iniciaisDe(name),
-                    style: LaType.rotulo.copyWith(color: LaColors.branco),
+                    style: LaType.rotulo.copyWith(color: Theme.of(context).colorScheme.onPrimary),
                   ),
                 ),
                 SizedBox(width: LaSpace.l),

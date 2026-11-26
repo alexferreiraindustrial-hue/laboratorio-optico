@@ -10,51 +10,48 @@ abstract final class LaColors {
       forBrightness(Theme.of(context).brightness, color);
   static Color forBrightness(Brightness brightness, Color color) {
     if (brightness != Brightness.dark) return color;
-    if (color == piso) return const Color(0xFF07070A);
-    if (color == grafite) return const Color(0xFFF3EEE6);
-    if (color == regua || color == abaInativa) return const Color(0xFFCFC6B8);
-    if (color == borda || color == filete || color == linha)
-      return const Color(0xFF48423A);
-    if (color == acentoSuave || color == alertaFundo)
-      return const Color(0xFF332613);
-    if (color == perigoFundo) return const Color(0xFF3A2828);
-    if (color == perigo || color == pontoAtrasada)
-      return const Color(0xFFFF8A7A);
-    if (color == alerta ||
-        color == alertaBorda ||
-        color == pontoProximo ||
-        color == acento)
-      return const Color(0xFFF5C15A);
-    if (color == noPrazo || color == pontoNoPrazo)
-      return const Color(0xFF4ADE80);
+    // Mesmas cores do modo escuro do site (lab.oticahub.com).
+    if (color == piso) return const Color(0xFF0B141A);
+    if (color == grafite || color == navegacao) return const Color(0xFFE9EDEF);
+    if (color == regua || color == abaInativa) return const Color(0xFFAEBAC1);
+    if (color == borda) return const Color(0xFF34474F);
+    if (color == filete || color == linha) return const Color(0xFF2A3942);
+    if (color == acentoSuave) return const Color(0xFF103529);
+    if (color == alertaFundo) return const Color(0xFF3A3120);
+    if (color == perigoFundo) return const Color(0xFF3D1F27);
+    if (color == perigo || color == pontoAtrasada) return const Color(0xFFFF8FA3);
+    if (color == alerta || color == alertaBorda || color == pontoProximo) return const Color(0xFFFFD279);
+    if (color == acento || color == faixa) return const Color(0xFF00A884);
+    if (color == noPrazo || color == pontoNoPrazo) return const Color(0xFF06CF9C);
     return color;
   }
 
-  static const acento = Color(0xFF8C6239);
-  static const acentoSuave = Color(0xFFF3ECE2);
-  static const navegacao = Color(0xFF222222);
-  static const piso = Color(0xFFF7F6F3);
+  // Paleta do site (tema claro). O modo escuro vem de forBrightness.
+  static const acento = Color(0xFF008069);
+  static const acentoSuave = Color(0xFFD9FDD3);
+  static const navegacao = Color(0xFF111B21);
+  static const piso = Color(0xFFF0F2F5);
   static const branco = Color(0xFFFFFFFF);
-  static const grafite = Color(0xFF222222);
-  static const regua = Color(0xFF6E6A63);
-  static const borda = Color(0xFFE2DDD5);
-  static const filete = Color(0xFFE2DDD5);
-  static const linha = Color(0xFFEFECE6);
+  static const grafite = Color(0xFF111B21);
+  static const regua = Color(0xFF54656F);
+  static const borda = Color(0xFFD1D7DB);
+  static const filete = Color(0xFFE9EDEF);
+  static const linha = Color(0xFFE9EDEF);
 
-  /// Amarelo de faixa de piso: só ação principal e "você está aqui".
-  static const faixa = Color(0xFF8C6239);
-  static const abaInativa = Color(0xFF6E6A63);
+  /// Ação principal e "você está aqui".
+  static const faixa = Color(0xFF008069);
+  static const abaInativa = Color(0xFF54656F);
 
-  static const perigo = Color(0xFFB83A3A);
-  static const perigoFundo = Color(0xFFF9EAEA);
-  static const alerta = Color(0xFF87601F);
-  static const alertaFundo = Color(0xFFFBF3E4);
-  static const alertaBorda = Color(0xFFC68B2C);
-  static const noPrazo = Color(0xFF286F51);
+  static const perigo = Color(0xFFB0002A);
+  static const perigoFundo = Color(0xFFFFE6EC);
+  static const alerta = Color(0xFF7A5000);
+  static const alertaFundo = Color(0xFFFFF4D6);
+  static const alertaBorda = Color(0xFFE0A100);
+  static const noPrazo = Color(0xFF017561);
 
-  static const pontoAtrasada = Color(0xFFB83A3A);
-  static const pontoProximo = Color(0xFFC68B2C);
-  static const pontoNoPrazo = Color(0xFF2E7D5B);
+  static const pontoAtrasada = Color(0xFFB0002A);
+  static const pontoProximo = Color(0xFFE0A100);
+  static const pontoNoPrazo = Color(0xFF00A884);
 }
 
 abstract final class LaSpace {

@@ -156,7 +156,7 @@ class LabChoice extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Manrope',
                   fontWeight: FontWeight.w800,
-                  color: selected ? Colors.white : colors.muted,
+                  color: selected ? Theme.of(context).colorScheme.onPrimary : colors.muted,
                 ),
               ),
               const SizedBox(width: 6),
@@ -166,7 +166,7 @@ class LabChoice extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
-                  color: selected ? Colors.white : colors.ink,
+                  color: selected ? Theme.of(context).colorScheme.onPrimary : colors.ink,
                 ),
               ),
             ),

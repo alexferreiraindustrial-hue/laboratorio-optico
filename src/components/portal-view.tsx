@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import type { PortalDetail, PortalOrder as PortalOrderRow } from "@/server/portal";
 import { sellerSignOut, submitSellerSessionMessage } from "@/server/seller-actions";
 import { submitPortalMessage } from "@/server/portal-actions";
+import { SELLER_PRODUCTION, SELLER_STAGES, sellerStage, sellerStageInfo, type SellerStageKey } from "@/lib/domain/portal-stages";
 import { LensGauge, LensMark } from "./lens";
 import { Button, Feedback } from "./ui";
 
@@ -164,8 +165,13 @@ export function PortalHome({
         <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] px-4 py-10 text-center text-sm text-[var(--muted)]">Nenhum serviço neste filtro.</p>
       ) : null}
 
-      <OrderSection title="Prontas para retirar" icon={PackageCheck} items={ready} base={base} />
-      <OrderSection title="Em produção" icon={Wrench} items={active} base={base} />
+      {active.length + ready.length > 0 ? <StageFlow items={[...active, ...ready]} /> : null}
+
+      <OrderSection id="etapa-pronta" title="Prontas para retirar" hint={sellerStageInfo("pronto").tip} icon={PackageCheck} items={ready} base={base} />
+      {SELLER_PRODUCTION.map((key) => {
+        const stage = SELLER_STAGES.find((item) => item.key === key)!;
+        return <OrderSection key={key} id={`etapa-${key}`} title={stage.label} hint={stage.now} icon={Wrench} items={active.filter((item) => sellerStage(item.order.status) === key)} base={base} />;
+      })}
       <OrderSection title="Entregues e encerradas" icon={CheckCircle2} items={closed.slice(0, 30)} base={base} muted />
     </div>
   );
@@ -186,14 +192,42 @@ function Summary({ href, label, value, highlight, alert }: { href: string; label
   );
 }
 
+/** Onde estão os serviços: a sequência do laboratório com quantos há em cada etapa. */
+function StageFlow({ items }: { items: { order: PortalOrderRow }[] }) {
+  const keys: SellerStageKey[] = [...SELLER_PRODUCTION, "pronta"];
+  return (
+    <nav aria-label="Onde estão seus serviços" className="flex flex-col gap-2 rounded-[var(--radius-panel)] border border-[var(--line)] bg-[var(--surface)] p-3 sm:p-4">
+      <p className="text-xs font-medium text-[var(--muted)]">Onde estão seus serviços no laboratório</p>
+      <ol className="grid grid-cols-5 gap-1.5">
+        {keys.map((key, index) => {
+          const stage = SELLER_STAGES.find((item) => item.key === key)!;
+          const count = items.filter((item) => sellerStage(item.order.status) === key).length;
+          return (
+            <li key={key} className="min-w-0">
+              <a href={`#etapa-${key}`} className={cn("flex h-full flex-col gap-1 rounded-lg border px-2 py-2 transition-colors hover:bg-[var(--background)]", count ? (key === "pronta" ? "border-[var(--ok)] bg-[var(--ok-soft)]" : "border-[var(--accent)] bg-[var(--accent-soft)]") : "border-[var(--line)] opacity-70")}>
+                <span className="flex items-center gap-1 text-[11px] font-semibold text-[var(--muted)]"><span className="tabular">{index + 1}</span><span aria-hidden>·</span><span className="truncate">{stage.label}</span></span>
+                <span className="tabular text-[22px] font-semibold leading-none text-[var(--ink)]">{count}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
+
 function OrderSection({
+  id,
   title,
+  hint,
   icon: Icon,
   items,
   base,
   muted,
 }: {
+  id?: string;
   title: string;
+  hint?: string;
   icon: typeof Wrench;
   items: { order: PortalOrderRow; forecast: Forecast }[];
   base: string;
@@ -201,10 +235,13 @@ function OrderSection({
 }) {
   if (items.length === 0) return null;
   return (
-    <section className="flex flex-col gap-2.5">
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--muted)]">
-        <Icon size={16} /> {title} <span className="rounded-md bg-[var(--surface-secondary)] px-1.5 text-xs">{items.length}</span>
-      </h2>
+    <section id={id} className="flex scroll-mt-4 flex-col gap-2.5">
+      <div>
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]">
+          <Icon size={16} className="text-[var(--muted)]" /> {title} <span className="rounded-md bg-[var(--surface-secondary)] px-1.5 text-xs text-[var(--muted)]">{items.length}</span>
+        </h2>
+        {hint ? <p className="mt-0.5 text-[13px] text-[var(--muted)]">{hint}</p> : null}
+      </div>
       <div className="grid gap-2.5 md:grid-cols-2">
         {items.map(({ order, forecast }) => (
           <OrderCard key={order.id} order={order} forecast={forecast} href={`${base}/os/${order.id}`} muted={muted} />
@@ -218,17 +255,20 @@ function MiniJourney({ status }: { status: string }) {
   const current = journeyIndex(status as OrderStatus);
   const delivered = status === "entregue";
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex flex-col gap-1">
+    <div className="flex items-center gap-1" aria-hidden>
       {JOURNEY.map((label, index) => (
         <span
           key={label}
           title={label}
           className={cn(
             "h-1.5 flex-1 rounded-full",
-            index < current || delivered ? "bg-[var(--accent)]" : index === current ? "bg-[var(--accent)]/45" : "bg-[var(--bg-e2ddd5)]",
+            index < current || delivered ? "bg-[var(--accent)]" : index === current ? "bg-[var(--accent)]/45" : "bg-[var(--line)]",
           )}
         />
       ))}
+    </div>
+    {!delivered && status !== "cancelado" ? <span className="text-[11px] font-medium text-[var(--muted)]">Etapa {Math.min(current, JOURNEY.length - 1) + 1} de {JOURNEY.length} · {JOURNEY[Math.min(current, JOURNEY.length - 1)]}</span> : null}
     </div>
   );
 }
@@ -257,7 +297,7 @@ function OrderCard({ order, forecast, href, muted }: { order: PortalOrderRow; fo
       </div>
       <MiniJourney status={order.status} />
       <div className="flex flex-wrap items-center justify-between gap-2 text-[13px]">
-        <span className="font-medium text-[var(--muted)]">{STATUS_LABEL[order.status as OrderStatus] ?? order.status}</span>
+        <span className="font-medium text-[var(--ink)]">{sellerStageInfo(order.status).label}</span>
         {urgent ? <span className="rounded-md bg-[var(--danger-soft)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--danger)]">Urgente</span> : null}
       </div>
       <span className={cn("flex items-start gap-1.5 text-[13px] font-medium", line.tone)}>
@@ -339,12 +379,12 @@ export function PortalOrder({
                   <span
                     className={cn(
                       "grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold",
-                      done ? "bg-[var(--accent)] text-white" : now ? "bg-[var(--surface)] text-[var(--link)] ring-2 ring-[var(--focus)]" : "bg-[var(--surface-secondary)] text-[var(--muted)]",
+                      done ? "bg-[var(--accent)] text-[var(--on-accent,#fff)]" : now ? "bg-[var(--surface)] text-[var(--link)] ring-2 ring-[var(--focus)]" : "bg-[var(--surface-secondary)] text-[var(--muted)]",
                     )}
                   >
                     {done ? "✓" : index + 1}
                   </span>
-                  {index < JOURNEY.length - 1 ? <span className={cn("min-h-5 w-0.5 flex-1", done ? "bg-[var(--accent)]" : "bg-[var(--bg-e2ddd5)]")} /> : null}
+                  {index < JOURNEY.length - 1 ? <span className={cn("min-h-5 w-0.5 flex-1", done ? "bg-[var(--accent)]" : "bg-[var(--line)]")} /> : null}
                 </div>
                 <div className="pb-4 pt-1">
                   <p className={cn("text-sm", now ? "font-semibold text-[var(--ink)]" : done ? "font-medium text-[var(--ink)]" : "text-[var(--muted)]")}>
@@ -352,6 +392,7 @@ export function PortalOrder({
                     {now ? <span className="ml-2 rounded-md bg-[var(--accent-soft)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--link)]">agora</span> : null}
                   </p>
                   {at && (done || now) ? <p className="text-xs text-[var(--muted)]">{formatDateTime(at)}</p> : null}
+                  {now ? <p className="mt-1 text-[13px] text-[var(--ink)]">{sellerStageInfo(detail.status).now}{sellerStageInfo(detail.status).tip ? <span className="block text-[var(--muted)]">{sellerStageInfo(detail.status).tip}</span> : null}</p> : null}
                   {index === 4 && !done && !now && detail.due_at ? <p className="text-xs text-[var(--muted)]">Previsto {formatForecastDate(detail.due_at)}</p> : null}
                 </div>
               </li>

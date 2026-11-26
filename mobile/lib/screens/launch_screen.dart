@@ -551,7 +551,7 @@ class _Pick extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? Color(0xFF222222) : LaColors.surface(context),
+      color: selected ? Theme.of(context).colorScheme.primary : LaColors.surface(context),
       borderRadius: LaRadius.rBotao,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -564,7 +564,7 @@ class _Pick extends StatelessWidget {
               label,
               style: LaType.rotulo.copyWith(
                 color: selected
-                    ? LaColors.branco
+                    ? Theme.of(context).colorScheme.onPrimary
                     : LaColors.adapt(context, LaColors.grafite),
               ),
             ),

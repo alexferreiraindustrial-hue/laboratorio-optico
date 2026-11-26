@@ -6,12 +6,13 @@ import 'la_tokens.dart';
 ThemeData laTheme({Brightness brightness = Brightness.light}) {
   final dark = brightness == Brightness.dark;
   Color tone(Color color) => LaColors.forBrightness(brightness, color);
-  final surface = dark ? Color(0xFF131210) : LaColors.branco;
+  final surface = dark ? const Color(0xFF111B21) : LaColors.branco;
   final scheme = ColorScheme(
     brightness: brightness,
-    primary: dark ? const Color(0xFFF5B53D) : LaColors.acento,
-    onPrimary: dark ? const Color(0xFF1A1205) : LaColors.branco,
-    secondary: dark ? const Color(0xFFF5C15A) : LaColors.faixa,
+    primary: dark ? const Color(0xFF00A884) : LaColors.acento,
+    onPrimary: dark ? const Color(0xFF111B21) : LaColors.branco,
+    secondary: dark ? const Color(0xFF00A884) : LaColors.faixa,
+    surfaceContainerHighest: dark ? const Color(0xFF202C33) : const Color(0xFFF0F2F5),
     onSurfaceVariant: tone(LaColors.regua),
     onSecondary: LaColors.branco,
     error: tone(LaColors.perigo),
@@ -59,9 +60,7 @@ ThemeData laTheme({Brightness brightness = Brightness.light}) {
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: surface,
-      indicatorColor: dark
-          ? const Color(0xFFF5B53D)
-          : tone(LaColors.acentoSuave),
+      indicatorColor: tone(LaColors.acentoSuave),
       indicatorShape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
       ),
@@ -123,14 +122,14 @@ ThemeData laTheme({Brightness brightness = Brightness.light}) {
       disabledBorder: borda(tone(LaColors.filete), 1.5),
     ),
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: LaColors.grafite,
-      contentTextStyle: LaType.corpo.copyWith(color: LaColors.branco),
-      actionTextColor: LaColors.faixa,
+      backgroundColor: dark ? const Color(0xFF202C33) : LaColors.grafite,
+      contentTextStyle: LaType.corpo.copyWith(color: const Color(0xFFE9EDEF)),
+      actionTextColor: dark ? const Color(0xFF00A884) : const Color(0xFF25D366),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: LaRadius.rBotao),
     ),
     progressIndicatorTheme: ProgressIndicatorThemeData(
-      color: tone(LaColors.grafite),
+      color: scheme.primary,
     ),
     dividerTheme: DividerThemeData(
       color: tone(LaColors.linha),

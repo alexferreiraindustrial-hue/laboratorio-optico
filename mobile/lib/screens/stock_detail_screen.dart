@@ -122,7 +122,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                   const SizedBox(height: 12),
                   FilledButton(onPressed: pending ? null : move, child: Text(pending ? 'Registrando...' : 'Registrar')),
                 ],
-                if (error != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(error!, style: const TextStyle(color: Color(0xFFB83A3A)))),
+                if (error != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(error!, style: TextStyle(color: Theme.of(context).colorScheme.error))),
                 const SizedBox(height: 24),
                 const Text('Histórico', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                 for (final move in movements)

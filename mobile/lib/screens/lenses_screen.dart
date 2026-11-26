@@ -520,7 +520,7 @@ class _Chip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? Color(0xFF222222) : LaColors.surface(context),
+      color: selected ? Theme.of(context).colorScheme.primary : LaColors.surface(context),
       borderRadius: LaRadius.rChip,
       child: InkWell(
         onTap: onTap,
@@ -539,7 +539,7 @@ class _Chip extends StatelessWidget {
                 style: LaType.rotulo.copyWith(
                   fontWeight: FontWeight.w700,
                   color: selected
-                      ? LaColors.branco
+                      ? Theme.of(context).colorScheme.onPrimary
                       : LaColors.adapt(context, LaColors.grafite),
                 ),
               ),

@@ -33,7 +33,7 @@ class LaSegmented extends StatelessWidget {
                 button: true,
                 child: Material(
                   color: i == selecionado
-                      ? Color(0xFF222222)
+                      ? Theme.of(context).colorScheme.primary
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(11),
                   clipBehavior: Clip.antiAlias,
@@ -54,7 +54,7 @@ class LaSegmented extends StatelessWidget {
                           style: LaType.botao.copyWith(
                             fontWeight: FontWeight.w600,
                             color: i == selecionado
-                                ? LaColors.branco
+                                ? Theme.of(context).colorScheme.onPrimary
                                 : LaColors.adapt(context, LaColors.regua),
                           ),
                         ),

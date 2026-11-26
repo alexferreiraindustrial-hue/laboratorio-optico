@@ -40,4 +40,11 @@ void main() {
     expect(alerts.map((a) => a.key), ['atrasadas', 'vence', 'lentes', 'retirada', 'recados']);
     expect(deadlineText('2026-11-25T10:00:00Z', now), 'atrasou há 5 h');
   });
+  test('bipe repetido não vira erro', () {
+    expect(scanAlreadyDone(ScanAction.lente, {'status': 'em_montagem'}), isTrue);
+    expect(scanAlreadyDone(ScanAction.pronto, {'status': 'pronto'}), isTrue);
+    expect(scanAlreadyDone(ScanAction.pronto, {'status': 'em_montagem'}), isFalse);
+    expect(scanAlreadyDone(ScanAction.voltou, {'status': 'pronto', 'medical_review_approved_at': '2026-11-26'}), isTrue);
+    expect(scanAlreadyDone(ScanAction.entregue, {'status': 'entregue'}), isFalse);
+  });
 }

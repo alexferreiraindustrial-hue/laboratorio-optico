@@ -61,7 +61,8 @@ class _PdvScreenState extends State<PdvScreen> {
   DateTime now = DateTime.now();
   Timer? timer;
   String? lastCode;
-  DateTime? lastAt;
+  // Mesmo código lido de novo: ignorado por 2 s; depois de um registro certo, por 15 s.
+  DateTime? lastUntil;
 
   String get role => widget.session.profile?.role ?? 'consulta';
 
@@ -102,7 +103,11 @@ class _PdvScreenState extends State<PdvScreen> {
     final id = '${order['id']}';
     switch (chosen) {
       case ScanAction.lente:
-        await api.receiveLenses(id);
+        // Lente chegou: vai direto para "Em montagem" (a VTA continua esperando a armação).
+        final row = await api.receiveLenses(id);
+        if ('${row['status']}' == 'aguardando_montagem') {
+          await api.changeStatus(id, 'em_montagem', 'Lentes recebidas: montagem iniciada');
+        }
       case ScanAction.pronto:
         await api.changeStatus(id, 'pronto', 'Bipe: ficou pronto');
       case ScanAction.medico:
@@ -120,9 +125,9 @@ class _PdvScreenState extends State<PdvScreen> {
     final chosen = action;
     if (text.isEmpty || chosen == null || busy) return;
     final stamp = DateTime.now();
-    if (lastCode == text && lastAt != null && stamp.difference(lastAt!) < const Duration(seconds: 2)) return;
+    if (lastCode == text && lastUntil != null && stamp.isBefore(lastUntil!)) return;
     lastCode = text;
-    lastAt = stamp;
+    lastUntil = stamp.add(const Duration(seconds: 2));
     final target = parseScanCode(text);
     if (target == null) {
       _push(_Scan(ok: false, title: text, detail: 'Código não reconhecido.', action: chosen));
@@ -133,12 +138,18 @@ class _PdvScreenState extends State<PdvScreen> {
       final order = await api.scanOrder(id: target.id, ref: target.ref);
       final number = visibleNumber(order);
       final client = '${order['client_name'] ?? ''}';
+      if (scanAlreadyDone(chosen, order)) {
+        lastUntil = DateTime.now().add(const Duration(seconds: 15));
+        _push(_Scan(ok: true, title: number, client: client, id: '${order['id']}', detail: 'Já estava registrada. Nada mudou.', action: chosen));
+        return;
+      }
       final block = scanBlockReason(chosen, order);
       if (block != null) {
         _push(_Scan(ok: false, title: number, client: client, id: '${order['id']}', detail: 'Não registrado. $block', action: chosen));
         return;
       }
       await _run(chosen, order);
+      lastUntil = DateTime.now().add(const Duration(seconds: 15));
       _push(_Scan(ok: true, title: number, client: client, id: '${order['id']}', detail: scanDone[chosen]!, action: chosen));
       unawaited(loadRadar());
     } catch (e) {
@@ -217,6 +228,7 @@ class _PdvScreenState extends State<PdvScreen> {
       appBar: AppBar(
         backgroundColor: _lcd,
         foregroundColor: Colors.white,
+        titleTextStyle: LaType.corpoForte.copyWith(color: Colors.white),
         title: const Text('PDV da produção'),
         actions: [
           IconButton(tooltip: 'Atualizar avisos', onPressed: loadRadar, icon: const Icon(Icons.refresh)),
@@ -421,7 +433,7 @@ class _ActionKeys extends StatelessWidget {
                   selected: key == selected,
                   button: true,
                   child: Material(
-                    color: key == selected ? LaColors.adapt(context, LaColors.noPrazo) : LaColors.surface(context),
+                    color: key == selected ? Theme.of(context).colorScheme.primary : LaColors.surface(context),
                     borderRadius: BorderRadius.circular(14),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(14),
@@ -437,10 +449,10 @@ class _ActionKeys extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(_icons[key], color: key == selected ? Colors.white : LaColors.adapt(context, LaColors.regua)),
+                            Icon(_icons[key], color: key == selected ? Theme.of(context).colorScheme.onPrimary : LaColors.adapt(context, LaColors.regua)),
                             const SizedBox(height: 4),
-                            Text(scanLabel[key]!, style: LaType.rotulo.copyWith(color: key == selected ? Colors.white : null)),
-                            Text(scanHint[key]!, style: LaType.apoio.copyWith(color: key == selected ? Colors.white70 : null)),
+                            Text(scanLabel[key]!, style: LaType.rotulo.copyWith(color: key == selected ? Theme.of(context).colorScheme.onPrimary : null)),
+                            Text(scanHint[key]!, style: LaType.apoio.copyWith(color: key == selected ? Theme.of(context).colorScheme.onPrimary.withValues(alpha: .8) : null)),
                           ],
                         ),
                       ),

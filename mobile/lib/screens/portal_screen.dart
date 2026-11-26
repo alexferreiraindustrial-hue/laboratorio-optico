@@ -7,6 +7,7 @@ import '../floor_format.dart';
 import '../lab_api.dart';
 import '../session.dart';
 import '../theme.dart';
+import '../seller_stages.dart';
 import '../widgets.dart';
 
 class PortalHomeScreen extends StatefulWidget {
@@ -78,7 +79,6 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
     final closedRows = visible
         .where((row) => isSellerClosed('${row['status']}'))
         .toList();
-    final storeGroups = groupByStoreThenSeller(productionRows);
 
     return Scaffold(
       backgroundColor: LaColors.adapt(context, LaColors.piso),
@@ -230,42 +230,20 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                         context,
                         'Prontas para retirar',
                         readyRows,
-                        LaColors.branco,
+                        LaColors.adapt(context, LaColors.acentoSuave),
+                        hint: sellerStageOf('pronto').tip,
                       ),
                     if (filter != SellerFilter.ready &&
                         filter != SellerFilter.closed)
-                      for (final store in storeGroups) ...[
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: EdgeInsets.fromLTRB(
-                              AppSpace.md,
-                              AppSpace.md,
-                              AppSpace.md,
-                              AppSpace.xs,
-                            ),
-                            child: Text(store.$1, style: LaType.tituloSecao),
+                      for (final key in sellerProduction)
+                        if (productionRows.any((row) => sellerStageKey('${row['status']}') == key))
+                          ..._section(
+                            context,
+                            sellerStages.firstWhere((stage) => stage.key == key).label,
+                            productionRows.where((row) => sellerStageKey('${row['status']}') == key).toList(),
+                            null,
+                            hint: sellerStages.firstWhere((stage) => stage.key == key).now,
                           ),
-                        ),
-                        SliverPadding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: AppSpace.md,
-                          ),
-                          sliver: SliverList.separated(
-                            itemCount: store.$2.fold<int>(
-                              0,
-                              (sum, seller) => sum + seller.$2.length,
-                            ),
-                            separatorBuilder: (_, _) =>
-                                SizedBox(height: 8),
-                            itemBuilder: (context, index) {
-                              final flat = [
-                                for (final seller in store.$2) ...seller.$2,
-                              ];
-                              return _SellerOrderCard(row: flat[index]);
-                            },
-                          ),
-                        ),
-                      ],
                     if (filter != SellerFilter.production &&
                         filter != SellerFilter.ready &&
                         filter != SellerFilter.alerts &&
@@ -274,7 +252,7 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
                         context,
                         'Encerradas',
                         closedRows.take(40).toList(),
-                        LaColors.branco,
+                        null,
                       ),
                     SliverToBoxAdapter(child: SizedBox(height: 32)),
                   ],
@@ -288,8 +266,9 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
     BuildContext context,
     String title,
     List<Map<String, dynamic>> items,
-    Color fill,
-  ) {
+    Color? fill, {
+    String? hint,
+  }) {
     return [
       SliverToBoxAdapter(
         child: Padding(
@@ -299,7 +278,17 @@ class _PortalHomeScreenState extends State<PortalHomeScreen> {
             AppSpace.md,
             AppSpace.xs,
           ),
-          child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('$title · ${items.length}', style: Theme.of(context).textTheme.titleMedium),
+              if (hint != null && hint.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(hint, style: LaType.apoio.copyWith(color: LaColors.adapt(context, LaColors.regua))),
+                ),
+            ],
+          ),
         ),
       ),
       SliverPadding(
@@ -333,9 +322,9 @@ class _SummaryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = selected ? Color(0xFF222222) : LaColors.surface(context);
-    final fg = selected ? LaColors.branco : LaColors.adapt(context, LaColors.grafite);
-    final number = selected ? LaColors.branco : LaColors.adapt(context, tone);
+    final bg = selected ? Theme.of(context).colorScheme.primary : LaColors.surface(context);
+    final fg = selected ? Theme.of(context).colorScheme.onPrimary : LaColors.adapt(context, LaColors.grafite);
+    final number = selected ? Theme.of(context).colorScheme.onPrimary : LaColors.adapt(context, tone);
     return Expanded(
       child: Semantics(
         button: true,
@@ -419,7 +408,7 @@ class _SellerOrderCard extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 4),
-              Text(statusLabel[status] ?? status, style: LaType.apoio),
+              Text(sellerStageOf(status).label, style: LaType.rotulo),
               SizedBox(height: 6),
               LaPrazoTag(status: prazoDe(row), texto: prazoCurto(row)),
               SizedBox(height: 8),

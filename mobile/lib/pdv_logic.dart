@@ -32,7 +32,7 @@ const scanLabel = {
 };
 
 const scanHint = {
-  ScanAction.lente: 'Vai para a bancada',
+  ScanAction.lente: 'Vai direto para montagem',
   ScanAction.pronto: 'Montagem concluída',
   ScanAction.medico: 'Conferência médica',
   ScanAction.voltou: 'Liberado, pronto para entregar',
@@ -71,6 +71,18 @@ bool awaitingDoctor(Map<String, dynamic> order) =>
     order['medical_review_approved_at'] == null;
 
 /// Motivo para não registrar, antes de chamar o servidor (null = pode registrar).
+/// A OS já está onde essa ação a deixaria (a mesma etiqueta bipada de novo).
+bool scanAlreadyDone(ScanAction action, Map<String, dynamic> order) {
+  final status = '${order['status']}';
+  return switch (action) {
+    ScanAction.lente => status == 'aguardando_montagem' || status == 'em_montagem',
+    ScanAction.pronto => status == 'pronto',
+    ScanAction.medico => status == 'em_conferencia',
+    ScanAction.voltou => status == 'pronto' && order['medical_review_approved_at'] != null,
+    ScanAction.entregue => false,
+  };
+}
+
 String? scanBlockReason(ScanAction action, Map<String, dynamic> order) {
   final status = '${order['status']}';
   final waiting = awaitingDoctor(order);

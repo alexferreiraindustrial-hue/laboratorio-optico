@@ -125,7 +125,7 @@ class _AssistenciaScreenState extends State<AssistenciaScreen> {
             const SizedBox(height: 18),
             const Text('Ocorrências da montagem · BO'),
             if (error != null)
-              Text(error!, style: const TextStyle(color: Color(0xFFB83A3A))),
+              Text(error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
             if (rows.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(top: 24),

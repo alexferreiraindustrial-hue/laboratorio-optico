@@ -33,7 +33,7 @@ class LaCommandPlate extends StatelessWidget {
             final primary = LaButton(
               label: 'Entrada rápida',
               variant: LaButtonVariant.principal,
-              leading: Icon(Icons.add, color: LaColors.branco),
+              leading: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary),
               onPressed: onLancarOs,
             );
             final secondary = LaButton(

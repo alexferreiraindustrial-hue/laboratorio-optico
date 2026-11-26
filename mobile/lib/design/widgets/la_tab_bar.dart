@@ -28,9 +28,7 @@ class LaTabBar extends StatelessWidget {
               icon: Icon(Icons.dashboard_outlined),
               selectedIcon: Icon(
                 Icons.dashboard,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF1A1205)
-                    : LaColors.acento,
+                color: Theme.of(context).colorScheme.primary,
               ),
               label: 'Visão geral',
             ),
@@ -38,9 +36,7 @@ class LaTabBar extends StatelessWidget {
               icon: Icon(Icons.add_circle_outline),
               selectedIcon: Icon(
                 Icons.add_circle,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF1A1205)
-                    : LaColors.acento,
+                color: Theme.of(context).colorScheme.primary,
               ),
               label: 'Lançar',
             ),
@@ -48,9 +44,7 @@ class LaTabBar extends StatelessWidget {
               icon: Icon(Icons.handyman_outlined),
               selectedIcon: Icon(
                 Icons.handyman,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF1A1205)
-                    : LaColors.acento,
+                color: Theme.of(context).colorScheme.primary,
               ),
               label: 'Bancada',
             ),
@@ -58,9 +52,7 @@ class LaTabBar extends StatelessWidget {
               icon: Icon(Icons.inventory_2_outlined),
               selectedIcon: Icon(
                 Icons.inventory_2,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF1A1205)
-                    : LaColors.acento,
+                color: Theme.of(context).colorScheme.primary,
               ),
               label: 'Lentes',
             ),

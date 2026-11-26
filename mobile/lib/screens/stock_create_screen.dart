@@ -95,7 +95,7 @@ class _StockCreateScreenState extends State<StockCreateScreen> {
           TextField(controller: initial, decoration: const InputDecoration(labelText: 'Entrada inicial'), keyboardType: TextInputType.number),
           SwitchListTile(title: const Text('Grau especial'), value: special, onChanged: (value) => setState(() => special = value)),
           FilledButton(onPressed: pending ? null : save, child: Text(pending ? 'Salvando...' : 'Cadastrar no estoque')),
-          if (error != null) Padding(padding: const EdgeInsets.only(top: 12), child: Text(error!, style: const TextStyle(color: Color(0xFFB83A3A)))),
+          if (error != null) Padding(padding: const EdgeInsets.only(top: 12), child: Text(error!, style: TextStyle(color: Theme.of(context).colorScheme.error))),
         ],
       ),
     );

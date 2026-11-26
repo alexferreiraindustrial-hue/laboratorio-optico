@@ -141,7 +141,7 @@ class _StockScreenState extends State<StockScreen> {
                   onSelectionChanged: (value) => setState(() => band = value.first),
                 ),
               ],
-              if (error != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(error!, style: const TextStyle(color: Color(0xFFB83A3A)))),
+              if (error != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(error!, style: TextStyle(color: Theme.of(context).colorScheme.error))),
             ],
           ),
         ),

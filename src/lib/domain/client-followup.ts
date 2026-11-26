@@ -35,13 +35,32 @@ export function matchesFollowup(
         !row.contacted_at && Date.parse(row.followup_due_at) > now.getTime()
       );
     case "help":
-      return row.outcome === "precisa_ajuda";
+      return row.outcome === "precisa_ajuda" && !isCorrection(row);
+    case "correction":
+      return isCorrection(row);
+    case "phone":
+      return hasPhone(row.client_phone);
     case "contacted":
       return !!row.contacted_at;
     default:
       return false;
   }
 }
-export function feedbackMessage(client: string) {
-  return `Olá, ${client}! Aqui é da ótica. Estamos entrando em contato para saber como você está se adaptando aos óculos. Está conseguindo enxergar bem? Está tudo confortável? Se precisar de ajuda, avise a gente.`;
+export const STORE_NAME = "Gold Finger Cruzeiro";
+/** Marca gravada no início da observação quando o contato gerou correção (sem mudar o banco). */
+export const CORRECTION_MARK = "[Gerou correção]";
+export function isCorrection(row: Pick<ClientDelivery, "outcome" | "feedback_note">) {
+  return row.outcome === "precisa_ajuda" && (row.feedback_note ?? "").startsWith(CORRECTION_MARK);
+}
+export function stripCorrection(note: string | null) {
+  const text = note ?? "";
+  return text.startsWith(CORRECTION_MARK) ? text.slice(CORRECTION_MARK.length).trim() : text;
+}
+export function hasPhone(phone: string | null) {
+  return (phone ?? "").replace(/\D/g, "").length >= 10;
+}
+export function feedbackMessage(client: string, number?: string) {
+  const first = client.trim().split(/\s+/)[0] || client;
+  const os = number ? ` (OS ${number})` : "";
+  return `Olá, ${first}! Aqui é da ${STORE_NAME}. Faz alguns dias que você retirou seus óculos${os} e queremos saber como está a adaptação. Está enxergando bem e se sente confortável? Se precisar de algum ajuste, é só responder esta mensagem que a gente resolve.`;
 }

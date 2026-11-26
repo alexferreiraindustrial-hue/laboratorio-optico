@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
+  CORRECTION_MARK,
+  feedbackMessage,
   feedbackPending,
+  hasPhone,
+  isCorrection,
+  stripCorrection,
   matchesFollowup,
   type ClientFollowupRow,
 } from "./client-followup";
@@ -48,5 +53,29 @@ describe("lembrete de adaptação", () => {
     expect(matchesFollowup(row, "seller-b", "all", now)).toBe(false);
     expect(matchesFollowup(row, "", "pending", now)).toBe(false);
     expect(matchesFollowup(row, "", "unknown", now)).toBe(false);
+  });
+});
+
+describe("pós-venda Gold Finger", () => {
+  const base = { id: "f", order_id: "o", client_delivered_at: "2026-11-20T12:00:00Z", followup_due_at: "2026-11-25T12:00:00Z", contacted_at: "2026-11-25T13:00:00Z", updated_at: "x", number: "1234", client_name: "Maria Souza", seller_name: null, seller_id: null };
+  it("mensagem diz de onde é e cita a OS", () => {
+    const text = feedbackMessage("Maria Souza", "1234");
+    expect(text).toContain("Olá, Maria!");
+    expect(text).toContain("Gold Finger Cruzeiro");
+    expect(text).toContain("OS 1234");
+  });
+  it("separa correção de ajuste sem mudar o banco", () => {
+    const fix = { ...base, client_phone: null, outcome: "precisa_ajuda", feedback_note: `${CORRECTION_MARK} lente trocada` };
+    const adjust = { ...base, client_phone: null, outcome: "precisa_ajuda", feedback_note: "apertar a haste" };
+    expect(isCorrection(fix)).toBe(true);
+    expect(stripCorrection(fix.feedback_note)).toBe("lente trocada");
+    expect(matchesFollowup(fix, "", "correction", new Date())).toBe(true);
+    expect(matchesFollowup(fix, "", "help", new Date())).toBe(false);
+    expect(matchesFollowup(adjust, "", "help", new Date())).toBe(true);
+  });
+  it("filtra quem tem WhatsApp", () => {
+    expect(matchesFollowup({ ...base, client_phone: "12999998888", outcome: null, feedback_note: null }, "", "phone", new Date())).toBe(true);
+    expect(matchesFollowup({ ...base, client_phone: null, outcome: null, feedback_note: null }, "", "phone", new Date())).toBe(false);
+    expect(hasPhone("(12) 3333")).toBe(false);
   });
 });

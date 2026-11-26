@@ -10,7 +10,11 @@ export async function repositionOrder(id: string, to: RepositionTarget, note: st
   if (!["admin", "gestor"].includes(role)) return { ok: false, message: "Apenas gestor ou administrador muda a posição da OS." };
   if (!(to in REPOSITION_LABEL)) return { ok: false, message: "Escolha para onde a OS vai." };
   const { error } = await supabase.rpc("reposition_order", { p_order_id: id, p_to: to, p_note: note.trim() });
-  if (error) return { ok: false, message: actionError(error, "Não foi possível mudar a posição da OS.") ?? "" };
+  if (error) {
+    // A função nova ainda não foi criada no banco de produção.
+    if ((error as { code?: string }).code === "PGRST202" || /reposition_order/.test(error.message)) return { ok: false, message: "Esta função ainda não foi instalada no banco. Peça ao administrador para aplicar a atualização do Supabase." };
+    return { ok: false, message: actionError(error, "Não foi possível mudar a posição da OS.") ?? "" };
+  }
   for (const path of ["/laboratorio", "/lentes", "/montagem", "/entrega", "/inicio", "/dashboard", "/pdv", `/laboratorio/${id}`]) revalidatePath(path);
   return { ok: true, message: `Movida para ${REPOSITION_LABEL[to]}.` };
 }

@@ -13,6 +13,7 @@ import 'screens/messages_screen.dart';
 import 'screens/order_detail_screen.dart';
 import 'screens/order_form_screen.dart';
 import 'screens/orders_screen.dart';
+import 'screens/pdv_screen.dart';
 import 'screens/parties_screen.dart';
 import 'screens/party_edit_screen.dart';
 import 'screens/ranking_screen.dart';
@@ -102,6 +103,11 @@ GoRouter createRouter(Session session) {
                 : 'aguardando_lentes',
           );
         },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootKey,
+        path: '/pdv',
+        builder: (context, state) => PdvScreen(session: session),
       ),
       GoRoute(
         parentNavigatorKey: _rootKey,

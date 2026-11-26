@@ -62,6 +62,16 @@ class MoreScreen extends StatelessWidget {
         ),
         SizedBox(height: LaSpace.secao),
         LaButton(
+          label: 'PDV da produção · bipe',
+          variant: LaButtonVariant.principal,
+          leading: Icon(
+            Icons.qr_code_scanner,
+            color: LaColors.adapt(context, LaColors.grafite),
+          ),
+          onPressed: () => context.push('/pdv'),
+        ),
+        SizedBox(height: LaSpace.secao),
+        LaButton(
           label: 'Rotina do dia',
           variant: LaButtonVariant.principal,
           leading: Icon(

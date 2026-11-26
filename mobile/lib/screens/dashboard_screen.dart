@@ -186,6 +186,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             spacing: 8,
             runSpacing: 6,
             children: [
+              FilledButton.icon(
+                onPressed: () => context.push('/pdv'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF0E2724),
+                  foregroundColor: const Color(0xFFA6F4CF),
+                ),
+                icon: const Icon(Icons.qr_code_scanner, size: 18),
+                label: const Text('PDV · bipe'),
+              ),
               if (canWriteOrders(widget.session.profile?.role ?? ''))
                 FilledButton.icon(
                   onPressed: () => context.go('/lancar'),

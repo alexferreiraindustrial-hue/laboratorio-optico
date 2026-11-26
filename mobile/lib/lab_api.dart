@@ -1548,4 +1548,45 @@ class LabApi {
       },
     );
   }
+
+  // ---- PDV da produção ----
+
+  static const _pdvColumns =
+      'id,number,external_order_id,client_name,seller_name,status,due_at,priority,lens_expected_at,entered_at,completed_at,medical_review_required,medical_review_approved_at,updated_at';
+
+  /// OS abertas e prontas, para o radar e os avisos do PDV.
+  Future<List<Map<String, dynamic>>> pdvOrders() =>
+      _readOrderPages([...queueStatuses, 'pronto'].toSet().toList(), columns: _pdvColumns);
+
+  Future<int> unreadMessageCount() async {
+    try {
+      final rows = await supabase.from('order_messages').select('id').eq('status', 'novo').limit(200);
+      return (rows as List).length;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  /// OS lida pelo bipe: pelo id (QR Code) ou pelo número da OS / pedido (código de barras).
+  Future<Map<String, dynamic>> scanOrder({String? id, String? ref}) async {
+    if (id != null) {
+      final row = await supabase.from('orders_enriched').select(_pdvColumns).eq('id', id).maybeSingle();
+      if (row == null) throw StateError('OS não encontrada.');
+      return Map<String, dynamic>.from(row);
+    }
+    final value = (ref ?? '').trim();
+    if (!RegExp(r'^[\w\-./ ]+$').hasMatch(value)) {
+      throw StateError('Código com caracteres estranhos. Confira o leitor.');
+    }
+    final rows = await supabase
+        .from('orders_enriched')
+        .select(_pdvColumns)
+        .or('number.eq."$value",external_order_id.eq."$value"')
+        .neq('status', 'cancelado')
+        .limit(3);
+    final list = List<Map<String, dynamic>>.from(rows);
+    if (list.isEmpty) throw StateError('Nenhuma OS com o número $value.');
+    if (list.length > 1) throw StateError('Mais de uma OS com o número $value. Abra pela busca.');
+    return list.first;
+  }
 }

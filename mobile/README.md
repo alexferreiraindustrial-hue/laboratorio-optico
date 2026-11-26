@@ -1,5 +1,15 @@
 # LabGold Android
 
+## APK 1.7.0 (10) · PDV da produção e bipe
+
+Novo **PDV da produção** (botão "PDV · bipe" na Visão geral e em Mais): escolha a ação e bipe as OS uma atrás da outra — lente chegou, ficou pronto, foi para o médico, voltou do médico e entregue ao cliente. Aceita leitor de código de barras Bluetooth/USB (funciona como teclado no campo de bipe), a câmera do aparelho (código de barras Code 128 e QR Code, leitura contínua) ou o número digitado.
+
+O visor mostra a OS bipada (verde registrou, vermelho recusou com o motivo) e o cupom do turno lista cada bipe. Letreiro de avisos com OS atrasadas, que vencem em 24 h, lentes que passaram da previsão, OS sem previsão do laboratório, esperando o médico, prontas paradas e recados novos. Radar de prazos com as OS atrasadas e as que vencem nas próximas 24 h. Em tablet, o cupom fica ao lado.
+
+Cada bipe usa as mesmas funções do banco que o app e o site já usavam; se a OS não está na etapa certa, nada muda. Mantidos o identificador Android e a assinatura de teste, para atualizar sobre o 1.6.0 sem desinstalar. Não foram alterados banco, cadastros reais, permissões ou APIs do servidor.
+
+# LabGold Android
+
 ## APK 1.5.0 (8) · Visão geral e organização por vendedora
 
 A entrada do app passa a ser a Visão geral: totais em acompanhamento, atrasos, prazos do dia e serviços para retirada. As abas Prioridades, Vendedoras e Etapas mostram a mesma operação por perspectivas distintas. Os totais usam todos os serviços ativos, com paginação e erro explícito se a consulta não puder terminar.

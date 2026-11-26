@@ -2,12 +2,12 @@
 // PDV da produção: escolhe a ação (teclas F1–F5) e bipa as OS uma atrás da outra.
 // Cada bipe usa uma ação que o sistema já tinha (mesmas regras e histórico de sempre).
 // Ao lado, o cupom do turno; embaixo, o radar das OS atrasadas ou perto de atrasar.
-import { Camera, CameraOff, Check, Expand, PackageCheck, PackageOpen, ScanLine, Shrink, Stethoscope, Undo2, X } from "lucide-react";
+import { BellRing, Camera, CameraOff, Check, Expand, PackageCheck, PackageOpen, ScanLine, Shrink, Stethoscope, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { STATUS_LABEL, type AppRole, type OrderStatus } from "@/lib/domain/constants";
-import { deadlineText, RADAR_STATUSES, radarGroups, type RadarLane, type RadarOrder } from "@/lib/domain/pdv";
+import { deadlineText, pdvAlerts, RADAR_STATUSES, radarGroups, type RadarLane, type RadarOrder } from "@/lib/domain/pdv";
 import { can } from "@/lib/domain/permissions";
 import { isPublicCode } from "@/lib/domain/qr";
 import { parseScanCode, SCAN_ACTIONS, scanBlockReason, type ScanAction } from "@/lib/domain/scan";
@@ -96,16 +96,22 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
   const [full, setFull] = useState(false);
   const [radar, setRadar] = useState<RadarOrder[] | null>(null);
   const [now, setNow] = useState(() => new Date());
+  const [unread, setUnread] = useState(0);
   const root = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const seq = useRef(0);
   const last = useRef<{ code: string; at: number } | null>(null);
 
   const loadRadar = useCallback(async () => {
-    const { data } = await createClient().from("orders_enriched")
-      .select("id, number, external_order_id, client_name, status, due_at, lens_expected_at, seller_name")
-      .in("status", RADAR_STATUSES).limit(800);
+    const supabase = createClient();
+    const [{ data }, messages] = await Promise.all([
+      supabase.from("orders_enriched")
+        .select("id, number, external_order_id, client_name, status, due_at, lens_expected_at, seller_name, entered_at, completed_at, medical_review_required, medical_review_approved_at")
+        .in("status", RADAR_STATUSES).limit(800),
+      supabase.from("order_messages").select("id", { count: "exact", head: true }).eq("status", "novo"),
+    ]);
     if (data) { setRadar(data as RadarOrder[]); setNow(new Date()); }
+    setUnread(messages.count ?? 0);
   }, []);
 
   useEffect(() => {
@@ -178,6 +184,7 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
   if (!action) return <p className="text-sm">Seu perfil não movimenta OS pelo bipe.</p>;
   const okCount = log.filter((item) => item.ok).length;
   const groups = radar ? radarGroups(radar, now) : null;
+  const alerts = radar ? pdvAlerts(radar, now, { unreadMessages: unread }) : [];
   const Icon = ICONS[action];
 
   return (
@@ -191,6 +198,8 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
           <button type="button" className="pdv-tool" onClick={() => setCamera((value) => !value)} aria-pressed={camera}>{camera ? <CameraOff size={16} /> : <Camera size={16} />}Câmera</button>
           {embedded ? null : <button type="button" className="pdv-tool" onClick={toggleFull}>{full ? <Shrink size={16} /> : <Expand size={16} />}{full ? "Sair da tela cheia" : "Tela cheia"}</button>}
         </header>
+
+        {radar ? <AlertBoard alerts={alerts} /> : null}
 
         <section className={`pdv-lcd is-${display.tone} is-${action}`} aria-live="polite">
           <div className="pdv-lcd-mode"><Icon size={18} aria-hidden /><span>{SCAN_ACTIONS[action].label}</span><kbd>{KEYS[action]}</kbd></div>
@@ -269,6 +278,23 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
           {log.length ? <button type="button" className="pdv-tear" onClick={() => { setLog([]); setDisplay({ tone: "idle", number: "", client: "", line: "" }); input.current?.focus(); }}>Novo cupom</button> : null}
         </div>
       </aside>
+    </div>
+  );
+}
+
+/** Letreiro de avisos, como o painel de um caixa de supermercado. */
+function AlertBoard({ alerts }: { alerts: ReturnType<typeof pdvAlerts> }) {
+  if (alerts.length === 0) return <div className="pdv-alerts is-calm"><BellRing size={18} aria-hidden /><span>Sem avisos agora. Nenhuma OS atrasada ou parada.</span></div>;
+  const items = alerts.map((alert) => (
+    <Link key={alert.key} href={alert.href} className={`pdv-alert is-${alert.tone}`}><b>{alert.count}</b>{alert.text}</Link>
+  ));
+  return (
+    <div className="pdv-alerts" role="region" aria-label="Avisos">
+      <span className="pdv-alerts-tag"><BellRing size={16} aria-hidden />Avisos</span>
+      <div className="pdv-alerts-track">
+        <div className="pdv-alerts-run">{items}</div>
+        <div className="pdv-alerts-run" aria-hidden>{alerts.map((alert) => <span key={alert.key} className={`pdv-alert is-${alert.tone}`}><b>{alert.count}</b>{alert.text}</span>)}</div>
+      </div>
     </div>
   );
 }

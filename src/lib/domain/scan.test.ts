@@ -55,7 +55,7 @@ describe("previsão do laboratório x prazo do serviço", () => {
   });
 });
 
-import { deadlineText, radarGroups, type RadarOrder } from "./pdv";
+import { deadlineText, pdvAlerts, radarGroups, type RadarOrder } from "./pdv";
 
 describe("radar do PDV", () => {
   const now = new Date("2026-11-25T15:00:00Z");
@@ -75,5 +75,17 @@ describe("radar do PDV", () => {
   it("texto do prazo", () => {
     expect(deadlineText("2026-11-25T10:00:00Z", now)).toBe("atrasou há 5 h");
     expect(deadlineText("2026-11-25T18:00:00Z", now)).toBe("vence em 3 h");
+  });
+});
+
+describe("avisos do PDV", () => {
+  it("lista só o que tem OS, com atrasadas primeiro", () => {
+    const now = new Date("2026-11-25T15:00:00Z");
+    const alerts = pdvAlerts([
+      { id: "a", number: "1", external_order_id: null, client_name: "A", status: "em_montagem", due_at: "2026-11-25T10:00:00Z", lens_expected_at: null },
+      { id: "b", number: "2", external_order_id: null, client_name: "B", status: "aguardando_lentes", due_at: "2026-12-10T10:00:00Z", lens_expected_at: "2026-11-24T10:00:00Z" },
+    ], now, { unreadMessages: 2 });
+    expect(alerts.map((item) => item.key)).toEqual(["atrasadas", "lentes", "recados"]);
+    expect(alerts[2].text).toBe("recados novos das vendedoras");
   });
 });

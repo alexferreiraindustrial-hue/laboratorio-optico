@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AUDIT_OPEN_STATUSES, AUDIT_ORDER, AUDIT_POSITIONS, auditPositionOf, type AuditPosition } from "@/lib/domain/audit";
 import { createClient } from "@/lib/supabase/client";
+import { AUTO_NUMBER, visibleOrderNumber } from "@/lib/domain/orders";
 import { Barcode } from "./barcode";
 
 export type SheetOrder = {
@@ -14,9 +15,10 @@ export type SheetOrder = {
   frame_state: string | null; lens_arrived_at: string | null; entered_at: string; due_at: string | null;
   seller_name: string | null; store_name: string | null;
 };
+/** Número que aparece no sistema. Só fica sem número a OS lançada sem nº (código automático OS-AAAA-000000). */
 const storeNumber = (order: SheetOrder) => {
-  const value = order.external_order_id?.trim();
-  return value && value !== order.number ? value : null;
+  const value = visibleOrderNumber(order).trim();
+  return value && !AUTO_NUMBER.test(value) ? value : null;
 };
 const day = (value: string | null) => value ? new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "—";
 

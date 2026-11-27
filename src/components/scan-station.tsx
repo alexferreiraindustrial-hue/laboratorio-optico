@@ -36,7 +36,7 @@ export function allowedScanActions(role: AppRole): ScanAction[] {
   return ORDER.filter((action) => {
     if (action === "entregue") return ["admin", "gestor"].includes(role) && can(role, "orders.deliver");
     if (action === "voltou") return can(role, "orders.write");
-    if (action === "corrigir" || action === "auditoria") return ["admin", "gestor"].includes(role);
+    if (action === "corrigir" || action === "auditoria") return ["admin", "gestor", "montador"].includes(role);
     return can(role, "orders.status");
   });
 }

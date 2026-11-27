@@ -45,3 +45,12 @@ describe("caminho para corrigir", () => {
     expect(describeAudit([{ kind: "lente" }, { kind: "status", to: "em_montagem" }])).toBe("lente chegou → em montagem");
   });
 });
+
+describe("número na folha de auditoria", async () => {
+  const { AUTO_NUMBER, visibleOrderNumber } = await import("./orders");
+  it("mostra o número da loja e esconde só o código automático", () => {
+    expect(AUTO_NUMBER.test(visibleOrderNumber({ number: "18452", external_order_id: null }))).toBe(false);
+    expect(AUTO_NUMBER.test(visibleOrderNumber({ number: "OS-2026-000123", external_order_id: null }))).toBe(true);
+    expect(visibleOrderNumber({ number: "OS-2026-000123", external_order_id: "9981" })).toBe("9981");
+  });
+});

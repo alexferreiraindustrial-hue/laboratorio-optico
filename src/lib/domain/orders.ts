@@ -43,6 +43,9 @@ export function generatedOrderNumber(number: string) {
  * — inclusive em registros antigos, em que ele ficou em external_order_id e o
  * sistema gravou outro OS-ANO-SEQ por cima.
  */
+/** Número gerado pelo sistema quando a OS é lançada sem número da loja. */
+export const AUTO_NUMBER = /^OS-\d{4}-\d+$/;
+
 export function visibleOrderNumber(order: {
   number: string;
   external_order_id?: string | null;

@@ -5,6 +5,7 @@ import { ClipboardCheck, Printer, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AUDIT_ORDER, AUDIT_POSITIONS, auditPositionOf, type AuditPosition } from "@/lib/domain/audit";
+import { AUTO_NUMBER, visibleOrderNumber } from "@/lib/domain/orders";
 
 export type AuditRow = { id: string; number: string; external_order_id: string | null; client_name: string; status: string; frame_state: string | null; lens_arrived_at: string | null };
 export type AuditSession = { startedAt: string; seen: Record<string, { at: string; changed: boolean }> };
@@ -21,7 +22,10 @@ export function saveAuditSession(session: AuditSession) {
   try { window.localStorage.setItem(KEY, JSON.stringify(session)); } catch { /* sem armazenamento */ }
 }
 
-const visible = (row: AuditRow) => row.external_order_id && row.external_order_id !== row.number ? row.external_order_id : null;
+const visible = (row: AuditRow) => {
+  const value = visibleOrderNumber(row);
+  return AUTO_NUMBER.test(value) ? null : value;
+};
 
 export function AuditPanel({ rows, session, onReset }: { rows: AuditRow[] | null; session: AuditSession; onReset: () => void }) {
   const [showMissing, setShowMissing] = useState(false);

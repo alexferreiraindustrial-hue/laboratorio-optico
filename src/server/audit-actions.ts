@@ -11,7 +11,7 @@ type Row = { id: string; status: string; frame_state: string | null; lens_arrive
 
 export async function auditMoveOrder(id: string, found: AuditPosition): Promise<ActionResult & { changed?: boolean; detail?: string }> {
   const { supabase, role } = await requireProfile();
-  if (!["admin", "gestor"].includes(role)) return { ok: false, message: "A auditoria é feita por gestor ou administrador." };
+  if (!["admin", "gestor", "montador"].includes(role)) return { ok: false, message: "Seu acesso não faz auditoria." };
   if (!(found in AUDIT_POSITIONS)) return { ok: false, message: "Escolha onde a OS foi encontrada." };
   const read = async () => {
     const { data, error } = await supabase.from("service_orders").select(FIELDS).eq("id", id).maybeSingle();
@@ -22,11 +22,23 @@ export async function auditMoveOrder(id: string, found: AuditPosition): Promise<
   try { order = await read(); } catch (error) { return { ok: false, message: (error as Error).message }; }
   const before = auditPositionOf(order);
   if (!before) return { ok: false, message: "Esta OS não está em aberto no laboratório (entregue ou cancelada)." };
-  const steps = planAudit(order, found);
-  if (steps === null) return { ok: false, message: `Não há como passar de ${AUDIT_POSITIONS[before]} para ${AUDIT_POSITIONS[found]} por aqui. Abra a OS e corrija manualmente.` };
-  if (!steps.length) return { ok: true, changed: false, message: `Confere · ${AUDIT_POSITIONS[found]}` };
+  if (before === found) return { ok: true, changed: false, message: `Confere · ${AUDIT_POSITIONS[found]}` };
 
   const note = `Auditoria: OS encontrada em ${AUDIT_POSITIONS[found]}`;
+  // Caminho direto: a função de reposição leva de qualquer etapa para qualquer posição.
+  const direct = await supabase.rpc("reposition_order", { p_order_id: id, p_to: found, p_note: note });
+  if (!direct.error) {
+    for (const path of ["/laboratorio", "/lentes", "/montagem", "/entrega", "/inicio", "/dashboard", "/pdv", `/laboratorio/${id}`]) revalidatePath(path);
+    return { ok: true, changed: true, message: `Corrigida: ${AUDIT_POSITIONS[before]} → ${AUDIT_POSITIONS[found]}` };
+  }
+  const missing = direct.error.code === "PGRST202" || /reposition_order/.test(direct.error.message);
+  if (!missing) return { ok: false, message: actionError(direct.error, "Não foi possível corrigir a posição.") ?? "" };
+
+  // Função ainda não instalada: tenta pelas operações normais do fluxo.
+  const steps = planAudit(order, found);
+  if (steps === null) return { ok: false, message: `Sem a correção de posição instalada no Supabase não dá para passar de ${AUDIT_POSITIONS[before]} para ${AUDIT_POSITIONS[found]}. Rode o arquivo funcao-mudar-posicao.sql.` };
+  if (!steps.length) return { ok: true, changed: false, message: `Confere · ${AUDIT_POSITIONS[found]}` };
+
   for (const step of steps) {
     let error: { message: string; code?: string } | null = null;
     if (step.kind === "lente") ({ error } = await supabase.rpc("receive_order_lenses", { p_order_id: id }));
@@ -43,7 +55,7 @@ export async function auditMoveOrder(id: string, found: AuditPosition): Promise<
     } else {
       ({ error } = await supabase.rpc("reposition_order", { p_order_id: id, p_to: step.to, p_note: note }));
       if (error && (error.code === "PGRST202" || /reposition_order/.test(error.message))) {
-        return { ok: false, message: `Para levar de ${AUDIT_POSITIONS[before]} para ${AUDIT_POSITIONS[found]} falta instalar a função de mudar posição no Supabase.` };
+        return { ok: false, message: `Para levar de ${AUDIT_POSITIONS[before]} para ${AUDIT_POSITIONS[found]} falta instalar a correção de posição (funcao-mudar-posicao.sql) no Supabase.` };
       }
     }
     if (error) return { ok: false, message: actionError(error, "Não foi possível corrigir a posição.") ?? "" };

@@ -92,11 +92,15 @@ async function run(action: ScanAction, order: Found, fix: Fix) {
   }
 }
 
+/** Para onde a OS vai quando a etapa no sistema não aceita a ação bipada. */
+const MOVE_TO: Partial<Record<ScanAction, AuditPosition>> = { lente: "em_montagem", armacao: "em_montagem", pronto: "pronto", medico: "em_conferencia", voltou: "pronto", entregue: "pronto" };
+
 const DONE: Record<ScanAction, string> = { lente: "Lente registrada", pronto: "Marcada como pronta", medico: "Enviada ao médico", voltou: "Liberada pelo médico", entregue: "Entregue ao cliente", armacao: "Armação registrada", corrigir: "Posição corrigida", auditoria: "Conferida" };
 
 export function ScanStation({ role, embedded = false }: { role: AppRole; embedded?: boolean }) {
   const router = useRouter();
   const actions = allowedScanActions(role);
+  const canMove = ["admin", "gestor", "montador"].includes(role);
   const [action, setAction] = useState<ScanAction | null>(actions[0] ?? null);
   const [code, setCode] = useState("");
   const [log, setLog] = useState<LogItem[]>([]);
@@ -213,7 +217,21 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
         const state = { status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, frameState: order.frame_state, lensArrived: order.lens_arrived_at };
         if (scanAlreadyDone(chosen, state)) { settle(true); push({ ok: true, repeat: true, code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: "Já estava registrada. Nada mudou." }); return; }
         const block = chosen === "corrigir" && fix.note.trim().length < 3 ? "Escreva o motivo da correção." : scanBlockReason(chosen, state, (status) => STATUS_LABEL[status as OrderStatus] ?? status);
-        if (block) { push({ ok: false, code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: `Não registrado. ${block}` }); return; }
+        // Onde bipou, a OS vai: se a etapa no sistema não aceita a ação, leva a OS direto para lá.
+        const target = MOVE_TO[chosen];
+        if (block && target && chosen !== "corrigir" && canMove && order.status !== "entregue" && order.status !== "cancelado") {
+          const moved = await auditMoveOrder(order.id, target);
+          if (!moved.ok) { push({ ok: false, code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: moved.message ?? "Não foi possível mudar a posição." }); return; }
+          if (chosen !== "entregue") {
+            settle(true);
+            push({ ok: true, audit: "corrigida", code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: moved.message ?? `Movida para ${AUDIT_POSITIONS[target]}` });
+            void loadRadar();
+            return;
+          }
+          const fresh = (await findOrder(text)).order;
+          if (!fresh) { push({ ok: false, code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: "Movida para Pronto, mas não foi possível dar a entrega. Bipe de novo." }); return; }
+          Object.assign(order, fresh);
+        } else if (block) { push({ ok: false, code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: `Não registrado. ${block}` }); return; }
         const result = await run(chosen, order, fix);
         settle(Boolean(result?.ok));
         push({ ok: Boolean(result?.ok), code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: result?.ok ? (chosen === "lente" || chosen === "armacao" || chosen === "corrigir" ? result.message ?? DONE[chosen] : DONE[chosen]) : result?.message ?? "Não foi possível registrar." });

@@ -59,10 +59,9 @@ export function stripCorrection(note: string | null) {
 export function hasPhone(phone: string | null) {
   return (phone ?? "").replace(/\D/g, "").length >= 10;
 }
-export function feedbackMessage(client: string, number?: string) {
+export function feedbackMessage(client: string, _number?: string) {
   const first = client.trim().split(/\s+/)[0] || client;
-  const os = number ? ` (OS ${number})` : "";
-  return `Olá, ${first}! Aqui é da ${STORE_NAME}. Faz alguns dias que você retirou seus óculos${os} e queremos saber como está a adaptação. Está enxergando bem e se sente confortável? Se precisar de algum ajuste, é só responder esta mensagem que a gente resolve.`;
+  return `Olá, ${first}! Aqui é da ${STORE_NAME} 😊\nComo está a adaptação com seus óculos novos? Se precisar de qualquer ajuste, é só responder aqui que cuidamos de você.`;
 }
 
 export type FollowupMetrics = {

@@ -11,12 +11,14 @@ export function ClientDeliveryForm({
   id,
   status,
   delivery,
+  defaultPhone = null,
 }: {
   id: string;
   status: string;
   delivery?: ClientDelivery | null;
+  defaultPhone?: string | null;
 }) {
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(defaultPhone ?? "");
   const [date, setDate] = useState(() =>
     toDateTimeLocalValue(new Date().toISOString()),
   );

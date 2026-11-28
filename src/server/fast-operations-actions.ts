@@ -124,9 +124,15 @@ export async function confirmClientDelivery(
   const { supabase, role } = await requireProfile();
   if (!can(role, "orders.deliver"))
     return { ok: false, message: "Sem permissão." };
+  let target = phone;
+  if (!target.replace(/\D/g, "")) {
+    // Usa o WhatsApp já salvo na OS, quando houver (ex.: entrega pelo bipe).
+    const saved = await supabase.from("service_orders").select("client_phone").eq("id", id).maybeSingle();
+    if (!saved.error) target = (saved.data?.client_phone as string | null) ?? "";
+  }
   const { error } = await supabase.rpc("confirm_client_delivery", {
     p_order_id: id,
-    p_phone: phone,
+    p_phone: target,
     p_delivered_at: deliveredAt,
   });
   if (error)

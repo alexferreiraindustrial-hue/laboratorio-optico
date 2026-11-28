@@ -8,6 +8,7 @@ import { CalendarCheck2, ClipboardCopy, HeartHandshake, MessageCircle, PackageCh
 import { CORRECTION_MARK, feedbackMessage, feedbackPending, followupBySeller, followupMetrics, isCorrection, matchesFollowup, percent, STORE_NAME, stripCorrection, type ClientFollowupRow } from "@/lib/domain/client-followup";
 import { formatDateTime } from "@/lib/format";
 import { updateClientFollowup } from "@/server/fast-operations-actions";
+import { sendFollowupMessage } from "@/server/contact-actions";
 import { findOrdersForQuick, type FoundOrder } from "@/server/quick-actions";
 import { ClientDeliveryForm } from "./client-delivery";
 import { Feedback } from "./ui";
@@ -195,6 +196,20 @@ function FollowupDetail({ row, now }: { row: ClientFollowupRow; now: Date }) {
   const correction = outcome === "correcao" || (!outcome && isCorrection(row));
   const whatsapp = waLink(phone, text);
 
+  function sendCrm() {
+    if (pending) return;
+    if (row.contacted_at && !window.confirm("Este cliente já foi contatado. Enviar a mensagem de novo?")) return;
+    start(async () => {
+      setError(null);
+      try {
+        const result = await sendFollowupMessage(row.id, phone);
+        if (!result.ok) { setError(result.message); return; }
+        setMessage(result.message ?? "Mensagem enviada.");
+        router.refresh();
+      } catch { setError("Não foi possível enviar. Tente de novo."); }
+    });
+  }
+
   function save() {
     if (pending) return;
     start(async () => {
@@ -238,7 +253,8 @@ function FollowupDetail({ row, now }: { row: ClientFollowupRow; now: Date }) {
           <input type="tel" inputMode="tel" value={phone} maxLength={24} onChange={(event) => setPhone(event.target.value)} placeholder="(12) 99999-9999" className="pv-input" />
         </label>
         <div className="flex flex-wrap gap-2">
-          {whatsapp ? <a href={whatsapp} target="_blank" rel="noreferrer" className="pv-btn is-whats"><MessageCircle size={17} />Abrir no WhatsApp</a> : <span className="pv-btn is-disabled" title="Informe o telefone com DDD"><MessageCircle size={17} />Abrir no WhatsApp</span>}
+          <button type="button" className="pv-btn is-whats" disabled={pending || !whatsapp} title={whatsapp ? "Envia pelo WhatsApp da Goldfinger (CRM) e marca como contatado" : "Informe o telefone com DDD"} onClick={sendCrm}><Send size={17} />Enviar agora</button>
+          {whatsapp ? <a href={whatsapp} target="_blank" rel="noreferrer" className="pv-btn"><MessageCircle size={17} />Abrir no WhatsApp</a> : <span className="pv-btn is-disabled" title="Informe o telefone com DDD"><MessageCircle size={17} />Abrir no WhatsApp</span>}
           <button type="button" className="pv-btn" onClick={async () => { try { await navigator.clipboard.writeText(text); setMessage("Mensagem copiada. Depois de enviar, marque o resultado abaixo."); } catch { setError("Copie o texto da mensagem manualmente."); } }}><ClipboardCopy size={16} />Copiar mensagem</button>
         </div>
 

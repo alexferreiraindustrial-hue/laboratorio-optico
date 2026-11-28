@@ -65,7 +65,8 @@ describe("pós-venda Gold Finger", () => {
     const text = feedbackMessage("Maria Souza", "1234");
     expect(text).toContain("Olá, Maria!");
     expect(text).toContain("Gold Finger Cruzeiro");
-    expect(text).toContain("OS 1234");
+    expect(text).toContain("adaptação");
+    expect(text).not.toContain("OS 1234");
   });
   it("separa correção de ajuste sem mudar o banco", () => {
     const fix = { ...base, client_phone: null, outcome: "precisa_ajuda", feedback_note: `${CORRECTION_MARK} lente trocada` };

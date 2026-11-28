@@ -57,7 +57,19 @@ export async function loadOrderDetail(id: string) {
     : { data: [] };
   const urlByPath = new Map((signed.data ?? []).map((item) => [item.path, item.signedUrl]));
 
+  const [phoneRow, readyNotice] = await Promise.all([
+    supabase.from("service_orders").select("client_phone").eq("id", id).maybeSingle(),
+    supabase.from("order_notice_logs").select("notified_at,event_at").eq("order_id", id).eq("notice_kind", "ready").eq("recipient", "client").order("notified_at", { ascending: false }).limit(1),
+  ]);
+  const lastReady = readyNotice.data?.[0];
+  const clientContact = {
+    phone: phoneRow.error ? null : ((phoneRow.data?.client_phone as string | null) ?? null),
+    phoneEnabled: !phoneRow.error,
+    notifiedAt: lastReady && order.completed_at && Date.parse(lastReady.event_at) === Date.parse(order.completed_at) ? (lastReady.notified_at as string) : null,
+  };
+
   return {
+    clientContact,
     clientDelivery:await loadClientDelivery(id),
     nowIso:new Date().toISOString(),
     role,

@@ -112,6 +112,19 @@ export const loadCatalogs = cache(async function loadCatalogs() {
   };
 });
 
+/** WhatsApp do cliente de cada OS (campo novo, fora da visão orders_enriched). */
+export async function clientPhones(ids: string[]) {
+  const map = new Map<string, string>();
+  if (!ids.length) return map;
+  const { supabase } = await requireProfile();
+  for (let i = 0; i < ids.length; i += 150) {
+    const { data, error } = await supabase.from("service_orders").select("id,client_phone").in("id", ids.slice(i, i + 150)).not("client_phone", "is", null);
+    if (error) return map;
+    for (const row of data ?? []) if (row.client_phone) map.set(row.id as string, row.client_phone as string);
+  }
+  return map;
+}
+
 export async function loadOrders(filters: OrderFilters, options?: { statuses?: OrderStatus[]; pageSize?: number }) {
   const { supabase } = await requireProfile();
   const pageSize = options?.pageSize ?? (filters.status ? 400 : 20);
@@ -150,9 +163,9 @@ export async function loadOrders(filters: OrderFilters, options?: { statuses?: O
 
   const { data, error, count } = await query;
   const rows = (data ?? []) as OrderRow[];
-  const counts = await stepsDoneByOrder(rows.map((row) => row.id));
+  const [counts, phones] = await Promise.all([stepsDoneByOrder(rows.map((row) => row.id)), clientPhones(rows.map((row) => row.id))]);
   return {
-    orders: rows.map((row) => ({ ...row, steps_done: counts.get(row.id) ?? 0 })),
+    orders: rows.map((row) => ({ ...row, steps_done: counts.get(row.id) ?? 0, client_phone: phones.get(row.id) ?? null })),
     count: count ?? 0,
     page,
     pageSize,

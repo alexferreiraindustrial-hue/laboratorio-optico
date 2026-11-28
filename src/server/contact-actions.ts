@@ -130,3 +130,22 @@ export async function saveSellerWhatsapp(id: string, whatsapp: string): Promise<
   revalidatePath("/vendedores");
   return { ok: true, message: digits ? "WhatsApp salvo." : "WhatsApp removido." };
 }
+
+/** Mensagem ao cliente da OS pelo WhatsApp da Goldfinger (CRM). "pronto" também registra o aviso de pronto. */
+export async function sendClientMessage(id: string, text: string, kind: string): Promise<ActionResult> {
+  const { supabase, role } = await requireProfile();
+  if (!can(role, "orders.write")) return { ok: false, message: "Sem permissão." };
+  const body = text.trim();
+  if (body.length < 5) return { ok: false, message: "Escreva a mensagem antes de enviar." };
+  if (body.length > 2000) return { ok: false, message: "Use até 2000 caracteres." };
+  const { data: order, error } = await supabase.from("service_orders").select("id,client_name,status,completed_at,client_phone").eq("id", id).maybeSingle();
+  if (error || !order) return { ok: false, message: "OS não encontrada." };
+  if (!validPhone(order.client_phone)) return { ok: false, message: "Esta OS não tem WhatsApp do cliente. Coloque em Editar dados." };
+  const sent = await sendCrmWhatsApp({ phone: order.client_phone, name: order.client_name, text: body });
+  if (!sent.ok) return sent;
+  if (kind === "pronto" && order.status === "pronto" && order.completed_at) {
+    await supabase.rpc("mark_order_notice", { p_order_id: id, p_kind: "ready", p_event_at: order.completed_at, p_recipient: "client" });
+  }
+  refresh(id);
+  return { ok: true, message: `Mensagem enviada para ${order.client_name}.` };
+}

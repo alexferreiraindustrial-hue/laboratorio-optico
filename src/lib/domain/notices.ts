@@ -3,7 +3,7 @@ import {formatDateTime} from "../format";
 import type {OrderOperations} from "./operations";
 export const NOTICE_LABEL={ready:"Prontos para retirada",received:"Serviços recebidos",lenses:"Lentes recebidas",vta:"VTA · pedir armação",due:"Prazos próximos / atrasados",missing_ref:"Cobrar número do pedido"} as const;
 export type NoticeKind=keyof typeof NOTICE_LABEL;
-export type NoticeOrder=OrderOperations&{id:string;number:string;external_order_id:string|null;client_name:string;seller_id:string|null;seller_name:string|null;status:string;entered_at:string;due_at:string|null;completed_at:string|null;lens_supplier_ref:string|null;laboratory_name:string;mounted_at?:string|null};
+export type NoticeOrder=OrderOperations&{id:string;number:string;external_order_id:string|null;client_name:string;seller_id:string|null;seller_name:string|null;status:string;entered_at:string;due_at:string|null;completed_at:string|null;lens_supplier_ref:string|null;laboratory_name:string;mounted_at?:string|null;client_phone?:string|null};
 export type NoticeLog={order_id:string;notice_kind:string;event_at:string;recipient:string;notified_at:string};
 export function noticeEvent(order:NoticeOrder,kind:NoticeKind){return kind==="ready"?order.completed_at:kind==="lenses"||kind==="vta"?order.lens_arrived_at:kind==="due"?order.due_at:order.entered_at;}
 export function noticeOrders(orders:NoticeOrder[],kind:NoticeKind,from:string,to:string,now:Date){

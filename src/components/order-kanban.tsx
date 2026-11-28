@@ -1,5 +1,6 @@
 "use client";
 
+import { ClientWhatsApp } from "./client-whatsapp";
 import { awaitingDoctor, OrderActionsButton, StageArrows, useOrderMenu } from "./order-context-menu";
 import { DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { KANBAN_AUTO_SCROLL, KanbanViewport } from "./kanban-viewport";
@@ -60,6 +61,7 @@ function Card({ order, href, role, pending, onMove, now }: { order: OrderRow; hr
               {order.store_name ? ` · ${order.store_name}` : ""}
             </span>
           </div>
+          <ClientWhatsApp orderId={order.id} client={order.client_name} phone={order.client_phone} status={order.status} />
           <LensGauge value={forecast.progress} risk={forecast.risk} size={46} />
         </div>
         {order.status === "aguardando_lentes" ? (

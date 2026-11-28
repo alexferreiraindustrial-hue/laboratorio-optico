@@ -1,5 +1,6 @@
 import {requireProfile} from "./session";
 import {loadOperations} from "./operations";
+import {clientPhones} from "./queries";
 import type {NoticeOrder,NoticeLog} from "@/lib/domain/notices";
 export async function loadNotices(from:string,to:string){
  const {supabase,role}=await requireProfile();
@@ -19,7 +20,8 @@ export async function loadNotices(from:string,to:string){
  for(let i=0;i<extraIds.length;i+=150){const {data,error}=await supabase.from("orders_enriched").select(fields).in("id",extraIds.slice(i,i+150));if(error)throw new Error("Não foi possível conferir todos os serviços.");for(const row of data??[])combined.set(row.id,row as NoticeOrder);}
  const operations=await loadOperations(supabase,[...combined.keys()]);
  const mountedTimes=new Map<string,string>();for(const row of mounted.data??[])if(!mountedTimes.has(row.order_id))mountedTimes.set(row.order_id,row.created_at);
- const rows=[...combined.values()].map(row=>({...row,...operations.get(row.id),mounted_at:mountedTimes.get(row.id)||null}));
+ const phones=await clientPhones([...combined.keys()]);
+ const rows=[...combined.values()].map(row=>({...row,...operations.get(row.id),mounted_at:mountedTimes.get(row.id)||null,client_phone:phones.get(row.id)??null}));
  const sellerIds=[...new Set(rows.map(row=>row.seller_id).filter(Boolean))] as string[];
  const sellerPhones:Record<string,boolean>={};
  if(sellerIds.length){const {data}=await supabase.from("sellers").select("id,phone,whatsapp").in("id",sellerIds);for(const seller of data??[])sellerPhones[seller.id]=((seller.whatsapp||seller.phone||"") as string).replace(/\D/g,"").length>=10;}

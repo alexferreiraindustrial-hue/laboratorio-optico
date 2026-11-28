@@ -36,3 +36,24 @@ export function firstName(name: string | null | undefined) {
 export function readyMessage(client: string) {
   return `Olá, ${firstName(client)}! Aqui é da ${STORE_NAME} 😊\nSeus óculos já estão prontos e esperando por você na loja. Quando puder, é só passar para retirar!`;
 }
+
+/** Pedir para o cliente passar na loja ou falar com a equipe. */
+export function callStoreMessage(client: string) {
+  return `Olá, ${firstName(client)}! Aqui é da ${STORE_NAME} 😊\nPrecisamos falar com você sobre seus óculos. Quando puder, passe na loja ou responda esta mensagem, por favor.`;
+}
+
+/** Modelos rápidos para escrever ao cliente; o texto sempre pode ser editado antes de enviar. */
+export function clientTemplates(client: string, status: string) {
+  const list = [
+    { key: "loja", label: "Pedir para passar na loja", text: callStoreMessage(client) },
+    { key: "livre", label: "Mensagem livre", text: `Olá, ${firstName(client)}! Aqui é da ${STORE_NAME}. ` },
+  ];
+  if (status === "pronto") list.unshift({ key: "pronto", label: "Óculos pronto", text: readyMessage(client) });
+  return list;
+}
+
+/** Link do WhatsApp (abre no aparelho) com a mensagem pronta. */
+export function waMeLink(phone: string | null | undefined, text: string) {
+  const full = whatsappE164(phone);
+  return full ? `https://wa.me/${full.slice(1)}?text=${encodeURIComponent(text)}` : null;
+}

@@ -1,3 +1,4 @@
+import { ClientWhatsApp } from "./client-whatsapp";
 import { OrderActionsButton, OrderContextMenu, OrderMenuRow } from "./order-context-menu";
 import { Fragment } from "react";
 import { ArrowUpRight, ChevronDown, ListFilter, PackageCheck, Plus, Search, Zap } from "lucide-react";
@@ -270,6 +271,7 @@ export function OrderScreen({
                           </span>
                         </span>
                       </Link>
+                      <ClientWhatsApp orderId={order.id} client={order.client_name} phone={order.client_phone} status={order.status} className="self-center" />
                       <OrderActionsButton compact role={role} order={{ id: order.id, number: visibleOrderNumber(order), status: order.status, clientName: order.client_name, detailsHref: orderHref(order.id), medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, updatedAt: order.updated_at }} />
                       </div>
                       </OrderContextMenu>
@@ -324,10 +326,13 @@ export function OrderScreen({
                     </td>
                     {/* Cliente + Vendedor */}
                     <td className="px-3 py-2.5">
-                      <Link href={orderHref(order.id)} scroll={false} className="flex flex-col gap-0.5">
-                        <span className="font-semibold leading-tight">{order.client_name}</span>
-                        <span className="text-xs text-[var(--muted)]">{order.seller_name || order.store_name || "—"}</span>
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link href={orderHref(order.id)} scroll={false} className="flex min-w-0 flex-1 flex-col gap-0.5">
+                          <span className="font-semibold leading-tight">{order.client_name}</span>
+                          <span className="text-xs text-[var(--muted)]">{order.seller_name || order.store_name || "—"}</span>
+                        </Link>
+                        <ClientWhatsApp orderId={order.id} client={order.client_name} phone={order.client_phone} status={order.status} />
+                      </div>
                     </td>
                     {/* Prazo */}
                     <td className="px-3 py-2.5">

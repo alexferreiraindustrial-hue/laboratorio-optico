@@ -188,14 +188,25 @@ export async function saveOrder(formData: FormData): Promise<ActionResult> {
     p_lens_spec: lensSpec(parsed.data),
   };
 
+  const phoneRaw = String(formData.get("clientPhone") ?? "");
+  const phone = phoneRaw.replace(/\D/g, "");
+  const phoneSent = formData.has("clientPhone");
+  if (phone && (phone.length < 10 || phone.length > 15)) return { ok: false, message: "Confira o WhatsApp do cliente com DDD (ou deixe em branco)." };
+  async function savePhone(orderId: string) {
+    if (!phoneSent) return null;
+    const { error: phoneError } = await supabase.rpc("set_order_client_phone", { p_order_id: orderId, p_phone: phone });
+    return phoneError ? " O telefone do cliente não foi salvo; confira e tente de novo." : null;
+  }
+
   if (id) {
     const { error } = await supabase.rpc("update_service_order", { p_order_id: id, ...payload });
     if (error) return { ok: false, message: actionError(error, "Não foi possível salvar a OS.") ?? "" };
+    const phoneWarning = await savePhone(id);
     revalidatePath("/laboratorio");
     revalidatePath("/lentes");
     revalidatePath(`/laboratorio/${id}`);
     revalidatePath("/dashboard");
-    return { ok: true, id, message: "OS atualizada." };
+    return { ok: true, id, message: `OS atualizada.${phoneWarning ?? ""}` };
   }
 
   const { data, error } = await supabase.rpc("create_service_order", {
@@ -203,9 +214,10 @@ export async function saveOrder(formData: FormData): Promise<ActionResult> {
     p_status: parsed.data.status,
   });
   if (error) return { ok: false, message: actionError(error, "Não foi possível abrir a OS.") ?? "" };
+  const phoneWarning = phone ? await savePhone(data.id as string) : null;
   revalidatePath("/laboratorio");
   revalidatePath("/dashboard");
-  return { ok: true, id: data.id as string, message: `OS ${data.number} aberta.` };
+  return { ok: true, id: data.id as string, message: `OS ${data.number} aberta.${phoneWarning ?? ""}` };
 }
 
 export async function changeOrderStatus(orderId: string, status: string, note: string): Promise<ActionResult> {

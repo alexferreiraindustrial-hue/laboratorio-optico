@@ -1,3 +1,4 @@
+import { ClientContact } from "@/components/client-contact";
 import { LensForecastEditor } from "@/components/lens-forecast-editor";
 import { OrderDrawer } from "@/components/order-drawer";
 import { OrderForm } from "@/components/order-form";
@@ -47,7 +48,7 @@ export default async function LaboratorioPage({
       wipLimits={((catalogs.settings.lean ?? {}) as { wip?: Record<string, number> }).wip}
     />
     {detail ? <OrderDrawer key={detail.order.id} client={detail.order.client_name} title={`OS ${visibleOrderNumber(detail.order)}`} closeHref={closeHref} detailHref={`/laboratorio/${detail.order.id}`}
-      editor={can(session.role, "orders.write") ? <><OrderForm laboratories={catalogs.laboratories} sellers={catalogs.sellers} stores={catalogs.stores} sellerLinks={catalogs.sellerLinks} order={detail.order} /><LensForecastEditor orderId={detail.order.id} expectedAt={detail.order.lens_expected_at} supplierRef={detail.order.lens_supplier_ref} /></> : undefined}
+      editor={can(session.role, "orders.write") ? <>{detail.clientContact&&<ClientContact compact id={detail.order.id} status={detail.order.status} contact={detail.clientContact} editable/>}<OrderForm laboratories={catalogs.laboratories} sellers={catalogs.sellers} stores={catalogs.stores} sellerLinks={catalogs.sellerLinks} order={detail.order} /><LensForecastEditor orderId={detail.order.id} expectedAt={detail.order.lens_expected_at} supplierRef={detail.order.lens_supplier_ref} /></> : undefined}
       workspace={<OrderWorkspace {...detail} mode="laboratorio" />}
     /> : null}
     </>

@@ -1,6 +1,5 @@
 "use client";
 import {StageNoteEditor} from "./stage-note-editor";
-import {ClientDeliveryForm} from "./client-delivery";
 import {ClientContact,type ClientContactInfo} from "./client-contact";
 import type {ClientDelivery} from "@/lib/domain/client-followup";
 import {MedicalReview} from "./medical-review";
@@ -60,7 +59,7 @@ export function OrderWorkspace({
   mode,
   seller = null,
   messages = [],
-  clientDelivery=null,
+  clientDelivery: _clientDelivery=null,
   clientContact=null,
 }: {
   clientDelivery?:ClientDelivery|null;
@@ -123,7 +122,6 @@ export function OrderWorkspace({
           {order.assistance_kind&&<p className="mt-3 text-sm font-semibold text-[var(--link)]">Assistência · {order.assistance_kind}{order.assistance_origin_order_id&&<> · <a className="underline" href={`/laboratorio/${order.assistance_origin_order_id}`}>Ver OS original</a></>}</p>}
           <MedicalReview key={`medical-${order.updated_at}`} id={order.id} order={order} status={order.status} editable={can(role,"orders.write")}/>
           {clientContact&&order.status!=="cancelado"&&<ClientContact key={`contact-${order.updated_at}`} id={order.id} status={order.status} contact={clientContact} editable={can(role,"orders.write")}/>}
-          {can(role,"orders.deliver")&&<ClientDeliveryForm key={order.id} id={order.id} status={order.status} delivery={clientDelivery} defaultPhone={clientContact?.phone}/>}
           <ExpressCountdown operations={order} nowIso={nowIso}/>
           {can(role,"orders.write")&&!["pronto","entregue","cancelado"].includes(order.status)&&<div className="mt-3"><OrderOperationsEditor key={order.updated_at} id={order.id} operations={order} status={order.status}/></div>}
           {order.status === "aguardando_lentes" ? (

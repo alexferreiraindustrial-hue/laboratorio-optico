@@ -1,4 +1,5 @@
 "use client";
+import { formatPhone } from "@/lib/domain/client-contact";
 import { PENDING_LABORATORY, PENDING_LABORATORY_CODE, PENDING_LABORATORY_NAME } from "@/lib/domain/laboratories";
 
 import { useRouter } from "next/navigation";
@@ -114,6 +115,9 @@ export function OrderForm({
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Nome do cliente">
             <Input name="clientName" required defaultValue={order?.client_name} placeholder="Ex.: João Silva" />
+          </Field>
+          <Field label="WhatsApp do cliente (opcional)">
+            <Input name="clientPhone" type="tel" inputMode="tel" maxLength={24} defaultValue={order?.client_phone ? formatPhone(order.client_phone) : ""} placeholder="(12) 99999-9999" />
           </Field>
           <Field label="Vendedor">
             <Select name="sellerId" value={sellerId} onChange={(event) => setSellerId(event.target.value)}>

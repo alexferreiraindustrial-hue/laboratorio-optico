@@ -11,11 +11,12 @@ import { Button } from "./ui";
 export type ClientContactInfo = { phone: string | null; phoneEnabled: boolean; notifiedAt: string | null };
 
 /** WhatsApp do cliente na OS e o botão de avisar que está pronto (envia pelo CRM). */
-export function ClientContact({ id, status, contact, editable }: { id: string; status: string; contact: ClientContactInfo; editable: boolean }) {
+export function ClientContact({ id, status, contact, editable, compact = false }: { id: string; status: string; contact: ClientContactInfo; editable: boolean; compact?: boolean }) {
   const router = useRouter();
   const [phone, setPhone] = useState(contact.phone ? formatPhone(contact.phone) : "");
   const [pending, start] = useTransition();
   if (!contact.phoneEnabled) return null;
+  if (compact && status !== "pronto") return null;
   const changed = phoneDigits(phone) !== phoneDigits(contact.phone);
   const ready = status === "pronto";
 
@@ -39,7 +40,8 @@ export function ClientContact({ id, status, contact, editable }: { id: string; s
 
   return (
     <div className="mt-3 grid gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-3">
-      <label className="grid gap-1 text-sm font-medium">
+      {compact ? <p className="text-sm font-semibold">Óculos pronto · avisar o cliente{contact.phone ? ` (${formatPhone(contact.phone)})` : ""}</p> : null}
+      <label className={compact ? "hidden" : "grid gap-1 text-sm font-medium"}>
         WhatsApp do cliente
         <input
           value={phone}
@@ -64,7 +66,9 @@ export function ClientContact({ id, status, contact, editable }: { id: string; s
       <p className="text-xs text-[var(--muted)]">
         {contact.notifiedAt
           ? `Cliente avisado em ${formatDateTime(contact.notifiedAt)}.`
-          : ready
+          : compact && !validPhone(phone)
+            ? "Coloque o WhatsApp do cliente nos dados da OS abaixo e salve para poder avisar."
+            : ready
             ? "A mensagem sai pelo WhatsApp da Goldfinger e fica registrada no CRM."
             : "O aviso de pronto aparece quando a OS estiver na gaveta. O telefone também vai para o pós-venda."}
       </p>

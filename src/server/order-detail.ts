@@ -68,6 +68,8 @@ export async function loadOrderDetail(id: string) {
     notifiedAt: lastReady && order.completed_at && Date.parse(lastReady.event_at) === Date.parse(order.completed_at) ? (lastReady.notified_at as string) : null,
   };
 
+  (order as { client_phone?: string | null }).client_phone = clientContact.phone;
+
   return {
     clientContact,
     clientDelivery:await loadClientDelivery(id),

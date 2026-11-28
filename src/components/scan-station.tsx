@@ -20,14 +20,14 @@ import { receiveOrderFrame } from "@/server/operations-actions";
 import { repositionOrder } from "@/server/reposition-actions";
 import { REPOSITION_LABEL, REPOSITION_TARGETS, type RepositionTarget } from "@/lib/domain/reposition";
 import { AUDIT_OPEN_STATUSES, AUDIT_ORDER, AUDIT_POSITIONS, type AuditPosition } from "@/lib/domain/audit";
-import { auditMoveOrder } from "@/server/audit-actions";
+import { auditMoveOrder, reactivateOrder } from "@/server/audit-actions";
 import { AuditPanel, loadAuditSession, saveAuditSession, type AuditRow, type AuditSession } from "./audit-panel";
 
 const ICONS: Record<ScanAction, typeof Check> = { lente: PackageOpen, pronto: Check, medico: Stethoscope, voltou: Undo2, entregue: PackageCheck, armacao: Glasses, corrigir: MoveHorizontal, auditoria: ClipboardCheck };
 const ORDER: ScanAction[] = ["lente", "pronto", "medico", "voltou", "entregue", "armacao", "corrigir", "auditoria"];
 const KEYS: Record<ScanAction, string> = { lente: "F1", pronto: "F2", medico: "F3", voltou: "F4", entregue: "F5", armacao: "F6", corrigir: "F7", auditoria: "F8" };
 
-type Found = { id: string; number: string; external_order_id: string | null; client_name: string; status: string; medical_review_required: boolean | null; medical_review_approved_at: string | null; updated_at: string; frame_state: string | null; lens_arrived_at: string | null };
+type Found = { audit_off_at?: string | null; id: string; number: string; external_order_id: string | null; client_name: string; status: string; medical_review_required: boolean | null; medical_review_approved_at: string | null; updated_at: string; frame_state: string | null; lens_arrived_at: string | null };
 type Fix = { to: RepositionTarget; note: string };
 type LogItem = { key: number; at: string; code: string; ok: boolean; repeat?: boolean; audit?: "confere" | "corrigida"; title: string; client?: string; detail: string; action: ScanAction; id?: string };
 type Display = { tone: "idle" | "ok" | "err" | "busy" | "rep"; number: string; client: string; line: string };
@@ -60,7 +60,8 @@ async function findOrder(raw: string): Promise<{ order?: Found; error?: string }
   const target = parseScanCode(raw);
   if (!target) return { error: "Código não reconhecido." };
   const supabase = createClient();
-  const fields = "id, number, external_order_id, client_name, status, medical_review_required, medical_review_approved_at, updated_at, frame_state, lens_arrived_at";
+  // "*" traz também a marca de off da auditoria geral, quando o banco já tiver a coluna.
+  const fields = "*";
   if (target.id) {
     const { data, error } = await supabase.from("service_orders").select(fields).eq("id", target.id).maybeSingle();
     if (error) return { error: error.message };
@@ -214,8 +215,11 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
           if (result.ok && result.changed) { void loadRadar(); void loadAudit(); }
           return;
         }
+        // OS em off (auditoria geral) que apareceu: volta a ficar ativa antes de registrar a ação.
+        let revived = false;
+        if (order.audit_off_at && canMove) revived = (await reactivateOrder(order.id)).ok;
         const state = { status: order.status, medicalRequired: order.medical_review_required, medicalApproved: order.medical_review_approved_at, frameState: order.frame_state, lensArrived: order.lens_arrived_at };
-        if (scanAlreadyDone(chosen, state)) { settle(true); push({ ok: true, repeat: true, code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: "Já estava registrada. Nada mudou." }); return; }
+        if (scanAlreadyDone(chosen, state)) { settle(true); push({ ok: true, repeat: !revived, code: text, action: chosen, id: order.id, title: number, client: order.client_name, detail: revived ? "Estava em off: voltou a ficar ativa." : "Já estava registrada. Nada mudou." }); if (revived) void loadRadar(); return; }
         const block = chosen === "corrigir" && fix.note.trim().length < 3 ? "Escreva o motivo da correção." : scanBlockReason(chosen, state, (status) => STATUS_LABEL[status as OrderStatus] ?? status);
         // Onde bipou, a OS vai: se a etapa no sistema não aceita a ação, leva a OS direto para lá.
         const target = MOVE_TO[chosen];

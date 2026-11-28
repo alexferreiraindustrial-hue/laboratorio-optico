@@ -69,6 +69,7 @@ export type OrderRow = OrderOperations & {
   number: string;
   client_name: string;
   client_phone?: string | null;
+  audit_off_at?: string | null;
   seller_id: string | null;
   seller_name: string | null;
   store_id?: string | null;

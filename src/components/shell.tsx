@@ -71,6 +71,7 @@ const groups: { title: string; step?: string; adminOnly?: boolean; items: NavIte
       { href: "/pdv", label: "PDV da produção", icon: ScanBarcode },
       { href: "/laboratorio/etiquetas", label: "Etiquetas", icon: Tags },
       { href: "/laboratorio/auditoria", label: "Auditoria", icon: ClipboardCheck },
+      { href: "/laboratorio/auditoria-geral", label: "Auditoria geral", icon: ClipboardCheck },
       { href: "/avisos", label: "Avisos por vendedora", icon: ClipboardList },
     ],
   },
@@ -185,6 +186,7 @@ const SIMPLE_ICON: Record<string, typeof LayoutDashboard> = {
   "/pdv": ScanBarcode,
   "/pos-venda": HeartHandshake,
   "/laboratorio/auditoria": ClipboardCheck,
+  "/laboratorio/auditoria-geral": ClipboardCheck,
 };
 
 function simpleItems(role: AppRole) {

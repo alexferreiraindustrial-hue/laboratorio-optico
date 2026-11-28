@@ -11,13 +11,14 @@ export const SIMPLE_NAV = [
   { href: "/pdv", label: "PDV", hint: "Bipar, lançar e ver prazos" },
   { href: "/pos-venda", label: "Pós-venda · SAC", hint: "Contato com o cliente 5 dias depois da entrega" },
   { href: "/laboratorio/auditoria", label: "Auditoria", hint: "Conferir gavetas e bancada com a folha e o bipe" },
+  { href: "/laboratorio/auditoria-geral", label: "Auditoria geral", hint: "Bipar tudo e colocar em off o que não estiver no laboratório" },
 ] as const;
 
 export type SimpleHref = (typeof SIMPLE_NAV)[number]["href"];
 
 /** Mostra no modo simples só o que o perfil consegue fazer (o servidor continua validando). */
 export function simpleAllowed(role: AppRole, href: string) {
-  if (href === "/pos-venda" || href === "/laboratorio/auditoria") return role === "admin" || role === "gestor";
+  if (href === "/pos-venda" || href === "/laboratorio/auditoria" || href === "/laboratorio/auditoria-geral") return role === "admin" || role === "gestor";
   if (role === "admin" || role === "gestor" || role === "consulta") return true;
   switch (href) {
     case "/inicio":

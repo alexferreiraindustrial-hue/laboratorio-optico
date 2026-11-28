@@ -96,8 +96,17 @@ export async function loadPortalOrders(
     p_late: filters.late === "1",
     p_ready: filters.ready === "1",
   });
+  let orders = (data ?? []) as PortalOrder[];
+  // Esconde da vendedora as OS colocadas em off pela auditoria geral.
+  if (orders.length) {
+    const hidden = await supabase.rpc("portal_hidden_orders", { p_ids: orders.map((order) => order.id) });
+    if (!hidden.error && Array.isArray(hidden.data) && hidden.data.length) {
+      const off = new Set((hidden.data as (string | { portal_hidden_orders: string })[]).map((item) => (typeof item === "string" ? item : item.portal_hidden_orders)));
+      orders = orders.filter((order) => !off.has(order.id));
+    }
+  }
   return {
-    orders: (data ?? []) as PortalOrder[],
+    orders,
     error: error ? await portalContextError(error) : null,
   };
 }

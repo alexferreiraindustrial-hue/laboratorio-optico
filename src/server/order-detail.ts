@@ -16,7 +16,9 @@ export type OrderMessage = {
 
 export async function loadOrderDetail(id: string) {
   const { supabase, role } = await requireProfile();
-  const { data: order, error } = await supabase.from("orders_enriched").select("*").eq("id", id).maybeSingle();
+  let { data: order, error } = await supabase.from("orders_enriched_all").select("*").eq("id", id).maybeSingle();
+  // Antes da atualização do banco a visão orders_enriched_all ainda não existe.
+  if (error) ({ data: order, error } = await supabase.from("orders_enriched").select("*").eq("id", id).maybeSingle());
   if (error) throw new Error(error.message);
   if (!order) notFound();
 

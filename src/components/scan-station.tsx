@@ -323,7 +323,7 @@ export function ScanStation({ role, embedded = false }: { role: AppRole; embedde
           })}
         </div>
 
-        {action === "auditoria" && auditSession ? <AuditPanel rows={auditRows} session={auditSession} onReset={() => { const fresh = { startedAt: new Date().toISOString(), seen: {} }; saveAuditSession(fresh); setAuditSession(fresh); input.current?.focus(); }} /> : null}
+        {action === "auditoria" && auditSession ? <AuditPanel canManage={role === "admin" || role === "gestor"} rows={auditRows} session={auditSession} onReset={() => { const fresh = { startedAt: new Date().toISOString(), seen: {} }; saveAuditSession(fresh); setAuditSession(fresh); input.current?.focus(); }} /> : null}
 
         <section className="pdv-radar" aria-label="Prazos que pedem cuidado">
           <div className="pdv-radar-head">

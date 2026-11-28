@@ -125,3 +125,20 @@ export async function reactivateOrder(id: string): Promise<ActionResult> {
   revalidatePath(`/laboratorio/${id}`);
   return { ok: true, message: "OS reativada. Ela voltou para a operação na mesma etapa." };
 }
+
+/** Leva para a auditoria geral as OS conferidas no PDV (lista guardada no navegador) e abre a revisão. */
+export async function importLocalAudit(ids: string[]): Promise<ActionResult & { marked?: number }> {
+  const { supabase, role } = await requireProfile();
+  if (!["admin", "gestor"].includes(role)) return { ok: false, message: "Somente administrador ou gestor leva a conferência para a auditoria geral." };
+  const unique = [...new Set(ids.filter((id) => /^[0-9a-f-]{36}$/i.test(id)))].slice(0, 2000);
+  if (!unique.length) return { ok: false, message: "Nenhuma OS conferida neste computador." };
+  const started = await supabase.rpc("start_general_audit");
+  if (started.error) return { ok: false, message: actionError(started.error, "Não foi possível abrir a auditoria geral.") ?? "" };
+  let marked = 0;
+  for (const id of unique) {
+    const { error } = await supabase.rpc("audit_mark_found", { p_order_id: id, p_position: "conferida no PDV" });
+    if (!error) marked++;
+  }
+  refreshGeneral();
+  return { ok: true, marked, message: `${marked} OS conferidas foram levadas para a auditoria geral.` };
+}

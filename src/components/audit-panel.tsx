@@ -1,9 +1,12 @@
 "use client";
 // Auditoria no PDV: progresso da conferência e o que ainda não foi bipado, por posição no sistema.
 // A sessão (quais OS já foram conferidas) fica guardada neste computador até começar uma nova.
-import { ClipboardCheck, Printer, RotateCcw } from "lucide-react";
+import { ClipboardCheck, PowerOff, Printer, RotateCcw } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { importLocalAudit } from "@/server/audit-actions";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { AUDIT_ORDER, AUDIT_POSITIONS, auditPositionOf, type AuditPosition } from "@/lib/domain/audit";
 import { AUTO_NUMBER, visibleOrderNumber } from "@/lib/domain/orders";
 
@@ -27,8 +30,20 @@ const visible = (row: AuditRow) => {
   return AUTO_NUMBER.test(value) ? null : value;
 };
 
-export function AuditPanel({ rows, session, onReset }: { rows: AuditRow[] | null; session: AuditSession; onReset: () => void }) {
+export function AuditPanel({ rows, session, onReset, canManage = false }: { rows: AuditRow[] | null; session: AuditSession; onReset: () => void; canManage?: boolean }) {
   const [showMissing, setShowMissing] = useState(false);
+  const router = useRouter();
+  const [sending, startSending] = useTransition();
+  function sendToGeneral() {
+    const ids = Object.keys(session.seen);
+    if (!window.confirm(`Levar as ${ids.length} OS conferidas para a Auditoria geral? Lá você revisa a lista do que não foi bipado e coloca em off. Nada vai para off antes disso.`)) return;
+    startSending(async () => {
+      const result = await importLocalAudit(ids);
+      if (!result.ok) return void toast.error(result.message);
+      toast.success(result.message ?? "Pronto.");
+      router.push("/laboratorio/auditoria-geral");
+    });
+  }
   const stats = useMemo(() => {
     if (!rows) return null;
     const missing = new Map<AuditPosition, AuditRow[]>();
@@ -51,6 +66,7 @@ export function AuditPanel({ rows, session, onReset }: { rows: AuditRow[] | null
           <h2>Auditoria do laboratório</h2>
           <p>Começou {started.toLocaleDateString("pt-BR")} às {started.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}. Bipe tudo o que está no local escolhido; o sistema confere ou corrige.</p>
         </div>
+        {canManage && Object.keys(session.seen).length ? <button type="button" className="pdv-tool" disabled={sending} onClick={sendToGeneral}><PowerOff size={16} />{sending ? "Levando…" : "Colocar em off o que faltou"}</button> : null}
         <Link href="/laboratorio/auditoria" className="pdv-tool"><Printer size={16} />Folha para imprimir</Link>
         <button type="button" className="pdv-tool" onClick={() => { if (window.confirm("Começar uma nova auditoria? A contagem desta será zerada (nada muda nas OS).")) onReset(); }}><RotateCcw size={16} />Nova auditoria</button>
       </div>

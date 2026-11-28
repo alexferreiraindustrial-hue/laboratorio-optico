@@ -167,7 +167,15 @@ function OpenAudit({ data, canManage }: { data: GeneralAuditData; canManage: boo
         <p className="text-xs text-[var(--muted)]">{standby ? "Estas OS estão fora da operação até serem bipadas. Bipe no PDV (F8 Auditoria) para trazer cada uma de volta no lugar certo." : "As marcadas vão para off no encerramento. Desmarque o que você sabe que ainda está no laboratório (ex.: com o médico ou na bancada de alguém) e bipe depois."}</p>
         {grouped.map(([status, orders]) => (
           <details key={status} open className="rounded-lg border border-[var(--line)]">
-            <summary className="cursor-pointer px-3 py-2 text-sm font-semibold">{statusName(status)} · {orders.length}</summary>
+            <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm font-semibold">
+              <span>{statusName(status)} · {orders.length}{standby ? "" : ` · ${orders.filter((order) => !unchecked.has(order.id)).length} vão para off`}</span>
+              {standby ? null : (
+                <span className="flex gap-1.5">
+                  <button type="button" onClick={(event) => { event.preventDefault(); setUnchecked((current) => { const next = new Set(current); for (const order of orders) next.add(order.id); return next; }); }} className="min-h-9 rounded-lg border border-[var(--line)] px-2.5 text-xs font-semibold">Manter todas ativas</button>
+                  <button type="button" onClick={(event) => { event.preventDefault(); setUnchecked((current) => { const next = new Set(current); for (const order of orders) next.delete(order.id); return next; }); }} className="min-h-9 rounded-lg border border-[var(--line)] px-2.5 text-xs font-semibold">Todas para off</button>
+                </span>
+              )}
+            </summary>
             <ul>
               {orders.map((order) => (
                 <li key={order.id} className="flex items-center gap-3 border-t border-[var(--line)] px-3 py-2">

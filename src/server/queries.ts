@@ -125,15 +125,29 @@ export async function clientPhones(ids: string[]) {
   return map;
 }
 
+/** Quais OS da lista estão em off (auditoria geral). */
+async function offMarks(ids: string[]) {
+  const map = new Map<string, string>();
+  if (!ids.length) return map;
+  const { supabase } = await requireProfile();
+  for (let i = 0; i < ids.length; i += 150) {
+    const { data, error } = await supabase.from("service_orders").select("id,audit_off_at").in("id", ids.slice(i, i + 150)).not("audit_off_at", "is", null);
+    if (error) return map;
+    for (const row of data ?? []) map.set(row.id as string, row.audit_off_at as string);
+  }
+  return map;
+}
+
 export async function loadOrders(filters: OrderFilters, options?: { statuses?: OrderStatus[]; pageSize?: number }) {
   const { supabase } = await requireProfile();
   const pageSize = options?.pageSize ?? (filters.status ? 400 : 20);
   const page = Math.max(1, Number(filters.page ?? "1") || 1);
-  let query = supabase.from("orders_enriched").select(
+  const q = clean(filters.q);
+  // Na busca, encontra também as OS em off (auditoria geral), que aparecem com a etiqueta "Em off".
+  let query = supabase.from(q ? "orders_enriched_all" : "orders_enriched").select(
     "id, number, client_name, laboratory_id, laboratory_name, laboratory_color, seller_name, store_name, external_order_id, entered_at, due_at, status, urgency, lens_expected_at",
     { count: "exact" },
   );
-  const q = clean(filters.q);
   if (q) {
     query = query.or(
       `number.ilike.%${q}%,client_name.ilike.%${q}%,seller_name.ilike.%${q}%,laboratory_name.ilike.%${q}%,external_order_id.ilike.%${q}%,store_name.ilike.%${q}%`,
@@ -163,9 +177,9 @@ export async function loadOrders(filters: OrderFilters, options?: { statuses?: O
 
   const { data, error, count } = await query;
   const rows = (data ?? []) as OrderRow[];
-  const [counts, phones] = await Promise.all([stepsDoneByOrder(rows.map((row) => row.id)), clientPhones(rows.map((row) => row.id))]);
+  const [counts, phones, offs] = await Promise.all([stepsDoneByOrder(rows.map((row) => row.id)), clientPhones(rows.map((row) => row.id)), q ? offMarks(rows.map((row) => row.id)) : Promise.resolve(new Map<string, string>())]);
   return {
-    orders: rows.map((row) => ({ ...row, steps_done: counts.get(row.id) ?? 0, client_phone: phones.get(row.id) ?? null })),
+    orders: rows.map((row) => ({ ...row, steps_done: counts.get(row.id) ?? 0, client_phone: phones.get(row.id) ?? null, audit_off_at: offs.get(row.id) ?? null })),
     count: count ?? 0,
     page,
     pageSize,

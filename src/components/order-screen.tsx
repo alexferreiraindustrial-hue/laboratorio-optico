@@ -262,7 +262,7 @@ export function OrderScreen({
                         <span className="lg-os-avatar" data-tone={late ? "late" : soon ? "soon" : "ok"} aria-hidden>{order.client_name.trim().split(/\s+/).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span>
                         <span className="lg-os-row-body">
                           <span className="flex items-baseline gap-2">
-                            <span className="min-w-0 flex-1 truncate text-[15.5px] font-semibold leading-snug">{order.client_name}</span>
+                            <span className="min-w-0 flex-1 truncate text-[15.5px] font-semibold leading-snug">{order.client_name}{order.audit_off_at ? <OffChip /> : null}</span>
                             <span className={cn("shrink-0 text-xs font-semibold", deadlineTone(order))}>{deltaLabel}</span>
                           </span>
                           <span className="flex items-center gap-2 text-[13px] text-[var(--muted)]">
@@ -328,7 +328,7 @@ export function OrderScreen({
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-2">
                         <Link href={orderHref(order.id)} scroll={false} className="flex min-w-0 flex-1 flex-col gap-0.5">
-                          <span className="font-semibold leading-tight">{order.client_name}</span>
+                          <span className="font-semibold leading-tight">{order.client_name}{order.audit_off_at ? <OffChip /> : null}</span>
                           <span className="text-xs text-[var(--muted)]">{order.seller_name || order.store_name || "—"}</span>
                         </Link>
                         <ClientWhatsApp orderId={order.id} client={order.client_name} phone={order.client_phone} status={order.status} />
@@ -369,4 +369,8 @@ export function OrderScreen({
       )}
     </div>
   );
+}
+
+function OffChip() {
+  return <span className="ml-2 inline-block rounded-full bg-[var(--warning-soft)] px-2 py-0.5 align-middle text-[11px] font-semibold text-[var(--warning)]" title="OS em off pela auditoria geral: bipe ou reative para voltar à operação">Em off</span>;
 }

@@ -13,7 +13,7 @@ export type GeneralAuditOrder = {
 export type OffOrder = { id: string; number: string; external_order_id: string | null; client_name: string; seller_name: string | null; status: string; audit_off_at: string };
 export type GeneralAuditData = {
   ready: boolean;
-  session: { id: string; started_at: string } | null;
+  session: { id: string; started_at: string; standby: boolean } | null;
   orders: GeneralAuditOrder[];
   off: OffOrder[];
   lastFinished: { finished_at: string; off_count: number } | null;
@@ -25,12 +25,20 @@ const FIELDS = "id,number,external_order_id,client_name,seller_name,status";
 export async function loadGeneralAudit(): Promise<GeneralAuditData> {
   const { supabase } = await requireProfile();
   const [open, last] = await Promise.all([
-    supabase.from("audit_sessions").select("id,started_at").is("finished_at", null).maybeSingle(),
+    supabase.from("audit_sessions").select("*").is("finished_at", null).maybeSingle(),
     supabase.from("audit_sessions").select("finished_at,off_count").not("finished_at", "is", null).order("finished_at", { ascending: false }).limit(1),
   ]);
   if (open.error) return { ready: false, session: null, orders: [], off: [], lastFinished: null };
-  const offQuery = await supabase.from("orders_enriched_all").select(`${FIELDS},audit_off_at`).not("audit_off_at", "is", null).order("audit_off_at", { ascending: false }).limit(2000);
-  const off = (offQuery.data ?? []) as OffOrder[];
+  // A marca de off fica na tabela da OS; nome da vendedora vem da visão completa.
+  const offRows = await supabase.from("service_orders").select("id,audit_off_at").not("audit_off_at", "is", null).order("audit_off_at", { ascending: false }).limit(2000);
+  const offAt = new Map((offRows.data ?? []).map((row) => [row.id as string, row.audit_off_at as string]));
+  const off: OffOrder[] = [];
+  const offIds = [...offAt.keys()];
+  for (let i = 0; i < offIds.length; i += 150) {
+    const { data } = await supabase.from("orders_enriched_all").select(FIELDS).in("id", offIds.slice(i, i + 150));
+    for (const row of data ?? []) off.push({ ...(row as Omit<OffOrder, "audit_off_at">), audit_off_at: offAt.get(row.id as string)! });
+  }
+  off.sort((a, b) => b.audit_off_at.localeCompare(a.audit_off_at));
   const lastFinished = (last.data?.[0] as GeneralAuditData["lastFinished"]) ?? null;
   if (!open.data) return { ready: true, session: null, orders: [], off, lastFinished };
 
@@ -52,5 +60,6 @@ export async function loadGeneralAudit(): Promise<GeneralAuditData> {
       orders.push({ ...(row as Omit<GeneralAuditOrder, "found_at" | "found_position">), found_at: mark?.found_at ?? null, found_position: mark?.found_position ?? null });
     }
   }
-  return { ready: true, session: open.data, orders, off, lastFinished };
+  const session = { id: open.data.id as string, started_at: open.data.started_at as string, standby: Boolean((open.data as { standby?: boolean }).standby) };
+  return { ready: true, session, orders, off, lastFinished };
 }

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArchiveRestore, PowerOff, RefreshCw, ScanLine, Search } from "lucide-react";
-import { finishGeneralAudit, reactivateOrder, startGeneralAudit } from "@/server/audit-actions";
+import { cancelGeneralAudit, finishGeneralAudit, reactivateOrder, startGeneralAudit } from "@/server/audit-actions";
 import type { GeneralAuditData, GeneralAuditOrder, OffOrder } from "@/server/general-audit";
 import { STATUS_LABEL, type OrderStatus } from "@/lib/domain/constants";
 import { visibleOrderNumber } from "@/lib/domain/orders";
@@ -29,10 +29,13 @@ export function GeneralAuditPanel({ data, canManage }: { data: GeneralAuditData;
     return <p className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4 text-sm">A auditoria geral ainda não foi instalada no banco. Rode o arquivo <b>auditoria-geral.sql</b> no Supabase e atualize esta página.</p>;
   }
 
-  function begin() {
-    if (!window.confirm("Iniciar a auditoria geral? Todas as OS em aberto ficam anotadas como \"a conferir\". Nada muda nas OS até você bipar ou encerrar.")) return;
+  function begin(mode: "zero" | "normal") {
+    const text = mode === "zero"
+      ? "Começar do zero? Todas as OS em aberto vão para standby agora e somem da operação. Cada OS volta quando for bipada, no lugar bipado. Os dados ficam guardados e dá para cancelar."
+      : "Iniciar a auditoria normal? As OS ficam anotadas como \"a conferir\". Nada muda até você bipar ou encerrar.";
+    if (!window.confirm(text)) return;
     start(async () => {
-      const result = await startGeneralAudit();
+      const result = await startGeneralAudit(mode);
       if (!result.ok) return void toast.error(result.message);
       toast.success(result.message ?? "Auditoria iniciada.");
       router.refresh();
@@ -43,14 +46,21 @@ export function GeneralAuditPanel({ data, canManage }: { data: GeneralAuditData;
     <div className="grid gap-4">
       {data.session ? <OpenAudit data={data} canManage={canManage} /> : (
         <section className="grid gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4">
-          <h2 className="text-lg font-semibold">Como funciona</h2>
-          <ol className="grid list-decimal gap-1 pl-5 text-sm">
-            <li>Inicie a auditoria. Nenhuma OS muda: elas só ficam anotadas como “a conferir”.</li>
-            <li>No PDV, aperte <b>F8 Auditoria</b>, escolha onde você está (ex.: Pronto) e bipe tudo o que está ali. A OS vai para a posição bipada e fica conferida.</li>
-            <li>Volte aqui, confira a lista do que não foi bipado e coloque em <b>off</b>. Os dados ficam guardados e a OS volta sozinha se for bipada depois.</li>
-          </ol>
+          <h2 className="text-lg font-semibold">Escolha como começar</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid content-start gap-2 rounded-lg border border-[var(--line)] p-3">
+              <p className="font-semibold">Começar do zero (limpar o sistema)</p>
+              <p className="text-sm text-[var(--muted)]">Todas as OS em aberto vão para <b>standby</b> na hora. No PDV, <b>F8 Auditoria</b>: cada OS bipada volta para a operação no lugar bipado. O que não for bipado continua em off, com os dados guardados, e aparece na busca com a etiqueta “Em off”.</p>
+              {canManage ? <div><Button disabled={pending} onClick={() => begin("zero")}><ScanLine size={17} aria-hidden />Começar do zero</Button></div> : null}
+            </div>
+            <div className="grid content-start gap-2 rounded-lg border border-[var(--line)] p-3">
+              <p className="font-semibold">Auditoria normal (conferência)</p>
+              <p className="text-sm text-[var(--muted)]">Nada sai da operação. Bipe gaveta por gaveta; no fim, escolha o que não foi encontrado e coloque em off.</p>
+              {canManage ? <div><Button variant="secondary" disabled={pending} onClick={() => begin("normal")}>Iniciar auditoria normal</Button></div> : null}
+            </div>
+          </div>
           {data.lastFinished ? <p className="text-xs text-[var(--muted)]">Última auditoria encerrada em {formatDateTime(data.lastFinished.finished_at)} · {data.lastFinished.off_count} OS em off.</p> : null}
-          {canManage ? <div><Button disabled={pending} onClick={begin}><ScanLine size={17} aria-hidden />Iniciar auditoria geral</Button></div> : <p className="text-sm text-[var(--muted)]">Somente administrador ou gestor inicia a auditoria.</p>}
+          {!canManage ? <p className="text-sm text-[var(--muted)]">Somente administrador ou gestor inicia a auditoria.</p> : null}
         </section>
       )}
       <OffList off={data.off} />
@@ -90,9 +100,21 @@ function OpenAudit({ data, canManage }: { data: GeneralAuditData; canManage: boo
   function toggle(id: string) {
     setUnchecked((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; });
   }
+  const standby = Boolean(data.session?.standby);
+  function cancel() {
+    if (!window.confirm("Cancelar a auditoria? As OS que ainda não foram bipadas saem do standby e voltam para a operação como estavam.")) return;
+    start(async () => {
+      const result = await cancelGeneralAudit();
+      if (!result.ok) return void toast.error(result.message);
+      toast.success(result.message ?? "Auditoria cancelada.");
+      router.refresh();
+    });
+  }
   function finish(withOff: boolean) {
-    const ids = withOff ? selected.map((order) => order.id) : [];
-    const text = withOff
+    const ids = withOff && !standby ? selected.map((order) => order.id) : [];
+    const text = standby
+      ? `Concluir a auditoria? As ${missing.length} OS não bipadas continuam em off (dados guardados). Se aparecerem depois, é só bipar.`
+      : withOff
       ? `Encerrar a auditoria e colocar ${ids.length} OS em off? Elas saem da operação, mas os dados ficam guardados e voltam se forem bipadas.`
       : "Encerrar a auditoria sem colocar nenhuma OS em off?";
     if (!window.confirm(text)) return;
@@ -108,7 +130,7 @@ function OpenAudit({ data, canManage }: { data: GeneralAuditData; canManage: boo
     <section className="grid gap-4 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Auditoria em andamento</h2>
+          <h2 className="text-lg font-semibold">{standby ? "Começando do zero · em andamento" : "Auditoria em andamento"}</h2>
           <p className="text-xs text-[var(--muted)]">Iniciada em {formatDateTime(data.session!.started_at)} · atualiza sozinha a cada 30 segundos</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -136,20 +158,20 @@ function OpenAudit({ data, canManage }: { data: GeneralAuditData; canManage: boo
 
       <div className="grid gap-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-base font-semibold">Ainda não bipadas · {missing.length}</h3>
+          <h3 className="text-base font-semibold">{standby ? "Em standby (ainda não bipadas)" : "Ainda não bipadas"} · {missing.length}</h3>
           <label className="relative">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" aria-hidden />
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar OS, cliente, vendedora" aria-label="Buscar nas não bipadas" className="min-h-11 w-64 rounded-lg border border-[var(--line)] bg-[var(--surface)] pl-9 pr-3 text-sm" />
           </label>
         </div>
-        <p className="text-xs text-[var(--muted)]">As marcadas vão para off no encerramento. Desmarque o que você sabe que ainda está no laboratório (ex.: com o médico ou na bancada de alguém) e bipe depois.</p>
+        <p className="text-xs text-[var(--muted)]">{standby ? "Estas OS estão fora da operação até serem bipadas. Bipe no PDV (F8 Auditoria) para trazer cada uma de volta no lugar certo." : "As marcadas vão para off no encerramento. Desmarque o que você sabe que ainda está no laboratório (ex.: com o médico ou na bancada de alguém) e bipe depois."}</p>
         {grouped.map(([status, orders]) => (
           <details key={status} open className="rounded-lg border border-[var(--line)]">
             <summary className="cursor-pointer px-3 py-2 text-sm font-semibold">{statusName(status)} · {orders.length}</summary>
             <ul>
               {orders.map((order) => (
                 <li key={order.id} className="flex items-center gap-3 border-t border-[var(--line)] px-3 py-2">
-                  <input type="checkbox" checked={!unchecked.has(order.id)} onChange={() => toggle(order.id)} aria-label={`Colocar em off a OS ${visibleOrderNumber(order)}`} className="h-5 w-5" />
+                  {standby ? null : <input type="checkbox" checked={!unchecked.has(order.id)} onChange={() => toggle(order.id)} aria-label={`Colocar em off a OS ${visibleOrderNumber(order)}`} className="h-5 w-5" />}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{order.client_name}</p>
                     <p className="text-xs text-[var(--muted)]"><span className="font-mono">{visibleOrderNumber(order)}</span> · {order.seller_name || "Sem vendedora"}</p>
@@ -165,8 +187,18 @@ function OpenAudit({ data, canManage }: { data: GeneralAuditData; canManage: boo
 
       {canManage ? (
         <div className="flex flex-wrap gap-2 border-t border-[var(--line)] pt-3">
-          <Button disabled={pending || !selected.length} onClick={() => finish(true)}><PowerOff size={16} aria-hidden />Encerrar e colocar em off ({selected.length})</Button>
-          <Button variant="secondary" disabled={pending} onClick={() => finish(false)}>Encerrar sem colocar em off</Button>
+          {standby ? (
+            <>
+              <Button disabled={pending} onClick={() => finish(false)}><PowerOff size={16} aria-hidden />Concluir (não bipadas continuam em off)</Button>
+              <Button variant="secondary" disabled={pending} onClick={cancel}>Cancelar e reativar as não bipadas</Button>
+            </>
+          ) : (
+            <>
+              <Button disabled={pending || !selected.length} onClick={() => finish(true)}><PowerOff size={16} aria-hidden />Encerrar e colocar em off ({selected.length})</Button>
+              <Button variant="secondary" disabled={pending} onClick={() => finish(false)}>Encerrar sem colocar em off</Button>
+              <Button variant="secondary" disabled={pending} onClick={cancel}>Cancelar auditoria</Button>
+            </>
+          )}
         </div>
       ) : null}
     </section>

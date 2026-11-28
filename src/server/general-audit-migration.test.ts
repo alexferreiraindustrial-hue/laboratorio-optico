@@ -28,6 +28,7 @@ beforeAll(async () => {
       select o.*, l.name as laboratory_name from service_orders o join laboratories l on l.id = o.laboratory_id;
   `);
   await db.exec(readFileSync("supabase/migrations/20261128120000_general_audit.sql", "utf8"));
+  await db.exec(readFileSync("supabase/migrations/20261128150000_general_audit_standby.sql", "utf8"));
 }, 30000);
 afterAll(async () => { await db?.close(); });
 
@@ -78,4 +79,30 @@ it("portal sabe quais OS da lista estão em off", async () => {
   await db.query("select finish_general_audit($1)", [[a]]);
   const hidden = (await db.query<{ portal_hidden_orders: string }>("select portal_hidden_orders($1)", [[a]])).rows.map((r) => r.portal_hidden_orders);
   expect(hidden).toEqual([a]);
+});
+
+it("modo do zero: tudo em standby ao iniciar, volta ao bipar, cancelar reativa o resto", async () => {
+  const a = await make("pronto", "Eva");
+  const b = await make("em_montagem", "Fabio");
+  const c = await make("aguardando_lentes", "Gil");
+  await db.query("select start_general_audit_standby()");
+  const visible = await enriched();
+  expect(visible).not.toContain(a);
+  expect(visible).not.toContain(b);
+  expect(await all()).toEqual(expect.arrayContaining([a, b, c]));
+  await role("montador");
+  await db.query("select audit_mark_found($1,'pronto')", [a]);
+  await role("admin");
+  expect(await enriched()).toContain(a);
+  await db.query("select cancel_general_audit()");
+  expect(await enriched()).toEqual(expect.arrayContaining([a, b, c]));
+
+  await db.query("select start_general_audit_standby()");
+  await db.query("select audit_mark_found($1,'em_montagem')", [b]);
+  const done = (await db.query<{ off_count: number }>("select (finish_general_audit('{}')).off_count")).rows[0];
+  expect(await enriched()).toContain(b);
+  expect(await enriched()).not.toContain(a);
+  expect(done.off_count).toBeGreaterThanOrEqual(2);
+  const row = (await db.query<Record<string, unknown>>("select status,client_name from service_orders where id=$1", [c])).rows[0];
+  expect(row).toEqual({ status: "aguardando_lentes", client_name: "Gil" });
 });

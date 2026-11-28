@@ -85,13 +85,25 @@ function refreshGeneral() {
   for (const path of ["/laboratorio", "/lentes", "/montagem", "/inicio", "/dashboard", "/avisos", "/laboratorio/auditoria-geral"]) revalidatePath(path);
 }
 
-export async function startGeneralAudit(): Promise<ActionResult> {
+/** "zero": todas as OS vão para standby e voltam ao serem bipadas. "normal": nada muda até o encerramento. */
+export async function startGeneralAudit(mode: "zero" | "normal"): Promise<ActionResult> {
   const { supabase, role } = await requireProfile();
   if (!["admin", "gestor"].includes(role)) return { ok: false, message: "Somente administrador ou gestor inicia a auditoria geral." };
-  const { error } = await supabase.rpc("start_general_audit");
+  const { error } = await supabase.rpc(mode === "zero" ? "start_general_audit_standby" : "start_general_audit");
   if (error) return { ok: false, message: actionError(error, "Não foi possível iniciar a auditoria. A atualização do banco já foi feita?") ?? "" };
   refreshGeneral();
-  return { ok: true, message: "Auditoria geral iniciada. Agora é só bipar gaveta por gaveta." };
+  return mode === "zero"
+    ? { ok: true, message: "Começou do zero: todas as OS estão em standby. Cada OS bipada volta para a operação no lugar certo." }
+    : { ok: true, message: "Auditoria iniciada. Agora é só bipar gaveta por gaveta." };
+}
+
+export async function cancelGeneralAudit(): Promise<ActionResult> {
+  const { supabase, role } = await requireProfile();
+  if (!["admin", "gestor"].includes(role)) return { ok: false, message: "Somente administrador ou gestor cancela a auditoria geral." };
+  const { error } = await supabase.rpc("cancel_general_audit");
+  if (error) return { ok: false, message: actionError(error, "Não foi possível cancelar a auditoria.") ?? "" };
+  refreshGeneral();
+  return { ok: true, message: "Auditoria cancelada. As OS que estavam em standby voltaram para a operação." };
 }
 
 export async function finishGeneralAudit(offIds: string[]): Promise<ActionResult> {

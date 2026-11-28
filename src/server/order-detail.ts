@@ -60,7 +60,7 @@ export async function loadOrderDetail(id: string) {
   const urlByPath = new Map((signed.data ?? []).map((item) => [item.path, item.signedUrl]));
 
   const [phoneRow, readyNotice] = await Promise.all([
-    supabase.from("service_orders").select("client_phone").eq("id", id).maybeSingle(),
+    supabase.from("service_orders").select("*").eq("id", id).maybeSingle(),
     supabase.from("order_notice_logs").select("notified_at,event_at").eq("order_id", id).eq("notice_kind", "ready").eq("recipient", "client").order("notified_at", { ascending: false }).limit(1),
   ]);
   const lastReady = readyNotice.data?.[0];
@@ -71,6 +71,7 @@ export async function loadOrderDetail(id: string) {
   };
 
   (order as { client_phone?: string | null }).client_phone = clientContact.phone;
+  (order as { audit_off_at?: string | null }).audit_off_at = phoneRow.error ? null : ((phoneRow.data as { audit_off_at?: string | null } | null)?.audit_off_at ?? null);
 
   return {
     clientContact,
